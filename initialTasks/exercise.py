@@ -84,10 +84,10 @@ def main():
         sys.exit()
 
     else:
-        f = arguments[0]
-        print("\nNow opening file..."+f)
+        inpfile = arguments[0]
+        print("\nNow opening file..."+inpfile)
         # Print the path provided and try to open the file for reading
-        f = open_file(f)
+        f = open_file(inpfile)
 
         print("\nNow reading file...")
         # Print out all the characters in the file, until the end of file
@@ -99,7 +99,7 @@ def main():
 
         print("\nNow skipping spaces...")
         # Print out all the characters in the file, without spaces
-        f = open_file(f)
+        f = open_file(inpfile)
         while True:
             char = get_next_non_whitespace_character(f)
             if char is None:
@@ -108,7 +108,7 @@ def main():
 
         print("\nNow reading numbers...")
         # Print out all the numbers in the file
-        f = open_file(f)
+        f = open_file(inpfile)
         while True:
             num = get_next_number(f)
             if num is None:
@@ -117,7 +117,7 @@ def main():
 
         print("\nNow reading names...")
         # Print out all the names in the filethe
-        f = open_file(f)
+        f = open_file(inpfile)
         while True:
             name = get_next_name(f)
             if name is None:
@@ -126,7 +126,7 @@ def main():
 
         print("\nNow censoring bad names...")
         # Print out only the good names in the file
-        f = open_file(f)
+        f = open_file(inpfile)
         name = MyNames()
         bad_name_ids = [name.lookup("Terrible"), name.lookup("Horrid"),
                         name.lookup("Ghastly"), name.lookup("Awful")]
@@ -136,7 +136,7 @@ def main():
                 break
             out = name.lookup(n[0])
             if out not in bad_name_ids:
-                print(out)
+                print(name.get_string(out))
 
 
 if __name__ == "__main__":
