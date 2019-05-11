@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Read the circuit definition file and translate the characters into symbols.
 
 Used in the Logic Simulator project to read the characters in the definition

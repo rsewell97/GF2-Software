@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Implement the graphical user interface for the Logic Simulator.
 
 Used in the Logic Simulator project to enable the user to run the simulation

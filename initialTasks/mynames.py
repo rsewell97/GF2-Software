@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Implements a name table for lexical analysis.
 
 Classes
