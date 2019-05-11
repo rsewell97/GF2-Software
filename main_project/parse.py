@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Parse the definition file and build the logic network.
 
 Used in the Logic Simulator project to analyse the syntactic and semantic

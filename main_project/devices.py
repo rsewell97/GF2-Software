@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Make devices and set device properties.
 
 Used in the Logic Simulator project to make devices and ports and store their

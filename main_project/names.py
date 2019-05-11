@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Map variable names and string names to unique integers.
 
 Used in the Logic Simulator project. Most of the modules in the project
@@ -42,6 +43,8 @@ class Names:
         """Initialise names list."""
         self.error_code_count = 0  # how many error codes have been declared
 
+        self.names = []
+
     def unique_error_codes(self, num_error_codes):
         """Return a list of unique integer error codes."""
         if not isinstance(num_error_codes, int):
@@ -55,15 +58,42 @@ class Names:
 
         If the name string is not present in the names list, return None.
         """
+        name_string = str(name_string)
+        if not name_string.isalnum():
+            raise SyntaxError("string name is not alphanumeric")
+        if name_string.isdigit():
+            raise SyntaxError("name is string")
+
+        if name_string in self.names:
+            return self.names.index(name_string)
+        else:
+            self.names.append(name_string)
+            return self.names.index(name_string)
 
     def lookup(self, name_string_list):
         """Return a list of name IDs for each name string in name_string_list.
 
         If the name string is not present in the names list, add it.
         """
+        id_list = []
+        for name_string in name_string_list:
+            if name_string not in self.names:
+                self.names.append(name_string)
+            
+            id_list.append(self.names.index(name_string))
+
+        return id_list
 
     def get_name_string(self, name_id):
         """Return the corresponding name string for name_id.
 
         If the name_id is not an index in the names list, return None.
         """
+        if name_id < 0:
+            raise ValueError("name_id is not valid")
+
+        try:
+            return self.names[name_id]
+        except IndexError:
+            return None
+            
