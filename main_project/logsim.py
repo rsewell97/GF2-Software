@@ -43,14 +43,14 @@ def main(arg_list):
         sys.exit()
 
     # Initialise instances of the four inner simulator classes
-    # names = Names()
-    # devices = Devices(names)
-    # network = Network(names, devices)
-    # monitors = Monitors(names, devices, network)
-    names = None
-    devices = None
-    network = None
-    monitors = None
+    names = Names()
+    devices = Devices(names)
+    network = Network(names, devices)
+    monitors = Monitors(names, devices, network)
+    # names = None
+    # devices = None
+    # network = None
+    # monitors = None
 
     for option, path in options:
         if option == "-h":  # print the usage message

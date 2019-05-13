@@ -92,7 +92,7 @@ class Devices:
 
     make_d_type(self, device_id): Makes a D-type device.
 
-    cold_startup(self): Simulates cold start-up of D-types and clocks.
+    cold_startup(self): Simulates cold start-up of D-types and c locks.
 
     make_device(self, device_id, device_kind, device_property=None): Creates
                        the specified device and returns errors if unsuccessful.

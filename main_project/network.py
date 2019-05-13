@@ -138,7 +138,8 @@ class Network:
 
         elif first_port_id in first_device.outputs:
             if second_port_id in second_device.outputs:
-                # Both ports are outputs
+                # Both ports are outputs                if second_device.inputs[second_port_id] is not None:
+
                 error_type = self.OUTPUT_TO_OUTPUT
             elif second_port_id in second_device.inputs:
                 if second_device.inputs[second_port_id] is not None:
