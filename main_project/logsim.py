@@ -58,6 +58,7 @@ def main(arg_list):
             sys.exit()
         elif option == "-c":  # use the command line user interface
             scanner = Scanner(path, names)
+
             parser = Parser(names, devices, network, monitors, scanner)
             if parser.parse_network():
                 # Initialise an instance of the userint.UserInterface() class

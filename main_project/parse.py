@@ -37,6 +37,29 @@ class Parser:
     def __init__(self, names, devices, network, monitors, scanner):
         """Initialise constants."""
 
+        self.scanner = scanner
+        self.names = names
+        self.devices = devices
+        self.network = network
+        self.monitors = monitors
+
+        self.symbol_type = None
+        self.symbol_id = None
+        self.error_counter = 0
+
+        [self.NO_DEVICE_KEYWORD, self.NO_CONNECTIONS_KEYWORD,
+         self.NO_MONITOR_KEYWORD, self.MISSING_COLON, self.MISSING_SEMICOLON,
+         self.INVALID_DEVICE_NAME, self.MISSING_DELIMITER, self.PORT_MISSING,
+         self.INVALID_OUTPUT, self.INVALID_INPUT, self.MISSING_ARROW,
+         self.NOT_ALL_INPUTS_CONNECTED, self.UNEXPECTED_SYMBOL,
+         self.PREMATURE_EOF, self.COMMA_NOT_SEMICOLON,
+         self.CONNECTIONS_DUPLICATE
+         ] = self.names.unique_error_codes(16)
+
+        self.device_list = ["DTYPE", "XOR", "AND", "NAND", "OR", "NOR",
+                            "SWITCH", "CLOCK", "RC", "NOT"]
+        self.type_id_list = self.names.lookup(self.device_list)
+    
     def parse_network(self):
         """Parse the circuit definition file."""
         # For now just return True, so that userint and gui can run in the
