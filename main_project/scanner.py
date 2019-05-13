@@ -52,12 +52,9 @@ class Scanner:
 
     def __init__(self, path, names):
         """Open specified file and initialise reserved words and IDs."""
-<<<<<<< HEAD
+
         self.file = open(path,'r')
 
-
-=======
->>>>>>> 48b2f0a1c30c28fbf4fb25bfadbc41d71c61b314
 
     def get_symbol(self):
         """Translate the next sequence of characters into a symbol."""

@@ -1,9 +1,5 @@
 env/
 __pycache__/
 .pytest_cache/
-<<<<<<< HEAD
 */.vscode/
 */__pycache__/
-=======
-
->>>>>>> 48b2f0a1c30c28fbf4fb25bfadbc41d71c61b314
