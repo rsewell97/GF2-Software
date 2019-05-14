@@ -65,18 +65,21 @@ class Scanner:
         """"Open specified file and initialise reserved words and IDs."""
         self.names = names
         self.symbol_type_list = [self.HEADING, self.KEYWORD, self.NUMBER, 
-        self.NAME, self.COMMA, self.COLON, self.ARROW, self.NEW_LINE,
-        self.CURLY_OPEN, self.CURLY_CLOSE, self.DOT, self.EOF] = range(12)
+                    self.NAME, self.COMMA, self.ARROW, self.NEW_LINE,
+                    self.CURLY_OPEN, self.CURLY_CLOSE, self.DOT, self.EOF] = range(11)
 
         self.heading_list = ["devices", "init", "connections", "monitor"]
         [self.DEVICES_ID, self.INIT_ID, self.CONNECTION_ID, self.MONITOR_ID] = self.names.lookup(self.heading_list)
 
+        self.keyword_list = ["device", "are", "is", "initially", "to"]
+        [self.DEVICE, self.ARE, self.IS, 
+            self.INITIALLY, self.TO] = self.names.lookup(self.keyword_list)
+
+        self.ignore = ["gate", "gates", "a", "an", "have", "has"]
 
         self.current_character = ""
         self.current_line = 0
         self.character_number = 0
-
-
 
     def get_symbol(self):
         """Translate the next sequence of characters into a symbol."""
@@ -87,9 +90,16 @@ class Scanner:
             name_list = self.get_name()
             name_string = name_list[0]
 
-            if name_string.lower() in self.heading_list:
-                symbol.type = self.KEYWORD
+            if name_string in self.ignore:
+                # ignore these words
+                return None
+
+            elif name_string.lower() in self.heading_list:
+                symbol.type = self.HEADING
                 symbol.id = self.names.query(name_string)
+            elif name_string.lower() in self.keyword_list:
+                symbol.type = self.KEYWORD
+                symbol.id = self.names.query(name_string)                
             else:
                 symbol.type = self.NAME
                 [symbol.id] = self.names.lookup([name_string])
@@ -99,7 +109,7 @@ class Scanner:
         elif self.current_character.isdigit(): # number
             symbol.id = self.get_number()
             symbol.type = self.NUMBER
-
+            print(symbol.id[0],end=' ')
 
         elif self.current_character == "=": # punctuation
             if self.advance() == '>':
@@ -128,8 +138,8 @@ class Scanner:
             print("}",end='')
 
         elif self.current_character == ":":
-            symbol.type = self.COLON
             self.advance()
+            return None
 
         elif self.current_character == ".":
             symbol.type = self.DOT

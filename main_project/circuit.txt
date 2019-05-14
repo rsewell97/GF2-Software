@@ -4,7 +4,7 @@ devices: {
 }
 init: {
     S1, S2 are switches
-    S1, S2 are initialy 0
+    S1, S2 are initially 0
 }
 connections: {
     device A: {

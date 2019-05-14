@@ -64,17 +64,19 @@ class Parser:
     def parse_network(self):
         """Parse the circuit definition file."""
 
-        """first list devices"""
         self.scanner.skip_newline()
         # skip first N linebreaks
 
         while True:
             self.symbol = self.scanner.get_symbol()
-            
+            if self.symbol is None:
+                continue
+
             if self.symbol.type == self.scanner.HEADING:
-                
+
                 if self.symbol.id == self.scanner.DEVICES_ID:
                     self.parse_section(self.scanner.DEVICES_ID)
+                    # sys.exit()
                 # elif self.symbol.id == self.scanner.INPUTS_ID:
                 #     self.parse_section()
                 # elif self.symbol.id == self.scanner.CONNECTION_ID:
@@ -96,31 +98,42 @@ class Parser:
         return True
     
     def parse_section(self, heading_id):
-    
-        while self.symbol.type != self.scanner.CURLY_OPEN:
-            self.symbol = self.scanner.get_symbol()       
+        """Parse 1 section block encapsulated by '{' and '}' and build circuit"""
+        while True:
+            self.symbol = self.scanner.get_symbol()
+            if self.symbol is None:
+                continue
+            elif self.symbol.type == self.scanner.CURLY_OPEN:
+                break
+            else:
+                raise SyntaxError("Illegal character after heading title")
         
         nest_count = 1 # layers of curly brackets
-
-        while nest_count > 0:
-
+        while nest_count > 0: #loops 1 line at a time by calling parse_device()
+            
             self.symbol = self.scanner.get_symbol()
-
+            if self.symbol is None: # ignore the word
+                continue
+            
             if self.symbol.type == self.scanner.CURLY_OPEN:
                 nest_count += 1
             elif self.symbol.type == self.scanner.CURLY_CLOSE:
                 nest_count -= 1
-            
-            if nest_count < 1:
+    
+            else:
+                self.parse_device()
+
+            if nest_count < 1: # end of section
                 break
 
         # end of section
-        sys.exit()
             
     def parse_device(self):
-        
-        while self.scanner.current_character != self.scanner.NEW_LINE:
+        """Build devices by reading 1 line at a time"""
+        # print(self.scanner.current_character)
+        # while self.scanner.current_character != self.scanner.NEW_LINE:
 
-            self.symbol = self.scanner.get_symbol()
-            if self.symbol.type == self.scanner.NAME:
-                pass
+        #     self.symbol = self.scanner.get_symbol()
+        #     if self.symbol.type == self.scanner.NAME:
+        #         print("")
+        pass
