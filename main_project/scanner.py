@@ -71,13 +71,15 @@ class Scanner:
         [self.DEVICES_ID, self.INIT_ID, self.CONNECTION_ID, self.MONITOR_ID] = self.names.lookup(self.heading_list)
 
         self.keyword_list = ["are", "is", "have", "has", "to", "initially"]
-        [_, _, _, _, _, self.INITIALLY] = self.names.lookup(self.keyword_list)
+        [self.ARE, self.IS, self.HAVE, self.HAS,
+        self.TO, self.INITIALLY] = self.names.lookup(self.keyword_list)
 
         self.ignore = ["gate", "gates", "a", "an"]
 
         self.current_character = ""
         self.current_line = 0
         self.character_number = 0
+        self.word_number = 0
 
     def get_symbol(self):
         """Translate the next sequence of characters into a symbol."""
@@ -149,6 +151,7 @@ class Scanner:
         else: # not a valid character
             raise SyntaxError("Used invalid character '{}'".format(self.current_character))
 
+        self.word_number += 1
         return symbol
 
 
@@ -206,5 +209,6 @@ class Scanner:
         if self.current_character == '\n':
             self.current_line += 1
             self.character_number = 0
+            self.word_number = 0
         
         return self.current_character

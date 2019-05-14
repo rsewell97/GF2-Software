@@ -64,8 +64,8 @@ class Parser:
     def parse_network(self):
         """Parse the circuit definition file."""
 
-        self.scanner.skip_newline()
         # skip first N linebreaks
+        self.scanner.skip_newline()
 
         while True:
             self.symbol = self.scanner.get_symbol()
@@ -73,22 +73,20 @@ class Parser:
                 continue
 
             if self.symbol.type == self.scanner.HEADING:
-
+                #comment out whichever lines you want in order to debug your section
                 if self.symbol.id == self.scanner.DEVICES_ID:
                     self.parse_section('devices')
-                    sys.exit()
-                # elif self.symbol.id == self.scanner.INIT_ID:
-                #     self.parse_section('init')
-                # elif self.symbol.id == self.scanner.CONNECTION_ID:
-                #     self.parse_section('connections')
-                # elif self.symbol.id == self.scanner.MONITOR_ID:
-                #     self.parse_section('monitor')
+                elif self.symbol.id == self.scanner.INIT_ID:
+                    self.parse_section('init')
+                elif self.symbol.id == self.scanner.CONNECTION_ID:
+                    self.parse_section('connections')
+                elif self.symbol.id == self.scanner.MONITOR_ID:
+                    self.parse_section('monitor')
             
             elif self.symbol.type == self.scanner.EOF:
                 break
 
             else:
-                print(self.symbol.type)
                 raise SyntaxError("not allowed to write lines outside of keywords")
             
             self.scanner.skip_newline()
@@ -114,7 +112,9 @@ class Parser:
 
         if heading == 'devices':
             # call parse_device() here to create devices
-            self.parse_device()
+            while self.parse_device():
+                self.scanner.skip_newline()
+
 
         elif heading == 'init':
             # call parse device() here to create switches
@@ -132,82 +132,49 @@ class Parser:
             
     def parse_device(self):
         """Build devices by reading 1 line at a time"""
-
         # ----------- CREATES DEVICES --------------
         # FORMAT = A, B are NAND gates
         # OR FORMAT = A1 => A12 are NAND gates
-        self.scanner.skip_newline() 
 
-        devices = []
-        list_format = None
-        while True:
+        definition_delimiters = [self.scanner.IS, self.scanner.ARE]
+        attribute_delimiters = [self.scanner.HAS, self.scanner.HAVE]
+
+        devices, definition = self.get_names_before_delimiter(definition_delimiters, attribute_delimiters)
+        print(devices)
+        if definition:
+
+            # -------------- GET GATE TYPE -------------- #
             self.symbol = self.scanner.get_symbol()
-            if self.symbol is None:
-                continue
-            
-            elif self.symbol.type == self.scanner.NEW_LINE:
-                break
+            word = self.scanner.names.get_name_string(self.symbol.id)
+            if word in self.device_list:
+                gate_type = self.devices.names.query(word)
+            else:
+                raise SyntaxError("Invalid gate type")
 
-            elif self.symbol.type == self.scanner.COMMA:
-                if list_format == False:
-                    raise SyntaxError("cannot have , and => formats on 1 line")
-                list_format = True
-            elif self.symbol.type == self.scanner.ARROW:
-                if list_format == True:
-                    raise SyntaxError("cannot have , and => formats on 1 line")
-                list_format = False
-
-            elif self.symbol.type == self.scanner.NAME:
-                word = self.scanner.names.get_name_string(self.symbol.id)
-
-                if word in self.device_list:
-                    gate_type = self.devices.names.query(word)
-                else:
-                    devices.append(word)
-
-        if not list_format and len(devices) == 2:
-            
-            base = devices[0].rstrip('0123456789') # gets base string
-            low = re.match('.*?([0-9]+)$', devices[0]).group(1)
-            high = re.match('.*?([0-9]+)$', devices[1]).group(1)
-            lowint, highint = int(low), int(high)
-
-            if lowint > highint:
-                raise ValueError("incorrect order of range values")
-            for i in range(lowint, highint+1):
-                self.devices.add_device(base+str(i), gate_type)
-
-        else:
             for i in devices:
+                # add gates to model
                 self.devices.add_device(i, gate_type)
 
-        print(len(self.devices.devices_list))
-
-
-    def connect(self):
-    
-        self.symbol = self.scanner.get_symbol()
-        if self.symbol.type == self.scanner.NAME:
-            # must be an output
-            id1 = self.symbol.id
-        else:
-            raise SyntaxError
+            print(len(self.devices.devices_list))
         
-        self.symbol = self.scanner.get_symbol()
-        if self.symbol.type == self.scanner.TO:
-            id1 = self.symbol.id
-        elif self.symbol.type == self.scanner.DOT:
-            raise IOError("input cannot be connected to another input")
         else:
-            raise SyntaxError("Expected => symbol")
+            # -------------- GET NUM INPUTS ------------- #
+            self.symbol = self.scanner.get_symbol()
+            if self.symbol.type == self.scanner.NUMBER:
+                num = self.symbol.id
+                for device in devices:
+                    for i in range(1, num+1):
+                        self.devices.add_input(device, i)
+                    print("adding inputs")
+                else:
+                    raise SyntaxError("Expected number")
 
-        self.symbol = self.scanner.get_symbol()
-        if self.symbol.type == self.scanner.NAME:
-            id2 = self.symbol.id
-        else:
-            raise SyntaxError("must be in form device.input_number")
-        
-        # join id1, id2 - also check they existS
+        return True
+
+    def parse_init(self):
+        pass
+
+    def parse_connections(self):
 
         # nest_count = 1 # tracks layers of curly brackets
         # while nest_count > 0: #loops 1 line at a time by calling parse_device()
@@ -231,3 +198,73 @@ class Parser:
 
     def add_monitor_point(self):
         pass
+
+
+
+    def get_names_before_delimiter(self, true_delimiting_word_ids, false_delimiting_word_ids):
+        """ tripwire function which takes 2 arrays of name_ids. Returns names and which list is encountered first"""
+        
+        devices = []
+        list_format = ret_val = None
+        i = 0
+        while True:
+            # get first SYMBOL
+            self.symbol = self.scanner.get_symbol()
+            print(self.symbol.type)
+            if self.symbol == None: # ignore the word if ignorable
+                continue
+            elif self.symbol.type == self.scanner.NEW_LINE:
+                continue
+            
+            elif self.symbol.type == self.scanner.COMMA:
+                list_format = True
+                continue
+
+            elif self.symbol.type == self.scanner.ARROW:
+                if list_format:
+                    raise SyntaxError
+                list_format = False
+                # find next name
+
+                self.symbol = self.scanner.get_symbol()
+                if self.symbol == None:
+                    raise SyntaxError
+                
+                elif self.symbol.type == self.scanner.NAME:
+                    word = self.scanner.names.get_name_string(self.symbol.id)
+                    devices.append(word)
+                    
+                    self.symbol = self.scanner.get_symbol()
+                    if self.symbol.id in true_delimiting_word_ids:
+                        ret_val = True
+                        break
+                    if self.symbol.id in false_delimiting_word_ids:
+                        ret_val = False
+                        break
+
+            if self.symbol.id in true_delimiting_word_ids:
+                ret_val = True
+                break
+            if self.symbol.id in false_delimiting_word_ids:
+                ret_val = False
+                break
+
+            # i+=1
+            # if i > 100:
+            #     return None
+
+        if not list_format and len(devices) == 2:
+            
+            base = devices[0].rstrip('0123456789') # gets base string
+            low = re.match('.*?([0-9]+)$', devices[0]).group(1)
+            high = re.match('.*?([0-9]+)$', devices[1]).group(1)
+            lowint, highint = int(low), int(high)
+
+            if lowint > highint:
+                raise ValueError("incorrect order of range values")
+            
+            devices = []
+            for i in range(lowint, highint+1):
+                devices.append(base+str(i))
+
+        return devices, ret_val
