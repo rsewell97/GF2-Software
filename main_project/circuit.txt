@@ -1,5 +1,5 @@
 devices: {
-    A, B are NAND gates
+    A1 => A12 are NAND gates
     A, B have 2 inputs
 }
 init: {

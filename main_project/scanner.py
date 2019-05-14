@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import sys
 
 """Read the circuit definition file and translate the characters into symbols.
@@ -56,7 +55,7 @@ class Scanner:
         """Open specified file and initialise reserved words and IDs."""
         try:
             self.input_file = open(path, 'r')
-        except (FileNotFoundError, IsADirectoryError):
+        except (FileNotFoundError):
             print("Error: File doesn't exist in current directory")
             sys.exit()
 
@@ -71,11 +70,10 @@ class Scanner:
         self.heading_list = ["devices", "init", "connections", "monitor"]
         [self.DEVICES_ID, self.INIT_ID, self.CONNECTION_ID, self.MONITOR_ID] = self.names.lookup(self.heading_list)
 
-        self.keyword_list = ["device", "are", "is", "initially", "to"]
-        [self.DEVICE, self.ARE, self.IS, 
-            self.INITIALLY, self.TO] = self.names.lookup(self.keyword_list)
+        self.keyword_list = ["are", "is", "have", "has", "to", "initially"]
+        [_, _, _, _, _, self.INITIALLY] = self.names.lookup(self.keyword_list)
 
-        self.ignore = ["gate", "gates", "a", "an", "have", "has"]
+        self.ignore = ["gate", "gates", "a", "an"]
 
         self.current_character = ""
         self.current_line = 0
@@ -97,7 +95,7 @@ class Scanner:
             elif name_string.lower() in self.heading_list:
                 symbol.type = self.HEADING
                 symbol.id = self.names.query(name_string)
-            elif name_string.lower() in self.keyword_list:
+            elif name_string in self.keyword_list:
                 symbol.type = self.KEYWORD
                 symbol.id = self.names.query(name_string)                
             else:
@@ -144,7 +142,6 @@ class Scanner:
         elif self.current_character == ".":
             symbol.type = self.DOT
             self.advance()
-
 
         elif self.current_character == "": # end of file
             symbol.type = self.EOF
