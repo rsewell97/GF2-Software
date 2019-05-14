@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import sys
 
 """Read the circuit definition file and translate the characters into symbols.
@@ -56,24 +55,29 @@ class Scanner:
         """Open specified file and initialise reserved words and IDs."""
         try:
             self.input_file = open(path, 'r')
-        except (FileNotFoundError, IsADirectoryError):
+        except (FileNotFoundError):
             print("Error: File doesn't exist in current directory")
             sys.exit()
 
         self.list_file = [line.rstrip('\n') for line in open(path, 'r')]
 
-
         """"Open specified file and initialise reserved words and IDs."""
         self.names = names
-        self.symbol_type_list = [self.COMMA, self.SEMICOLON, self.EQUALS,
-        self.KEYWORD, self.NUMBER, self.NAME, self.EOF] = range(7)
-        self.keywords_list = ["DEVICES", "CONNECT", "MONITOR", "END"]
+        self.symbol_type_list = [self.HEADING, self.KEYWORD, self.NUMBER, 
+                    self.NAME, self.COMMA, self.ARROW, self.NEW_LINE,
+                    self.CURLY_OPEN, self.CURLY_CLOSE, self.DOT, self.EOF] = range(11)
 
-        [self.DEVICES_ID, self.CONNECT_ID, self.MONITOR_ID,self.END_ID] = self.names.lookup(self.keywords_list)
+        self.heading_list = ["devices", "init", "connections", "monitor"]
+        [self.DEVICES_ID, self.INIT_ID, self.CONNECTION_ID, self.MONITOR_ID] = self.names.lookup(self.heading_list)
+
+        self.keyword_list = ["are", "is", "have", "has", "to", "initially"]
+        [_, _, _, _, _, self.INITIALLY] = self.names.lookup(self.keyword_list)
+
+        self.ignore = ["gate", "gates", "a", "an"]
 
         self.current_character = ""
-
-
+        self.current_line = 0
+        self.character_number = 0
 
     def get_symbol(self):
         """Translate the next sequence of characters into a symbol."""
@@ -81,29 +85,70 @@ class Scanner:
         self.skip_spaces() # current character now not whitespace
 
         if self.current_character.isalpha(): # name
-            name_string = self.get_name()
+            name_list = self.get_name()
+            name_string = name_list[0]
 
-            if name_string in self.keywords_list:
+            if name_string in self.ignore:
+                # ignore these words
+                return None
+
+            elif name_string.lower() in self.heading_list:
+                symbol.type = self.HEADING
+                symbol.id = self.names.query(name_string)
+            elif name_string in self.keyword_list:
                 symbol.type = self.KEYWORD
+                symbol.id = self.names.query(name_string)                
             else:
                 symbol.type = self.NAME
                 [symbol.id] = self.names.lookup([name_string])
+                
+            print(name_string, end=' ')
 
         elif self.current_character.isdigit(): # number
             symbol.id = self.get_number()
             symbol.type = self.NUMBER
+            print(symbol.id[0],end=' ')
 
         elif self.current_character == "=": # punctuation
-            symbol.type = self.EQUALS
-            self.advance()
+            if self.advance() == '>':
+                symbol.type = self.ARROW
+                self.advance()
+            else:
+                raise SyntaxError
 
         elif self.current_character == ",":
-        # etc for other punctuation
-            pass
+            symbol.type = self.COMMA
+            self.advance()
+        
+        elif self.current_character == "\n":
+            symbol.type = self.NEW_LINE
+            self.advance()
+            print("\n",end='')
+ 
+        elif self.current_character == "{":
+            symbol.type = self.CURLY_OPEN
+            self.advance()
+            print("{",end='')
+
+        elif self.current_character == "}":
+            symbol.type = self.CURLY_CLOSE
+            self.advance()
+            print("}",end='')
+
+        elif self.current_character == ":":
+            self.advance()
+            return None
+
+        elif self.current_character == ".":
+            symbol.type = self.DOT
+            self.advance()
+
         elif self.current_character == "": # end of file
             symbol.type = self.EOF
+
         else: # not a valid character
-            self.advance()
+            raise SyntaxError("Used invalid character '{}'".format(self.current_character))
+
         return symbol
 
 
@@ -112,57 +157,54 @@ class Scanner:
 
         Return the name string (or None) and the next non-alphanumeric character.
         """
-        while True:
-            char = self.input_file.read(1)
-            if char.isalpha():
-                name = char
-                while True:
-                    char = self.input_file.read(1)
-                    if char.isalnum():
-                        name = name+char
-                    else:
-                        return [name, char]
+        name = self.current_character
 
-            elif char == '':
-                return None
+        while True:
+            self.current_character = self.advance()
+            if self.current_character.isalnum():
+                name = name + self.current_character
+            else:
+                return [name, self.current_character]
+
 
     def get_number(self):
         """Seek the next number in input_file.
 
         Return the number (or None) and the next non-numeric character.
         """
-        # find start of number
+        num = self.current_character
         while True:
-            char = self.input_file.read(1)
-            if char.isdigit():
-                num = char
-                break
-            elif char == '':
-                return None
-
-        # find end of number
-        while True:
-            char = self.input_file.read(1)
-            if char.isdigit():
-                num = num+char
+            self.current_character = self.advance()
+            if self.current_character.isdigit():
+                num = num+self.current_character
             else:
-                return [num, char]
+                return [num, self.current_character]
+
     
     def skip_spaces(self):
         """"advances until the character is no longer a space"""
 
-        while self.current_character.isspace():
+        while self.current_character == ' ' or self.current_character == '\t':
+            self.current_character = self.advance()
 
-            if self.current_character == "\n":
-                self.character_count = -1
 
-            self.current_character = self.input_file.read(1)
-            self.character_count += 1
-
+    def skip_newline(self):
+        while True:
+            if self.advance() == '\n':
+                pass
+            else:
+                break
+        
 
     def advance(self):
         """reads one further character into the document"""
 
-        char = self.input_file.read(1)
-        self.current_character = char
-        return char
+        self.current_character = self.input_file.read(1)
+
+        self.character_number += 1
+
+        if self.current_character == '\n':
+            self.current_line += 1
+            self.character_number = 0
+        
+        return self.current_character
