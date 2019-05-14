@@ -67,8 +67,7 @@ class Names:
         if name_string in self.names:
             return self.names.index(name_string)
         else:
-            self.names.append(name_string)
-            return self.names.index(name_string)
+            return None
 
     def lookup(self, name_string_list):
         """Return a list of name IDs for each name string in name_string_list.

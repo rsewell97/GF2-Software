@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 """Parse the definition file and build the logic network.
 
 Used in the Logic Simulator project to analyse the syntactic and semantic
@@ -62,7 +63,64 @@ class Parser:
     
     def parse_network(self):
         """Parse the circuit definition file."""
+
+        """first list devices"""
+        self.scanner.skip_newline()
+        # skip first N linebreaks
+
+        while True:
+            self.symbol = self.scanner.get_symbol()
+            
+            if self.symbol.type == self.scanner.HEADING:
+                
+                if self.symbol.id == self.scanner.DEVICES_ID:
+                    self.parse_section(self.scanner.DEVICES_ID)
+                # elif self.symbol.id == self.scanner.INPUTS_ID:
+                #     self.parse_section()
+                # elif self.symbol.id == self.scanner.CONNECTION_ID:
+                #     self.parse_section()
+                # elif self.symbol.id == self.scanner.MONITOR_ID:
+                #     self.parse_section()
+            # else:
+            #     print(self.scanner.current_character)
+            #     raise SyntaxError("not allowed to write lines outside of keywords")
+
+            if self.symbol.type == self.scanner.EOF:
+                break
+
+        print(self.devices.devices_list)
+    
         # For now just return True, so that userint and gui can run in the
         # skeleton code. When complete, should return False when there are
         # errors in the circuit definition file.
         return True
+    
+    def parse_section(self, heading_id):
+    
+        while self.symbol.type != self.scanner.CURLY_OPEN:
+            self.symbol = self.scanner.get_symbol()       
+        
+        nest_count = 1 # layers of curly brackets
+
+        while nest_count > 0:
+
+            self.symbol = self.scanner.get_symbol()
+
+            if self.symbol.type == self.scanner.CURLY_OPEN:
+                nest_count += 1
+            elif self.symbol.type == self.scanner.CURLY_CLOSE:
+                nest_count -= 1
+            
+            if nest_count < 1:
+                break
+
+        # end of section
+        sys.exit()
+            
+    def parse_device(self):
+        
+        while self.scanner.current_character != self.scanner.NEW_LINE:
+
+            self.symbol = self.scanner.get_symbol()
+            if self.symbol.type == self.scanner.NAME:
+                pass

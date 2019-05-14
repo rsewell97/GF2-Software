@@ -2,7 +2,7 @@ devices: {
     A, B are NAND gates
     A, B have 2 inputs
 }
-inputs: {
+init: {
     S1, S2 are switches
     S1, S2 are initialy 0
 }
