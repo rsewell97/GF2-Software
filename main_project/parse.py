@@ -240,7 +240,7 @@ class Parser:
                 list_format = True
                 continue
 
-            elif self.symbol.type == self.scanner.ARROW:    # if user specifies range
+            elif self.symbol.type == self.scanner.ARROW:    # if user specifies arrow notation
                 if list_format:
                     raise SyntaxError
                 list_format = False
