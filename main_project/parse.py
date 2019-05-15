@@ -1,5 +1,7 @@
-import sys
 import re
+import sys
+
+
 """Parse the definition file and build the logic network.
 
 Used in the Logic Simulator project to analyse the syntactic and semantic
@@ -60,7 +62,7 @@ class Parser:
         self.device_list = ["DTYPE", "XOR", "AND", "NAND", "OR", "NOR",
                             "SWITCH", "CLOCK", "RC", "NOT"]
         self.type_id_list = self.names.lookup(self.device_list)
-    
+
     def parse_network(self):
         """Parse the circuit definition file."""
 
@@ -73,7 +75,7 @@ class Parser:
                 continue
 
             if self.symbol.type == self.scanner.HEADING:
-                #comment out whichever lines you want in order to debug your section
+                # comment out whichever lines you want in order to debug your section
                 if self.symbol.id == self.scanner.DEVICES_ID:
                     self.parse_section('devices')
                 # elif self.symbol.id == self.scanner.INIT_ID:
@@ -82,22 +84,25 @@ class Parser:
                 #     self.parse_section('connections')
                 elif self.symbol.id == self.scanner.MONITOR_ID:
                     self.parse_section('monitor')
-            
+                else:
+                    raise SyntaxError("Heading name not allowed")
+
             elif self.symbol.type == self.scanner.NEW_LINE:
                 continue
 
             elif self.symbol.type == self.scanner.EOF:
                 break
             else:
-                raise SyntaxError("not allowed to write symbol type {} outside of section".format(self.symbol.type))
-                
+                raise SyntaxError(
+                    "not allowed to write symbol type {} outside of section".format(self.symbol.type))
+
         # Returns True if correctly parsed
         return True
-    
+
     def parse_section(self, heading):
         """Parse 1 section block encapsulated by '{' and '}' and build circuit"""
-        
-        while True: # find opening curly bracket
+
+        while True:  # find opening curly bracket
             self.symbol = self.scanner.get_symbol()
             if self.symbol is None:
                 continue
@@ -110,14 +115,14 @@ class Parser:
 
         if heading == 'devices':
             while self.parse_device():
-                pass      
+                pass
 
-            # ----------- CHECK EVERYTHING IS SPECIFIED -------------- #
+            # ----------- CHECK DEVICE IS SPECIFIED -------------- #
             for i in self.devices.devices_list:
                 if i.inputs == {}:
                     raise UnboundLocalError("Gate has no input")
                 if i.outputs == {}:
-                    raise UnboundLocalError("Gate has no output")      
+                    raise UnboundLocalError("Gate has no output")
 
         elif heading == 'init':
             # call parse device() here to create switches
@@ -126,13 +131,11 @@ class Parser:
             # call connect() here to add the wiring
             pass
         elif heading == 'monitor':
-            self.add_monitor_point()
-            
-        else:
-            raise NameError('not valid heading name')
+            while self.add_monitor_point():
+                pass
 
-        # end of section
-            
+        print("END OF SECTION")
+
     def parse_device(self):
         """Build devices by reading 1 line at a time"""
         # ----------- CREATES DEVICES -------------- #
@@ -142,9 +145,14 @@ class Parser:
         definition_delimiters = [self.scanner.IS, self.scanner.ARE]
         attribute_delimiters = [self.scanner.HAS, self.scanner.HAVE]
 
-        devices, definition = self.get_names_before_delimiter(definition_delimiters, attribute_delimiters)
+        devices, definition = self.get_names_before_delimiter(
+            definition_delimiters, attribute_delimiters)
         if definition is None:
-            return False
+            if devices is None:
+                # reached end of section
+                return False
+            else:
+                raise SyntaxError
 
         if definition:
             # -------------- GET GATE TYPE -------------- #
@@ -159,7 +167,7 @@ class Parser:
                 # add gates to model
                 self.devices.add_device(i, gate_type)
                 self.devices.add_output(i, 0)
-        
+
         else:
             # -------------- GET NUM INPUTS ------------- #
             self.symbol = self.scanner.get_symbol()
@@ -167,6 +175,7 @@ class Parser:
                 num = int(self.symbol.id[0])
                 # print(devices)
                 for device in devices:
+                    # TODO: Add proper error catching method
                     if self.devices.get_device(device).device_kind == self.devices.names.query("NOT") and num > 1:
                         raise ValueError("Too many inputs for gate type")
                     for i in range(1, num+1):
@@ -174,19 +183,20 @@ class Parser:
             else:
                 raise SyntaxError("Expected number")
 
-        while True: # continue to end of line regardless
+        while True:  # continue to end of line or } regardless
             self.symbol = self.scanner.get_symbol()
             if self.symbol is None:
                 continue
             if self.symbol.type == self.scanner.NEW_LINE:
-                break
-        
-        return True
+                return True
+            if self.symbol.type == self.scanner.CURLY_CLOSE:
+                return False
 
+        for device in self.devices.devices_list:
+            print(device.inputs, device.outputs)
 
     def parse_init(self):
         pass
-
 
     def parse_connections(self):
         pass
@@ -196,7 +206,7 @@ class Parser:
         #     self.symbol = self.scanner.get_symbol()
         #     if self.symbol is None: # ignored the current symbol
         #         continue
-            
+
         #     if self.symbol.type == self.scanner.CURLY_OPEN:
         #         nest_count += 1
         #     elif self.symbol.type == self.scanner.CURLY_CLOSE:
@@ -209,91 +219,127 @@ class Parser:
         #     elif nest_count > max_nest:
         #         raise SyntaxError("unexpected token '{'")
 
-
     def add_monitor_point(self):
-        while True:
-            names, status = self.get_names_before_delimiter([],[])
 
-            if status is None:
-                break
-        
+        names, status = self.get_names_before_delimiter(None, None)
+        if status:
+            pass
+            # names found successfully
+        if names is None and status is None:
+            return False
+
         tmp = []
         for name in names:
             tmp.append(self.devices.get_signal_ids(name+".0"))
 
         return True
 
-
     def get_names_before_delimiter(self, true_delimiting_word_ids, false_delimiting_word_ids):
-        """ tripwire function which takes 2 arrays of name_ids. Returns names and which list is encountered first"""
+        """ 
+        Tripwire function which takes 2 arrays of name_ids.
+        Params , list(), list() - if both lists == [], 2nd return val is False if }, or True if newline
+
+        Returns [list of device name strings ,  which array is tripped (or None)]
+        """
+        if true_delimiting_word_ids is None and false_delimiting_word_ids is None:
+            no_args = True
+        else:
+            no_args = False
 
         devices = []
-        list_format = ret_val = None
+        list_format = ret_val = name_found = None
         while True:
-            # get first SYMBOL
+            # ------------ GET FIRST SYMBOL ------------ #
             self.symbol = self.scanner.get_symbol()
-            if self.symbol == None: # ignore the word if ignorable
+            if self.symbol == None:  # ignore the word if ignorable
                 continue
-            
-            elif self.symbol.type == self.scanner.CURLY_CLOSE:  # exit and parse
-                return devices, None
+
+            elif self.symbol.type == self.scanner.CURLY_CLOSE:  # error in parsing
+                if name_found:
+                    if no_args:
+                        ret_val = False
+                        break
+                    else:
+                        raise SyntaxError("} encountered, couldn't parse")
+                else:
+                    return None, None  # if curly bracket on line, end is reached
+
+            elif self.symbol.type == self.scanner.NEW_LINE:  # trim leading linebreaks
+                if name_found:
+                    if no_args:
+                        return devices, True
+                    else:
+                        raise SyntaxError("end of line, coundn't parse")
+                else:
+                    continue
+
+            elif self.symbol.type == self.scanner.NAME:
+                name_found = True   # checks word has been found
+                word = self.scanner.names.get_name_string(self.symbol.id)
+                devices.append(word)
+
+                if no_args:
+                    pass
+                else:
+                    if self.symbol.id in true_delimiting_word_ids:  # if definition
+                        ret_val = True
+                        break
+                    elif self.symbol.id in false_delimiting_word_ids:  # if attribute
+                        ret_val = False
+                        break
 
             elif self.symbol.type == self.scanner.COMMA:
                 list_format = True
                 continue
 
             elif self.symbol.type == self.scanner.ARROW:    # if user specifies arrow notation
+                # ------- USER SPECIFIED RANGE NOTATION -------- #
                 if list_format:
                     raise SyntaxError
                 list_format = False
-                
+
                 # find next name
                 self.symbol = self.scanner.get_symbol()
                 if self.symbol == None:
                     raise SyntaxError
-                
+
                 elif self.symbol.type == self.scanner.NAME:
                     word = self.scanner.names.get_name_string(self.symbol.id)
                     devices.append(word)
-                    
-                    if self.symbol.id in true_delimiting_word_ids:  # if definition
+
+                    if no_args:
                         ret_val = True
                         break
-                    if self.symbol.id in false_delimiting_word_ids: # if attribute
+                    elif self.symbol.id in true_delimiting_word_ids:  # if definition
+                        ret_val = True
+                        break
+                    elif self.symbol.id in false_delimiting_word_ids:  # if attribute
                         ret_val = False
                         break
 
-            elif self.symbol.type == self.scanner.NAME:
-                word = self.scanner.names.get_name_string(self.symbol.id)
-                devices.append(word)
-                
+            if not no_args:
                 if self.symbol.id in true_delimiting_word_ids:  # if definition
                     ret_val = True
                     break
-                if self.symbol.id in false_delimiting_word_ids: # if attribute
+                elif self.symbol.id in false_delimiting_word_ids:  # if attribute
                     ret_val = False
                     break
 
+        # -------- RANGE NOTATION -------- #
+        if list_format == False:
+            if len(devices) is 2:
+                base = devices[0].rstrip('0123456789')  # gets base string
+                low = re.match('.*?([0-9]+)$', devices[0]).group(1)
+                high = re.match('.*?([0-9]+)$', devices[1]).group(1)
+                lowint, highint = int(low), int(high)
 
-            if self.symbol.id in true_delimiting_word_ids:  # if definition
-                ret_val = True
-                break
-            if self.symbol.id in false_delimiting_word_ids: # if attribute
-                ret_val = False
-                break
+                if lowint > highint:
+                    raise ValueError("incorrect order of range values")
 
-        if not list_format and len(devices) == 2:
-            
-            base = devices[0].rstrip('0123456789') # gets base string
-            low = re.match('.*?([0-9]+)$', devices[0]).group(1)
-            high = re.match('.*?([0-9]+)$', devices[1]).group(1)
-            lowint, highint = int(low), int(high)
-
-            if lowint > highint:
-                raise ValueError("incorrect order of range values")
-            
-            devices = []
-            for i in range(lowint, highint+1):
-                devices.append(base+str(i))
+                devices = []
+                for i in range(lowint, highint+1):
+                    devices.append(base+str(i))
+            else:
+                raise SyntaxError("Devices length must be 2")
 
         return devices, ret_val

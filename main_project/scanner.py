@@ -192,12 +192,8 @@ class Scanner:
 
 
     def skip_newline(self):
-        while True:
-            if self.advance() == '\n':
-                pass
-            else:
-                break
-        
+        while self.advance() == '\n':
+            pass
 
     def advance(self):
         """reads one further character into the document"""

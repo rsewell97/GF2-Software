@@ -1,11 +1,9 @@
-devices {
-    A1 => A50 are NOT gates
-    A1 => A50 have 1 inputs
-}
-monitor: {
-    A, B
-}
 
+
+devices: {
+    A1 is NOT gate
+    A1 has 1 input
+}
 
 init: {
     S1, S2 are switches
@@ -20,4 +18,8 @@ connections: {
         A to B.1
         S2 to B.2
     }
+}
+
+monitor: {
+    A1, B
 }
