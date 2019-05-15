@@ -1,8 +1,6 @@
-
-
 devices: {
-    A1 is NOT gate
-    A1 has 1 input
+    A1 => A5 are DTYPE gates
+    A1 => A5 have 1 input
 }
 
 init: {

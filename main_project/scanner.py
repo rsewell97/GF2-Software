@@ -1,4 +1,5 @@
 import sys
+from error import *
 
 """Read the circuit definition file and translate the characters into symbols.
 
@@ -96,7 +97,7 @@ class Scanner:
 
             elif name_string.lower() in self.heading_list:
                 symbol.type = self.HEADING
-                symbol.id = self.names.query(name_string)
+                symbol.id = self.names.query(name_string.lower())
             elif name_string in self.keyword_list:
                 symbol.type = self.KEYWORD
                 symbol.id = self.names.query(name_string)                
@@ -116,7 +117,7 @@ class Scanner:
                 symbol.type = self.ARROW
                 self.advance()
             else:
-                raise SyntaxError
+                self.error(SyntaxError, "Unexpected symbol, expected '>")
 
         elif self.current_character == ",":
             symbol.type = self.COMMA
@@ -149,7 +150,7 @@ class Scanner:
             symbol.type = self.EOF
 
         else: # not a valid character
-            raise SyntaxError("Used invalid character '{}'".format(self.current_character))
+            self.error(SyntaxError, "Invalid character encountered")
 
         self.word_number += 1
         return symbol
@@ -208,3 +209,7 @@ class Scanner:
             self.word_number = 0
         
         return self.current_character
+
+    def error(self, error_type, message=""):
+        raise Error(message, error_type, self.list_file[self.current_line], 
+                self.current_line, self.character_number)

@@ -1,6 +1,5 @@
 import re
 import sys
-from error import *
 
 """Parse the definition file and build the logic network.
 
@@ -85,7 +84,7 @@ class Parser:
                 elif self.symbol.id == self.scanner.MONITOR_ID:
                     self.parse_section('monitor')
                 else:
-                    self.error(SyntaxError,"Heading name not allowed")
+                    self.scanner.error(SyntaxError,"Heading name not allowed")
 
             elif self.symbol.type == self.scanner.NEW_LINE:
                 continue
@@ -93,7 +92,7 @@ class Parser:
             elif self.symbol.type == self.scanner.EOF:
                 break
             else:
-                self.error(SyntaxError, "not allowed to write symbol type {} outside of section".format(self.symbol.type))
+                self.scanner.error(SyntaxError, "not allowed to write symbol type {} outside of section".format(self.symbol.type))
 
         # Returns True if correctly parsed
         return True
@@ -110,7 +109,7 @@ class Parser:
             elif self.symbol.type == self.scanner.CURLY_OPEN:
                 break
             else:
-                self.error(SyntaxError,"Illegal character after heading title")
+                self.scanner.error(SyntaxError,"Illegal character after heading title")
 
         if heading == 'devices':
             while self.parse_device():
@@ -156,11 +155,16 @@ class Parser:
         if definition:
             # -------------- GET GATE TYPE -------------- #
             self.symbol = self.scanner.get_symbol()
+            if self.symbol is None:
+                self.symbol = self.scanner.get_symbol()
+            if self.symbol is None:
+                self.scanner.error(SyntaxError, "English doesn't make sense")
+
             word = self.scanner.names.get_name_string(self.symbol.id)
             if word in self.device_list:
                 gate_type = self.devices.names.query(word)
             else:
-                raise SyntaxError("Invalid gate type")
+                raise self.scanner.error(SyntaxError, "Invalid gate type")
 
             for i in devices:
                 # add gates to model
@@ -180,7 +184,7 @@ class Parser:
                     for i in range(1, num+1):
                         self.devices.add_input(device, i)
             else:
-                raise SyntaxError("Expected number")
+                self.scanner.error(SyntaxError, "Expected number")
 
         while True:  # continue to end of line or } regardless
             self.symbol = self.scanner.get_symbol()
@@ -259,7 +263,7 @@ class Parser:
                         ret_val = False
                         break
                     else:
-                        self.error(SyntaxError, "} encountered, couldn't parse")
+                        self.scanner.error(SyntaxError, "} encountered, couldn't parse")
                 else:
                     return None, None  # if curly bracket on line, end is reached
 
@@ -268,7 +272,7 @@ class Parser:
                     if no_args:
                         return devices, True
                     else:
-                        self.error(SyntaxError, "end of line, coundn't parse")
+                        self.scanner.error(SyntaxError, "end of line, coundn't parse")
                 else:
                     continue
 
@@ -339,11 +343,8 @@ class Parser:
                 for i in range(lowint, highint+1):
                     devices.append(base+str(i))
             else:
-                raise self.error(SyntaxError, "Devices length must be 2")
+                raise self.scanner.error(SyntaxError, "Devices length must be 2")
 
         return devices, ret_val
 
 
-    def error(self, error_type, message=""):
-        raise Error(message, error_type, self.scanner.list_file[self.scanner.current_line], 
-                self.scanner.current_line, self.scanner.character_number)

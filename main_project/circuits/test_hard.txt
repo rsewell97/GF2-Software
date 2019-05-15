@@ -1,0 +1,62 @@
+Devices: {
+    A is XOR
+    B is AND
+    C is NAND
+    D is OR
+    E is NOR
+    F is DTYPE
+    G is AND
+    H is OR
+    A,B,C,D,G,H has 2 inputs
+    E has 3 inputs
+    F has 4 inputs
+}
+
+Inputs: {
+    S1 => S3 are switches
+    S2 is high
+    CKL1 is a clock
+    CKL1 has cycle time of 5
+}
+
+Connections: {
+    Device A: {
+        S1 to A.1
+        S2 to A.2
+    }
+    Device B: {
+        S1 to B.1
+        S3 to B.2
+    }
+    Device C: {
+        S2 to C.1
+        B to C.2
+    }
+    Device D: {
+        A to D.1
+        B to D.2
+    }
+    Device E: {
+        D to E.1
+        S2 to E.2
+        C to E.3
+    }
+    Device F: {
+        S2 to F.1
+        C to F.2
+        D to F.3
+        CLK1 to F.4
+    }
+    Device G: {
+        E to G.1
+        F to G.2
+    }
+    Device H: {
+        C to H.1
+        not F to H.2
+    }
+}
+
+Monitor: {
+    B, G, H
+} 

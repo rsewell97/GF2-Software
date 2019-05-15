@@ -15,7 +15,7 @@ class Error(Exception):
     def __init__(self, message, errors, line, line_num, char):
 
         # Call the base class constructor with the parameters it needs
-        super().__init__(message)
+        super().__init__(message+'\n')
         
         if errors == SemanticError:
             SemanticError()
