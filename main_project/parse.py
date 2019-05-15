@@ -101,6 +101,8 @@ class Parser:
             self.symbol = self.scanner.get_symbol()
             if self.symbol is None:
                 continue
+            elif self.symbol.type == self.scanner.NEW_LINE:
+                continue
             elif self.symbol.type == self.scanner.CURLY_OPEN:
                 break
             else:
