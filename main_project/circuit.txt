@@ -1,7 +1,12 @@
 devices: {
-    A, B are NAND gates
-    A, B have 2 inputs
+    A1 => A50 are NOT gates
+    A1 => A50 have 1 inputs
 }
+
+monitor: {
+    A, B
+}
+
 init: {
     S1, S2 are switches
     S1, S2 set 0
@@ -15,7 +20,4 @@ connections: {
         A to B.1
         S2 to B.2
     }
-}
-monitor: {
-    A, B
 }

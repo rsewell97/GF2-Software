@@ -76,26 +76,22 @@ class Parser:
                 #comment out whichever lines you want in order to debug your section
                 if self.symbol.id == self.scanner.DEVICES_ID:
                     self.parse_section('devices')
-                elif self.symbol.id == self.scanner.INIT_ID:
-                    self.parse_section('init')
-                elif self.symbol.id == self.scanner.CONNECTION_ID:
-                    self.parse_section('connections')
+                # elif self.symbol.id == self.scanner.INIT_ID:
+                #     self.parse_section('init')
+                # elif self.symbol.id == self.scanner.CONNECTION_ID:
+                #     self.parse_section('connections')
                 elif self.symbol.id == self.scanner.MONITOR_ID:
                     self.parse_section('monitor')
             
+            elif self.symbol.type == self.scanner.NEW_LINE:
+                continue
+
             elif self.symbol.type == self.scanner.EOF:
                 break
-
             else:
-                raise SyntaxError("not allowed to write lines outside of keywords")
-            
-            self.scanner.skip_newline()
-
-        print(self.devices.devices_list)
-    
-        # For now just return True, so that userint and gui can run in the
-        # skeleton code. When complete, should return False when there are
-        # errors in the circuit definition file.
+                raise SyntaxError("not allowed to write symbol type {} outside of section".format(self.symbol.type))
+                
+        # Returns True if correctly parsed
         return True
     
     def parse_section(self, heading):
@@ -111,10 +107,15 @@ class Parser:
                 raise SyntaxError("Illegal character after heading title")
 
         if heading == 'devices':
-            # call parse_device() here to create devices
             while self.parse_device():
-                self.scanner.skip_newline()
+                pass      
 
+            # ----------- CHECK EVERYTHING IS SPECIFIED -------------- #
+            for i in self.devices.devices_list:
+                if i.inputs == {}:
+                    raise UnboundLocalError("Gate has no input")
+                if i.outputs == {}:
+                    raise UnboundLocalError("Gate has no output")      
 
         elif heading == 'init':
             # call parse device() here to create switches
@@ -123,8 +124,8 @@ class Parser:
             # call connect() here to add the wiring
             pass
         elif heading == 'monitor':
-            # call add_monitor_point() here
-            pass
+            self.add_monitor_point()
+            
         else:
             raise NameError('not valid heading name')
 
@@ -132,7 +133,7 @@ class Parser:
             
     def parse_device(self):
         """Build devices by reading 1 line at a time"""
-        # ----------- CREATES DEVICES --------------
+        # ----------- CREATES DEVICES -------------- #
         # FORMAT = A, B are NAND gates
         # OR FORMAT = A1 => A12 are NAND gates
 
@@ -140,9 +141,10 @@ class Parser:
         attribute_delimiters = [self.scanner.HAS, self.scanner.HAVE]
 
         devices, definition = self.get_names_before_delimiter(definition_delimiters, attribute_delimiters)
-        print(devices)
-        if definition:
+        if definition is None:
+            return False
 
+        if definition:
             # -------------- GET GATE TYPE -------------- #
             self.symbol = self.scanner.get_symbol()
             word = self.scanner.names.get_name_string(self.symbol.id)
@@ -154,28 +156,38 @@ class Parser:
             for i in devices:
                 # add gates to model
                 self.devices.add_device(i, gate_type)
-
-            print(len(self.devices.devices_list))
+                self.devices.add_output(i, 0)
         
         else:
             # -------------- GET NUM INPUTS ------------- #
             self.symbol = self.scanner.get_symbol()
             if self.symbol.type == self.scanner.NUMBER:
-                num = self.symbol.id
+                num = int(self.symbol.id[0])
+                # print(devices)
                 for device in devices:
+                    if self.devices.get_device(device).device_kind == self.devices.names.query("NOT") and num > 1:
+                        raise ValueError("Too many inputs for gate type")
                     for i in range(1, num+1):
                         self.devices.add_input(device, i)
-                    print("adding inputs")
-                else:
-                    raise SyntaxError("Expected number")
+            else:
+                raise SyntaxError("Expected number")
 
+        while True: # continue to end of line regardless
+            self.symbol = self.scanner.get_symbol()
+            if self.symbol is None:
+                continue
+            if self.symbol.type == self.scanner.NEW_LINE:
+                break
+        
         return True
+
 
     def parse_init(self):
         pass
 
-    def parse_connections(self):
 
+    def parse_connections(self):
+        pass
         # nest_count = 1 # tracks layers of curly brackets
         # while nest_count > 0: #loops 1 line at a time by calling parse_device()
 
@@ -197,35 +209,43 @@ class Parser:
 
 
     def add_monitor_point(self):
-        pass
+        while True:
+            names, status = self.get_names_before_delimiter([],[])
 
+            if status is None:
+                break
+        
+        tmp = []
+        for name in names:
+            tmp.append(self.devices.get_signal_ids(name+".0"))
+
+        return True
 
 
     def get_names_before_delimiter(self, true_delimiting_word_ids, false_delimiting_word_ids):
         """ tripwire function which takes 2 arrays of name_ids. Returns names and which list is encountered first"""
-        
+
         devices = []
         list_format = ret_val = None
-        i = 0
         while True:
             # get first SYMBOL
             self.symbol = self.scanner.get_symbol()
-            print(self.symbol.type)
             if self.symbol == None: # ignore the word if ignorable
                 continue
-            elif self.symbol.type == self.scanner.NEW_LINE:
-                continue
             
+            elif self.symbol.type == self.scanner.CURLY_CLOSE:  # exit and parse
+                return devices, None
+
             elif self.symbol.type == self.scanner.COMMA:
                 list_format = True
                 continue
 
-            elif self.symbol.type == self.scanner.ARROW:
+            elif self.symbol.type == self.scanner.ARROW:    # if user specifies range
                 if list_format:
                     raise SyntaxError
                 list_format = False
+                
                 # find next name
-
                 self.symbol = self.scanner.get_symbol()
                 if self.symbol == None:
                     raise SyntaxError
@@ -234,24 +254,31 @@ class Parser:
                     word = self.scanner.names.get_name_string(self.symbol.id)
                     devices.append(word)
                     
-                    self.symbol = self.scanner.get_symbol()
-                    if self.symbol.id in true_delimiting_word_ids:
+                    if self.symbol.id in true_delimiting_word_ids:  # if definition
                         ret_val = True
                         break
-                    if self.symbol.id in false_delimiting_word_ids:
+                    if self.symbol.id in false_delimiting_word_ids: # if attribute
                         ret_val = False
                         break
 
-            if self.symbol.id in true_delimiting_word_ids:
+            elif self.symbol.type == self.scanner.NAME:
+                word = self.scanner.names.get_name_string(self.symbol.id)
+                devices.append(word)
+                
+                if self.symbol.id in true_delimiting_word_ids:  # if definition
+                    ret_val = True
+                    break
+                if self.symbol.id in false_delimiting_word_ids: # if attribute
+                    ret_val = False
+                    break
+
+
+            if self.symbol.id in true_delimiting_word_ids:  # if definition
                 ret_val = True
                 break
-            if self.symbol.id in false_delimiting_word_ids:
+            if self.symbol.id in false_delimiting_word_ids: # if attribute
                 ret_val = False
                 break
-
-            # i+=1
-            # if i > 100:
-            #     return None
 
         if not list_format and len(devices) == 2:
             
