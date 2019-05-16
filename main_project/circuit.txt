@@ -4,15 +4,15 @@ devices: {
 }
 init: {
     S1, S2 are switches
-    S1, S2 are initially 0
+    S1, S2 set initially 0
 }
-connections: {
+connecttions: {
     device A: {
         S1 to A.1
         B to A.2
     }
     device B: {
-        A to B.1
+        A o B.1
         S2 to B.2
     }
 }
