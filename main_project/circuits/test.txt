@@ -1,11 +1,10 @@
 devices: {
-    A1 => A5 are DTYPE gates
-    A1 => A5 have 1 input
+    A1 => A12 are NAND gates
+    A, B have 2 inputs
 }
-
 init: {
     S1, S2 are switches
-    S1, S2 set 0
+    S1, S2 are initially 0
 }
 connections: {
     device A: {
@@ -17,7 +16,6 @@ connections: {
         S2 to B.2
     }
 }
-
 monitor: {
-    A1, B
+    A, B
 }
