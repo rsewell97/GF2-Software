@@ -1,13 +1,16 @@
 Devices:{
-    A, B are NAND gate
+    D, F62 are NAND gates
+    (D1 => D12 are NAND gates)
     A, B have 2 inputs
 }
 
 Inputs: {
     S1, S2 are switches
+    (S1 => S12 are switches)
+    (S1 is 1)
 }
 
-Connections:{
+Connections: {
     Device A: {
         S1 to A.1
         B to A.2
