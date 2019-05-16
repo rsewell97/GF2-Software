@@ -2,25 +2,19 @@ import sys
 sys.tracebacklimit=0
 
 class SemanticError(Exception):
-    def __init__(self):
-        print("\n\nSemanticError ", end='')
-
-
-class SyntaxError(Exception):
-    def __init__(self):
-        print("\n\nSyntaxError ", end='')
-
-
+    pass
+        
+        
 class Error(Exception):
-    def __init__(self, message, errors, line, line_num, char):
+    def __init__(self, message, error, line, line_num, char):
 
         # Call the base class constructor with the parameters it needs
         super().__init__(message+'\n')
         
-        if errors == SemanticError:
-            SemanticError()
-        elif errors == SyntaxError:
-            SyntaxError()
+        if error == SemanticError:
+            print("\n\nSemanticError ", end='')
+        elif error == SyntaxError:
+            print("\n\nSyntaxError ", end='')
                 
         print("""on line {}:
         {}

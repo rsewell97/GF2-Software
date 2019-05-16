@@ -1,5 +1,6 @@
 import re
 import sys
+from error import SemanticError
 
 """Parse the definition file and build the logic network.
 
@@ -84,7 +85,7 @@ class Parser:
                 elif self.symbol.id == self.scanner.MONITOR_ID:
                     self.parse_section('monitor')
                 else:
-                    self.scanner.error(SyntaxError,"Heading name not allowed")
+                    self.error(SyntaxError,"Heading name '{}' not allowed".format(self.scanner.name_string))
 
             elif self.symbol.type == self.scanner.NEW_LINE:
                 continue
@@ -92,7 +93,7 @@ class Parser:
             elif self.symbol.type == self.scanner.EOF:
                 break
             else:
-                self.scanner.error(SyntaxError, "not allowed to write symbol type {} outside of section".format(self.symbol.type))
+                self.error(SyntaxError, "not allowed to write {} outside of section".format(self.scanner.name_string))
 
         # Returns True if correctly parsed
         return True
@@ -109,7 +110,7 @@ class Parser:
             elif self.symbol.type == self.scanner.CURLY_OPEN:
                 break
             else:
-                self.scanner.error(SyntaxError,"Illegal character after heading title")
+                self.error(SyntaxError,"Illegal character after heading title")
 
         if heading == 'devices':
             while self.parse_device():
@@ -121,6 +122,7 @@ class Parser:
                     raise UnboundLocalError("Gate has no input")
                 if i.outputs == {}:
                     raise UnboundLocalError("Gate has no output")
+                print(i.device_id, i.device_kind)
 
         elif heading == 'init':
             # call parse device() here to create switches
@@ -158,13 +160,13 @@ class Parser:
             if self.symbol is None:
                 self.symbol = self.scanner.get_symbol()
             if self.symbol is None:
-                self.scanner.error(SyntaxError, "English doesn't make sense")
+                self.error(SyntaxError, "English doesn't make sense")
 
             word = self.scanner.names.get_name_string(self.symbol.id)
             if word in self.device_list:
                 gate_type = self.devices.names.query(word)
             else:
-                raise self.scanner.error(SyntaxError, "Invalid gate type")
+                raise self.error(SyntaxError, "Invalid gate type")
 
             for i in devices:
                 # add gates to model
@@ -179,12 +181,16 @@ class Parser:
                 # print(devices)
                 for device in devices:
                     # TODO: Add proper error catching method
-                    if self.devices.get_device(device).device_kind == self.devices.names.query("NOT") and num > 1:
-                        raise ValueError("Too many inputs for gate type")
+                    if self.devices.get_device(device) is None:
+                        self.error(SemanticError, "Device '{}' does not exist".format(device))
+
+                    if self.devices.get_device(device).device_kind == self.devices.names.query("NOT") and num >= 2:
+                        raise ValueError("Too many inputs for NOT gate")
+
                     for i in range(1, num+1):
                         self.devices.add_input(device, i)
             else:
-                self.scanner.error(SyntaxError, "Expected number")
+                self.error(SyntaxError, "Expected number")
 
         while True:  # continue to end of line or } regardless
             self.symbol = self.scanner.get_symbol()
@@ -263,7 +269,7 @@ class Parser:
                         ret_val = False
                         break
                     else:
-                        self.scanner.error(SyntaxError, "} encountered, couldn't parse")
+                        self.error(SyntaxError, "} encountered, couldn't parse")
                 else:
                     return None, None  # if curly bracket on line, end is reached
 
@@ -272,7 +278,7 @@ class Parser:
                     if no_args:
                         return devices, True
                     else:
-                        self.scanner.error(SyntaxError, "end of line, coundn't parse")
+                        self.error(SyntaxError, "end of line, coundn't parse")
                 else:
                     continue
 
@@ -343,8 +349,9 @@ class Parser:
                 for i in range(lowint, highint+1):
                     devices.append(base+str(i))
             else:
-                raise self.scanner.error(SyntaxError, "Devices length must be 2")
+                raise self.error(SyntaxError, "Devices length must be 2")
 
         return devices, ret_val
 
-
+    def error(self, error_type, message=""):
+        self.scanner.error(error_type, message)

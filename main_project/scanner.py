@@ -75,7 +75,7 @@ class Scanner:
         [self.ARE, self.IS, self.HAVE, self.HAS,
         self.TO, self.INITIALLY] = self.names.lookup(self.keyword_list)
 
-        self.ignore = ["gate", "gates", "a", "an"]
+        self.ignore = ["gate", "gates", "a", "an", "some"]
 
         self.current_character = ""
         self.current_line = 0
@@ -89,30 +89,30 @@ class Scanner:
 
         if self.current_character.isalpha(): # name
             name_list = self.get_name()
-            name_string = name_list[0]
+            self.name_string = name_list[0]
 
-            if name_string in self.ignore:
+            if self.name_string in self.ignore:
                 # ignore these words
                 return None
 
-            elif name_string.lower() in self.heading_list:
+            elif self.name_string.lower() in self.heading_list:
                 symbol.type = self.HEADING
-                symbol.id = self.names.query(name_string.lower())
-            elif name_string in self.keyword_list:
+                symbol.id = self.names.query(self.name_string.lower())
+            elif self.name_string in self.keyword_list:
                 symbol.type = self.KEYWORD
-                symbol.id = self.names.query(name_string)                
+                symbol.id = self.names.query(self.name_string)                
             else:
                 symbol.type = self.NAME
-                [symbol.id] = self.names.lookup([name_string])
+                [symbol.id] = self.names.lookup([self.name_string])
                 
-            print(name_string, end=' ')
+            print(self.name_string, end=' ')
 
         elif self.current_character.isdigit(): # number
             symbol.id = self.get_number()
             symbol.type = self.NUMBER
             print(symbol.id[0],end=' ')
 
-        elif self.current_character == "=": # punctuation
+        elif self.current_character == "=" or self.current_character == '-': # punctuation
             if self.advance() == '>':
                 symbol.type = self.ARROW
                 self.advance()
@@ -205,8 +205,7 @@ class Scanner:
 
         if self.current_character == '\n':
             self.current_line += 1
-            self.character_number = 0
-            self.word_number = 0
+            self.character_number = self.word_number = 0
         
         return self.current_character
 
