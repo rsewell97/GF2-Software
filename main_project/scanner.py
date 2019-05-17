@@ -139,7 +139,7 @@ class Scanner:
         elif self.current_character == "}":
             symbol.type = self.CURLY_CLOSE
             self.advance()
-            print("}",end='')
+            print("}")
 
         elif self.current_character == ":":
             self.advance()
@@ -203,7 +203,6 @@ class Scanner:
         """reads one further character into the document"""
 
         self.current_character = self.input_file.read(1)
-
         self.character_number += 1
 
         if self.current_character == '\n':

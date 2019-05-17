@@ -108,7 +108,6 @@ class Devices:
         gate_strings = ["AND", "OR", "NAND", "NOR", "XOR"]
         device_strings = ["CLOCK", "SWITCH", "DTYPE"]
         dtype_inputs = ["CLK", "SET", "CLEAR", "DATA"]
-        dtype_outputs = ["Q", "QBAR"]
 
         [self.NO_ERROR, self.INVALID_QUALIFIER, self.NO_QUALIFIER,
          self.BAD_DEVICE, self.QUALIFIER_PRESENT,
@@ -122,8 +121,6 @@ class Devices:
                              self.D_TYPE] = self.names.lookup(device_strings)
         self.dtype_input_ids = [self.CLK_ID, self.SET_ID, self.CLEAR_ID,
                                 self.DATA_ID] = self.names.lookup(dtype_inputs)
-        self.dtype_output_ids = [
-            self.Q_ID, self.QBAR_ID] = self.names.lookup(dtype_outputs)
 
         self.max_gate_inputs = 16
 
@@ -248,7 +245,7 @@ class Devices:
         self.add_output(device_id, output_id=None)
 
         for input_number in range(1, no_of_inputs + 1):
-            input_name = "".join(["I", str(input_number)])
+            input_name = str(input_number)
             [input_id] = self.names.lookup([input_name])
             self.add_input(device_id, input_id)
 
@@ -257,8 +254,13 @@ class Devices:
         self.add_device(device_id, self.D_TYPE)
         for input_id in self.dtype_input_ids:
             self.add_input(device_id, input_id)
-        for output_id in self.dtype_output_ids:
-            self.add_output(device_id, output_id)
+
+        base = self.names.get_name_string(device_id)
+
+        [norm, normbar] = self.names.lookup([base, base+"BAR"])
+        self.add_output(device_id, norm)
+        self.add_output(device_id, normbar)
+
         self.cold_startup()  # D-type initialised to a random state
 
     def cold_startup(self):

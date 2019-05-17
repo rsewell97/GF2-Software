@@ -78,10 +78,10 @@ class Parser:
                 # comment out whichever lines you want in order to debug your section
                 if self.symbol.id == self.scanner.DEVICES_ID:
                     self.parse_section('devices')
-                # elif self.symbol.id == self.scanner.INIT_ID:
-                #     self.parse_section('init')
-                # elif self.symbol.id == self.scanner.CONNECTION_ID:
-                #     self.parse_section('connections')
+                elif self.symbol.id == self.scanner.INIT_ID:
+                    self.parse_section('init')
+                elif self.symbol.id == self.scanner.CONNECTION_ID:
+                    self.parse_section('connections')
                 elif self.symbol.id == self.scanner.MONITOR_ID:
                     self.parse_section('monitor')
                 else:
@@ -122,9 +122,9 @@ class Parser:
             # ----------- CHECK DEVICE IS SPECIFIED ----------- #
             for i in self.devices.devices_list:
 
-                # if i.inputs == {}:
-                #     self.error(SemanticError,
-                #                "Gate '{}' has no input".format(i.device_id))
+                if i.inputs == {}:
+                    self.error(SemanticError,
+                               "No inputs specified for gate '{}' ".format(i.device_id))
                 if i.outputs == {}:
                     self.error(SemanticError,
                                "Gate '{}' has no output".format(i.device_id))
@@ -181,21 +181,32 @@ class Parser:
                 [i] = self.devices.names.lookup([name])
 
                 if device_type is "DTYPE":
+                    self.devices.make_d_type(i)
+
+                elif device_type is "XOR":
                     self.devices.add_device(
                         i, self.devices.names.query(device_type))
-                    self.devices.add_input(i, name+".CLK")
-                    self.devices.add_input(i, name+".SET")
-                    self.devices.add_input(i, name+".CLEAR")
-                    self.devices.add_input(i, name+".DATA")
-                    self.devices.add_output(i, name)
-                    self.devices.add_output(i, name+"BAR")
-                # must be a gate
-                elif device_type in ["XOR", "AND", "NAND", "OR", "NOR", "NOT"]:
+                    self.devices.add_output(i, None)
+                    [inp1, inp2] = self.devices.names.lookup([str(1), str(2)])
+                    self.devices.add_input(i, inp1)
+                    self.devices.add_input(i, inp2)
+
+                elif device_type is "NOT":
                     self.devices.add_device(
                         i, self.devices.names.query(device_type))
-                    self.devices.add_output(i, name)
+                    self.devices.add_output(i, None)
+                    [inp1] = self.devices.names.lookup([str(1)])
+                    self.devices.add_input(i, inp1)
+
+                # must be a gate - user must specify inputs
+                elif device_type in ["AND", "NAND", "OR", "NOR"]:
+                    self.devices.add_device(
+                        i, self.devices.names.query(device_type))
+                    self.devices.add_output(i, None)
+
                 else:
-                    self.error(SyntaxError, "Can't create device {} in this section".format(device_type))
+                    self.error(
+                        SyntaxError, "Can't create device {} in this section".format(device_type))
 
         else:
             # -------------- GET NUM INPUTS ------------- #
@@ -210,18 +221,33 @@ class Parser:
                     if self.devices.get_device(ID) is None:
                         self.error(SemanticError,
                                    "Device '{}' does not exist".format(device))
-                    elif self.devices.get_device(ID).device_kind == self.devices.names.query("NOT") and num >= 2:
-                        self.error(SemanticError,
-                                   "Too many inputs for NOT gate")
+
                     elif self.devices.get_device(ID).device_kind == self.devices.names.query("DTYPE"):
                         self.error(
                             SemanticError, "Not allowed to specify inputs for a DTYPE device")
-                    elif num > 16:
-                        self.error(SemanticError,
-                                   "max inputs allowed is 16")
 
-                    for i in range(1, num+1):
-                        self.devices.add_input(ID, device+".{}".format(i))
+                    elif self.devices.get_device(ID).device_kind == self.devices.names.query("XOR"):
+                        if num != 2:
+                            self.error(SemanticError,
+                                       "XOR gate must have 2 inputs")
+
+                    elif self.devices.get_device(ID).device_kind == self.devices.names.query("NOT"):
+                        if num >= 2:
+                            self.error(SemanticError,
+                                       "Too many inputs for NOT gate")
+
+                    else:
+                        if num > 16:
+                            self.error(SemanticError,
+                                       "max inputs allowed is 16")
+
+                        for i in range(1, num+1):
+                            [inp_id] = self.devices.names.lookup([str(i)])
+                            if self.devices.add_input(ID, inp_id):
+                                pass
+                            else:
+                                self.error(SemanticError,
+                                           "Adding input failure")
 
             else:
                 self.error(SyntaxError, "Expected number")
@@ -272,48 +298,38 @@ class Parser:
 
     def add_monitor_point(self):
 
-        while True:
-            self.symbol = self.scanner.get_symbol(query=True)
-            if self.symbol.type == self.scanner.CURLY_CLOSE:
-                break
-            if self.symbol.type in [self.scanner.COMMA, self.scanner.NEW_LINE]:
-                continue
+        self.symbol = self.scanner.get_symbol(query=True)
+        if self.symbol.type == self.scanner.CURLY_CLOSE:
+            return False
+        if self.symbol.type in [self.scanner.COMMA, self.scanner.NEW_LINE]:
+            return True
 
-            elif self.symbol.type == self.scanner.NAME:
-                # if self.symbol.id is None:
-                #     self.error(SemanticError, "Invalid monitor point, output '{}' doesn't exist".format(
-                #         self.scanner.name_string))
+        elif self.symbol.type == self.scanner.NAME:
 
-                # valid name
-                status = self.monitors.make_monitor(
-                    self.symbol.id, self.scanner.name_string)
-                if status == self.monitors.network.DEVICE_ABSENT:
-                    self.error(SemanticError, "Device '{}' doesn't exist".format(
-                        self.scanner.name_string))
-                elif status == self.monitors.NOT_OUTPUT:
-                    self.error(SemanticError, "Name '{}' is not an output".format(
-                        self.scanner.name_string))
-                elif status == self.monitors.MONITOR_PRESENT:
-                    self.error(SemanticError, "Already monitoring {}".format(
-                        self.scanner.name_string))
-                else:
-                    # no error
-                    pass
+            status = self.monitors.make_monitor(
+                self.symbol.id, None)
 
-        sys.exit()
+            if status == self.monitors.network.DEVICE_ABSENT:
+                self.error(SemanticError, "Device '{}' doesn't exist".format(
+                    self.scanner.name_string))
+            elif status == self.monitors.NOT_OUTPUT:
+                self.error(SemanticError, "Name '{}' is not an output".format(
+                    self.scanner.name_string))
+            elif status == self.monitors.MONITOR_PRESENT:
+                self.error(SemanticError, "Already monitoring {}".format(
+                    self.scanner.name_string))
+            elif status == self.monitors.NO_ERROR:
+                pass
+
         return True
 
     def get_names_before_delimiter(self, true_delimiting_word_ids, false_delimiting_word_ids):
         """ 
         Tripwire function which takes 2 arrays of name_ids.
-        Params , list(), list() - if both lists == [], 2nd return val is False if }, or True if newline
+        Params: 2 lists containing word IDs
 
-        Returns [list of device name strings ,  which array is tripped (or None)]
+        Returns [list of device name strings ,  which array is tripped (True, False or Error)]
         """
-        if true_delimiting_word_ids is None and false_delimiting_word_ids is None:
-            no_args = True
-        else:
-            no_args = False
 
         devices = []
         list_format = ret_val = name_found = None
@@ -325,21 +341,14 @@ class Parser:
 
             elif self.symbol.type == self.scanner.CURLY_CLOSE:  # error in parsing
                 if name_found:
-                    if no_args:
-                        ret_val = False
-                        break
-                    else:
-                        self.error(
-                            SyntaxError, "} encountered, couldn't parse")
+                    self.error(
+                        SyntaxError, "} encountered, couldn't parse")
                 else:
                     return None, None  # if curly bracket on line, end is reached
 
             elif self.symbol.type == self.scanner.NEW_LINE:  # trim leading linebreaks
                 if name_found:
-                    if no_args:
-                        return devices, True
-                    else:
-                        self.error(SyntaxError, "end of line, coundn't parse")
+                    self.error(SyntaxError, "end of line, coundn't parse")
                 else:
                     continue
 
@@ -348,15 +357,12 @@ class Parser:
                 word = self.scanner.names.get_name_string(self.symbol.id)
                 devices.append(word)
 
-                if no_args:
-                    pass
-                else:
-                    if self.symbol.id in true_delimiting_word_ids:  # if definition
-                        ret_val = True
-                        break
-                    elif self.symbol.id in false_delimiting_word_ids:  # if attribute
-                        ret_val = False
-                        break
+                if self.symbol.id in true_delimiting_word_ids:  # if definition
+                    ret_val = True
+                    break
+                elif self.symbol.id in false_delimiting_word_ids:  # if attribute
+                    ret_val = False
+                    break
 
             elif self.symbol.type == self.scanner.COMMA:
                 list_format = True
@@ -377,23 +383,19 @@ class Parser:
                     word = self.scanner.names.get_name_string(self.symbol.id)
                     devices.append(word)
 
-                    if no_args:
-                        ret_val = True
-                        break
-                    elif self.symbol.id in true_delimiting_word_ids:  # if definition
+                    if self.symbol.id in true_delimiting_word_ids:  # if definition
                         ret_val = True
                         break
                     elif self.symbol.id in false_delimiting_word_ids:  # if attribute
                         ret_val = False
                         break
 
-            if not no_args:
-                if self.symbol.id in true_delimiting_word_ids:  # if definition
-                    ret_val = True
-                    break
-                elif self.symbol.id in false_delimiting_word_ids:  # if attribute
-                    ret_val = False
-                    break
+            if self.symbol.id in true_delimiting_word_ids:  # if definition
+                ret_val = True
+                break
+            elif self.symbol.id in false_delimiting_word_ids:  # if attribute
+                ret_val = False
+                break
 
         # -------- RANGE NOTATION -------- #
         if list_format == False:
