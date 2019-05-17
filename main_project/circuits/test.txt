@@ -1,7 +1,7 @@
 devices: {
+
     A are DTYPE gates
 }
-
 init: {
     S1, S2 are switches
     set S1, S2 low
@@ -16,7 +16,6 @@ connections: {
         S2 to B.2
     }
 }
-
 monitor: {
-    A1, B
+    A, B
 }
