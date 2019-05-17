@@ -1,7 +1,6 @@
 devices: {
     A is a DTYPE 
 }
-
 init: {
     S1, S2 are switches
     set S1, S2 low
@@ -16,7 +15,6 @@ connections: {
         S2 to B.2
     }
 }
-
 monitor: {
     A, B
 }
