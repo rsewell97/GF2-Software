@@ -1,10 +1,10 @@
 devices: {
-    A1 => A12 are NAND gates
-    A, B have 2 inputs
+
+    A are DTYPE gates
 }
 init: {
     S1, S2 are switches
-    S1, S2 are initially 0
+    set S1, S2 low
 }
 connections: {
     device A: {

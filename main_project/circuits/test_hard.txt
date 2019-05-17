@@ -9,12 +9,11 @@ Devices: {
     H is OR
     A,B,C,D,G,H have 2 inputs
     E has 3 inputs
-    F has 4 inputs
 }
 
 Init: {
     S1 => S3 are SWITCH inputs
-    S2 is high
+    set S2 high
     CKL1 is a CLOCK input
     CKL1 has cycle time of 5
 }
