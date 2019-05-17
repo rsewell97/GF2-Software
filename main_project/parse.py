@@ -78,14 +78,15 @@ class Parser:
                 # comment out whichever lines you want in order to debug your section
                 if self.symbol.id == self.scanner.DEVICES_ID:
                     self.parse_section('devices')
-                # elif self.symbol.id == self.scanner.INIT_ID:
-                #     self.parse_section('init')
-                # elif self.symbol.id == self.scanner.CONNECTION_ID:
-                #     self.parse_section('connections')
+                elif self.symbol.id == self.scanner.INIT_ID:
+                    self.parse_section('init')
+                elif self.symbol.id == self.scanner.CONNECTION_ID:
+                    self.parse_section('connections')
                 elif self.symbol.id == self.scanner.MONITOR_ID:
                     self.parse_section('monitor')
                 else:
-                    self.error(SyntaxError,"Heading name '{}' not allowed".format(self.scanner.name_string))
+                    self.error(SyntaxError, "Heading name '{}' not allowed".format(
+                        self.scanner.name_string))
 
             elif self.symbol.type == self.scanner.NEW_LINE:
                 continue
@@ -93,7 +94,8 @@ class Parser:
             elif self.symbol.type == self.scanner.EOF:
                 break
             else:
-                self.error(SyntaxError, "not allowed to write {} outside of section".format(self.scanner.name_string))
+                self.error(SyntaxError, "not allowed to write {} outside of section. Expected heading name".format(
+                    self.scanner.name_string))
 
         # Returns True if correctly parsed
         return True
@@ -110,7 +112,8 @@ class Parser:
             elif self.symbol.type == self.scanner.CURLY_OPEN:
                 break
             else:
-                self.error(SyntaxError,"Illegal character after heading title")
+                self.error(
+                    SyntaxError, "Illegal character after heading title")
 
         if heading == 'devices':
             while self.parse_device():
@@ -118,11 +121,16 @@ class Parser:
 
             # ----------- CHECK DEVICE IS SPECIFIED -------------- #
             for i in self.devices.devices_list:
-                if i.inputs == {}:
-                    raise UnboundLocalError("Gate has no input")
+
+                # if i.inputs == {}:
+                #     self.error(SemanticError,
+                #                "Gate '{}' has no input".format(i.device_id))
                 if i.outputs == {}:
-                    raise UnboundLocalError("Gate has no output")
-                print(i.device_id, i.device_kind)
+                    self.error(SemanticError,
+                               "Gate '{}' has no output".format(i.device_id))
+
+                print("[name: {}, type: {}, num_inputs: {}, num_outputs: {}]".format(i.device_id,
+                        self.names.get_name_string(i.device_kind), i.inputs, i.outputs))
 
         elif heading == 'init':
             # call parse device() here to create switches
@@ -163,43 +171,65 @@ class Parser:
                 self.error(SyntaxError, "English doesn't make sense")
 
             word = self.scanner.names.get_name_string(self.symbol.id)
-            if word in self.device_list:
-                gate_type = self.devices.names.query(word)
-            else:
-                raise self.error(SyntaxError, "Invalid gate type")
+            if word not in self.device_list:
+                self.error(SyntaxError, "Invalid gate type {}".format(word))
 
             for i in devices:
                 # add gates to model
-                self.devices.add_device(i, gate_type)
-                self.devices.add_output(i, 0)
+                [ID] = self.devices.names.lookup([i])
+                self.devices.add_device(i, self.devices.names.query(word))
+
+                if word is "DTYPE":
+                    self.devices.add_input(i, i+".CLK")
+                    self.devices.add_input(i, i+".SET")
+                    self.devices.add_input(i, i+".CLEAR")
+                    self.devices.add_input(i, i+".DATA")
+                    self.devices.add_output(i, i)
+                    self.devices.add_output(i, i+"BAR")
+                else:   # must be a gate
+                    self.devices.add_output(i, i)
 
         else:
             # -------------- GET NUM INPUTS ------------- #
             self.symbol = self.scanner.get_symbol()
             if self.symbol.type == self.scanner.NUMBER:
                 num = int(self.symbol.id[0])
-                # print(devices)
+
                 for device in devices:
+                    ID = self.devices.names.query(device)
+
                     # TODO: Add proper error catching method
                     if self.devices.get_device(device) is None:
-                        self.error(SemanticError, "Device '{}' does not exist".format(device))
-
-                    if self.devices.get_device(device).device_kind == self.devices.names.query("NOT") and num >= 2:
-                        raise ValueError("Too many inputs for NOT gate")
+                        self.error(SemanticError,
+                                   "Device '{}' does not exist".format(device))
+                    elif self.devices.get_device(device).device_kind == self.devices.names.query("NOT") and num >= 2:
+                        self.error(SemanticError,
+                                   "Too many inputs for NOT gate")
+                    elif self.devices.get_device(device).device_kind == self.devices.names.query("DTYPE"):
+                        self.error(
+                            SemanticError, "Not allowed to specify inputs for a DTYPE device")
+                    elif num > 16: 
+                        self.error(SemanticError, 
+                                    "max inputs allowed is 16")
 
                     for i in range(1, num+1):
-                        self.devices.add_input(device, i)
+                        self.devices.add_input(device, device+".{}".format(i))
+            
             else:
                 self.error(SyntaxError, "Expected number")
 
-        while True:  # continue to end of line or } regardless
+        while True:  # continue to end of line or } CAREFUL!!
             self.symbol = self.scanner.get_symbol()
             if self.symbol is None:
                 continue
-            if self.symbol.type == self.scanner.NEW_LINE:
+            elif self.symbol.type == self.scanner.NEW_LINE:
                 return True
-            if self.symbol.type == self.scanner.CURLY_CLOSE:
+            elif self.symbol.type == self.scanner.CURLY_CLOSE:
                 return False
+            # else:
+            #     print(self.symbol.type)
+            #     print(self.scanner.name_string)
+            #     self.error(SyntaxError, "Unexpected symbol encountered while parsing")
 
         for device in self.devices.devices_list:
             print(device.inputs, device.outputs)
@@ -269,7 +299,8 @@ class Parser:
                         ret_val = False
                         break
                     else:
-                        self.error(SyntaxError, "} encountered, couldn't parse")
+                        self.error(
+                            SyntaxError, "} encountered, couldn't parse")
                 else:
                     return None, None  # if curly bracket on line, end is reached
 
@@ -338,18 +369,23 @@ class Parser:
         if list_format == False:
             if len(devices) is 2:
                 base = devices[0].rstrip('0123456789')  # gets base string
+                if devices[1].rstrip('0123456789') != base:
+                    self.error(SyntaxError, "Name bases are inconsistent, '{}' and '{}'".format(
+                        base, devices[1].rstrip('0123456789')))  # gets base string
+
                 low = re.match('.*?([0-9]+)$', devices[0]).group(1)
                 high = re.match('.*?([0-9]+)$', devices[1]).group(1)
                 lowint, highint = int(low), int(high)
 
                 if lowint > highint:
-                    raise ValueError("incorrect order of range values")
+                    self.error(ValueError, "incorrect order of range values")
 
                 devices = []
                 for i in range(lowint, highint+1):
                     devices.append(base+str(i))
             else:
-                raise self.error(SyntaxError, "Devices length must be 2")
+                raise self.error(
+                    SyntaxError, "Devices length must be 2 when using => notation")
 
         return devices, ret_val
 

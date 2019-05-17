@@ -71,11 +71,11 @@ class Scanner:
         self.heading_list = ["devices", "init", "connections", "monitor"]
         [self.DEVICES_ID, self.INIT_ID, self.CONNECTION_ID, self.MONITOR_ID] = self.names.lookup(self.heading_list)
 
-        self.keyword_list = ["are", "is", "have", "has", "to", "initially"]
+        self.keyword_list = ["are", "is", "have", "has", "to", "device"]
         [self.ARE, self.IS, self.HAVE, self.HAS,
-        self.TO, self.INITIALLY] = self.names.lookup(self.keyword_list)
+        self.TO, self.DEVICE] = self.names.lookup(self.keyword_list)
 
-        self.ignore = ["gate", "gates", "a", "an", "some"]
+        self.ignore = ["gate", "gates", "a", "an", "some", "initally"]
 
         self.current_character = ""
         self.current_line = 0

@@ -1,11 +1,10 @@
 devices: {
-    A1 => A5 are DTYPE gates
-    A1 => A5 have 1 input
+    A are DTYPE gates
 }
 
 init: {
     S1, S2 are switches
-    S1, S2 set 0
+    set S1, S2 low
 }
 connections: {
     device A: {
