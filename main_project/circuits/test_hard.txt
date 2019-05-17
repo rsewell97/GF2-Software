@@ -11,6 +11,10 @@ Devices: {
     E has 3 inputs
 }
 
+Monitor: {
+    B, G, H
+} 
+
 Init: {
     S1 => S3 are SWITCH inputs
     set S2 high
@@ -56,6 +60,3 @@ Connections: {
     }
 }
 
-Monitor: {
-    B, G, H
-} 

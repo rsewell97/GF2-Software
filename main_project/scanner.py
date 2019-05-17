@@ -82,7 +82,7 @@ class Scanner:
         self.character_number = 0
         self.word_number = 0
 
-    def get_symbol(self):
+    def get_symbol(self, query=False):
         """Translate the next sequence of characters into a symbol."""
         symbol = Symbol()
         self.skip_spaces() # current character now not whitespace
@@ -103,7 +103,10 @@ class Scanner:
                 symbol.id = self.names.query(self.name_string)                
             else:
                 symbol.type = self.NAME
-                [symbol.id] = self.names.lookup([self.name_string])
+                if query:
+                    symbol.id = self.names.query(self.name_string)
+                else:
+                    [symbol.id] = self.names.lookup([self.name_string])
                 
             print(self.name_string, end=' ')
 

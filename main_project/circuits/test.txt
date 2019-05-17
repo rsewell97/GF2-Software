@@ -1,5 +1,5 @@
 devices: {
-    A are DTYPE gates
+    A is a DTYPE 
 }
 
 init: {
@@ -18,5 +18,5 @@ connections: {
 }
 
 monitor: {
-    A1, B
+    A, B
 }

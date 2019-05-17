@@ -78,10 +78,10 @@ class Parser:
                 # comment out whichever lines you want in order to debug your section
                 if self.symbol.id == self.scanner.DEVICES_ID:
                     self.parse_section('devices')
-                elif self.symbol.id == self.scanner.INIT_ID:
-                    self.parse_section('init')
-                elif self.symbol.id == self.scanner.CONNECTION_ID:
-                    self.parse_section('connections')
+                # elif self.symbol.id == self.scanner.INIT_ID:
+                #     self.parse_section('init')
+                # elif self.symbol.id == self.scanner.CONNECTION_ID:
+                #     self.parse_section('connections')
                 elif self.symbol.id == self.scanner.MONITOR_ID:
                     self.parse_section('monitor')
                 else:
@@ -119,7 +119,7 @@ class Parser:
             while self.parse_device():
                 pass
 
-            # ----------- CHECK DEVICE IS SPECIFIED -------------- #
+            # ----------- CHECK DEVICE IS SPECIFIED ----------- #
             for i in self.devices.devices_list:
 
                 # if i.inputs == {}:
@@ -130,14 +130,18 @@ class Parser:
                                "Gate '{}' has no output".format(i.device_id))
 
                 print("[name: {}, type: {}, num_inputs: {}, num_outputs: {}]".format(i.device_id,
-                        self.names.get_name_string(i.device_kind), i.inputs, i.outputs))
+                                                                                     self.names.get_name_string(i.device_kind), i.inputs, i.outputs))
 
         elif heading == 'init':
             # call parse device() here to create switches
-            pass
+            # temp code
+            self.parse_init()
+
         elif heading == 'connections':
             # call connect() here to add the wiring
-            pass
+            # temp code
+            self.parse_connections()
+
         elif heading == 'monitor':
             while self.add_monitor_point():
                 pass
@@ -160,7 +164,7 @@ class Parser:
                 # reached end of section
                 return False
             else:
-                raise SyntaxError
+                pass
 
         if definition:
             # -------------- GET GATE TYPE -------------- #
@@ -170,24 +174,28 @@ class Parser:
             if self.symbol is None:
                 self.error(SyntaxError, "English doesn't make sense")
 
-            word = self.scanner.names.get_name_string(self.symbol.id)
-            if word not in self.device_list:
-                self.error(SyntaxError, "Invalid gate type {}".format(word))
+            device_type = self.scanner.names.get_name_string(self.symbol.id)
 
-            for i in devices:
+            for name in devices:
                 # add gates to model
-                [ID] = self.devices.names.lookup([i])
-                self.devices.add_device(i, self.devices.names.query(word))
+                [i] = self.devices.names.lookup([name])
 
-                if word is "DTYPE":
-                    self.devices.add_input(i, i+".CLK")
-                    self.devices.add_input(i, i+".SET")
-                    self.devices.add_input(i, i+".CLEAR")
-                    self.devices.add_input(i, i+".DATA")
-                    self.devices.add_output(i, i)
-                    self.devices.add_output(i, i+"BAR")
-                else:   # must be a gate
-                    self.devices.add_output(i, i)
+                if device_type is "DTYPE":
+                    self.devices.add_device(
+                        i, self.devices.names.query(device_type))
+                    self.devices.add_input(i, name+".CLK")
+                    self.devices.add_input(i, name+".SET")
+                    self.devices.add_input(i, name+".CLEAR")
+                    self.devices.add_input(i, name+".DATA")
+                    self.devices.add_output(i, name)
+                    self.devices.add_output(i, name+"BAR")
+                # must be a gate
+                elif device_type in ["XOR", "AND", "NAND", "OR", "NOR", "NOT"]:
+                    self.devices.add_device(
+                        i, self.devices.names.query(device_type))
+                    self.devices.add_output(i, name)
+                else:
+                    self.error(SyntaxError, "Can't create device {} in this section".format(device_type))
 
         else:
             # -------------- GET NUM INPUTS ------------- #
@@ -199,22 +207,22 @@ class Parser:
                     ID = self.devices.names.query(device)
 
                     # TODO: Add proper error catching method
-                    if self.devices.get_device(device) is None:
+                    if self.devices.get_device(ID) is None:
                         self.error(SemanticError,
                                    "Device '{}' does not exist".format(device))
-                    elif self.devices.get_device(device).device_kind == self.devices.names.query("NOT") and num >= 2:
+                    elif self.devices.get_device(ID).device_kind == self.devices.names.query("NOT") and num >= 2:
                         self.error(SemanticError,
                                    "Too many inputs for NOT gate")
-                    elif self.devices.get_device(device).device_kind == self.devices.names.query("DTYPE"):
+                    elif self.devices.get_device(ID).device_kind == self.devices.names.query("DTYPE"):
                         self.error(
                             SemanticError, "Not allowed to specify inputs for a DTYPE device")
-                    elif num > 16: 
-                        self.error(SemanticError, 
-                                    "max inputs allowed is 16")
+                    elif num > 16:
+                        self.error(SemanticError,
+                                   "max inputs allowed is 16")
 
                     for i in range(1, num+1):
-                        self.devices.add_input(device, device+".{}".format(i))
-            
+                        self.devices.add_input(ID, device+".{}".format(i))
+
             else:
                 self.error(SyntaxError, "Expected number")
 
@@ -231,46 +239,68 @@ class Parser:
             #     print(self.scanner.name_string)
             #     self.error(SyntaxError, "Unexpected symbol encountered while parsing")
 
-        for device in self.devices.devices_list:
-            print(device.inputs, device.outputs)
-
     def parse_init(self):
-        pass
+        # ----- TEMPORARY CODE TO FLY PAST SECTION ----- #
+        while True:
+            self.symbol = self.scanner.get_symbol()
+            if self.symbol is None:
+                continue
+            if self.symbol.type == self.scanner.CURLY_CLOSE:
+                break
+        return True
 
     def parse_connections(self):
-        pass
-        # nest_count = 1 # tracks layers of curly brackets
-        # while nest_count > 0: #loops 1 line at a time by calling parse_device()
+        # ----- TEMPORARY CODE TO FLY PAST SECTION ----- #
+        nest_count = 1  # tracks layers of curly brackets
+        while nest_count > 0:  # loops 1 line at a time by calling parse_device()
 
-        #     self.symbol = self.scanner.get_symbol()
-        #     if self.symbol is None: # ignored the current symbol
-        #         continue
+            self.symbol = self.scanner.get_symbol()
+            if self.symbol is None:  # ignored the current symbol
+                continue
 
-        #     if self.symbol.type == self.scanner.CURLY_OPEN:
-        #         nest_count += 1
-        #     elif self.symbol.type == self.scanner.CURLY_CLOSE:
-        #         nest_count -= 1
-        #     else:
-        #         self.parse_device()
+            if self.symbol.type == self.scanner.CURLY_OPEN:
+                nest_count += 1
+            elif self.symbol.type == self.scanner.CURLY_CLOSE:
+                nest_count -= 1
 
-        #     if nest_count < 1: # end of section
-        #         break
-        #     elif nest_count > max_nest:
-        #         raise SyntaxError("unexpected token '{'")
+            if nest_count < 1:  # end of section
+                break
+            elif nest_count > 2:
+                raise SyntaxError("unexpected token '{'")
+
+        return True
 
     def add_monitor_point(self):
 
-        names, status = self.get_names_before_delimiter(None, None)
-        if status:
-            pass
-            # names found successfully
-        if names is None and status is None:
-            return False
+        while True:
+            self.symbol = self.scanner.get_symbol(query=True)
+            if self.symbol.type == self.scanner.CURLY_CLOSE:
+                break
+            if self.symbol.type in [self.scanner.COMMA, self.scanner.NEW_LINE]:
+                continue
 
-        tmp = []
-        for name in names:
-            tmp.append(self.devices.get_signal_ids(name+".0"))
+            elif self.symbol.type == self.scanner.NAME:
+                # if self.symbol.id is None:
+                #     self.error(SemanticError, "Invalid monitor point, output '{}' doesn't exist".format(
+                #         self.scanner.name_string))
 
+                # valid name
+                status = self.monitors.make_monitor(
+                    self.symbol.id, self.scanner.name_string)
+                if status == self.monitors.network.DEVICE_ABSENT:
+                    self.error(SemanticError, "Device '{}' doesn't exist".format(
+                        self.scanner.name_string))
+                elif status == self.monitors.NOT_OUTPUT:
+                    self.error(SemanticError, "Name '{}' is not an output".format(
+                        self.scanner.name_string))
+                elif status == self.monitors.MONITOR_PRESENT:
+                    self.error(SemanticError, "Already monitoring {}".format(
+                        self.scanner.name_string))
+                else:
+                    # no error
+                    pass
+
+        sys.exit()
         return True
 
     def get_names_before_delimiter(self, true_delimiting_word_ids, false_delimiting_word_ids):
