@@ -1,6 +1,5 @@
 devices: {
-
-    A are DTYPE gates
+    A is a DTYPE 
 }
 init: {
     S1, S2 are switches

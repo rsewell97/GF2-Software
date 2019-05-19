@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Record and display output signals.
 
 Used in the Logic Simulator project to record and display specified output

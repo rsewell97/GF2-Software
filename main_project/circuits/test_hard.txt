@@ -28,7 +28,7 @@ Connections: {
         S3 to B.2
     }
     Device C: {
-        S2 to C.1
+        S2 to C.1        
         B to C.2
     }
     Device D: {
@@ -52,7 +52,7 @@ Connections: {
     }
     Device H: {
         C to H.1
-        not F to H.2
+        FBAR to H.2
     }
 }
 

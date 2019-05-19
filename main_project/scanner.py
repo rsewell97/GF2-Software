@@ -82,7 +82,7 @@ class Scanner:
         self.character_number = 0
         self.word_number = 0
 
-    def get_symbol(self):
+    def get_symbol(self, query=False):
         """Translate the next sequence of characters into a symbol."""
         symbol = Symbol()
         self.skip_spaces() # current character now not whitespace
@@ -103,7 +103,10 @@ class Scanner:
                 symbol.id = self.names.query(self.name_string)                
             else:
                 symbol.type = self.NAME
-                [symbol.id] = self.names.lookup([self.name_string])
+                if query:
+                    symbol.id = self.names.query(self.name_string)
+                else:
+                    [symbol.id] = self.names.lookup([self.name_string])
                 
             print(self.name_string, end=' ')
 
@@ -136,7 +139,7 @@ class Scanner:
         elif self.current_character == "}":
             symbol.type = self.CURLY_CLOSE
             self.advance()
-            print("}",end='')
+            print("}")
 
         elif self.current_character == ":":
             self.advance()
@@ -200,7 +203,6 @@ class Scanner:
         """reads one further character into the document"""
 
         self.current_character = self.input_file.read(1)
-
         self.character_number += 1
 
         if self.current_character == '\n':
