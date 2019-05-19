@@ -45,7 +45,7 @@
 \begin{center}
 {\bf INTERIM REPORT 1 - INTRODUCTION, GENERAL APPROACH, SYNTAX AND ERROR HANDLING \\
 \hfill
-\\Name: Group 7: Daniel MacKinnon, L\'ea Gansser-Potts \& Robbie Sewell\\\hfill\\
+\\Name: Group 7: Daniel Mackinnon, L\'ea Gansser-Potts \& Robbie Sewell\\\hfill\\
 Colleges: Queens', Queens' \& Fitzwilliam\\\hfill\\
 Report due: 18th May 2019 at 4pm
 }
@@ -57,7 +57,7 @@ Report due: 18th May 2019 at 4pm
 The aim of this project is to emulate a professional software development environment in which our team, made out of three software developers,  is tasked with designing and implementing an efficient logic circuit simulator package. This document outlines the structure put in place and the attitude adopted by the team to ensure that the challenges faced are overcome and a high quality product is delivered.  
 
 \section{General Approach}
-The general approach to the task is to keep the solutions simple and elegant.For instance, the grammar developed remains readable and as close to English as possible, all the while having a specific structure that allows for the parser's functions to be straightforward and robust. We aimed to complete a first iteration of the code within the first two weeks of the project, allowing time to build on this first draft as well as developing a intuitive, simple and straight-forward user interface, with features such as a `live parser' that would tell the user if they are making any syntactic or semantic errors as they input their circuit.\\
+The general approach to the task is to keep the solutions simple and elegant. For instance, the grammar developed remains readable and as close to English as possible, all the while having a specific structure that allows for the parser's functions to be straightforward and robust. We aimed to complete a first iteration of the code within the first two weeks of the project, allowing time to build on this first draft as well as developing a intuitive, simple and straight-forward user interface, with features such as a `live parser' that would tell the user if they are making any syntactic or semantic errors as they input their circuit.\\
 
 The user guide and the error handling mechanisms are being continuously added to as the software is developed in order to ensure that all bases have been covered, and no details missed.\\
 
@@ -119,27 +119,24 @@ The attitude adopted was to keep the \texttt{.txt} file as readable and flexible
 \\
 The description file contains four main sections:
 \begin{itemize}
-\item “\textit{Devices}”: where the digital devices are listed.  Certain devices have the optional argument of the number of inputs to it which may also be specified
-\item “\textit{Inputs}”: where switches and a clock signal are initialised. All switches default to a \texttt{False} boolean value unless otherwise specified
-\item “\textit{Connections}”: The wiring from outputs to inputs of devices. Each device may appear in any order. Each device has its inputs initialised in any order.  
+\item “\textit{Devices}”: where the digital devices are listed.  Certain devices have the optional argument of the number of inputs to it which may also be specified. Error handling has been implemented to ensure that an appropriate number of inputs for each different gate type is respected. 
+\item “\textit{Init}”: where switches and a clock signal are initialised. All switches default to a \texttt{False} boolean value unless otherwise specified.
+\item “\textit{Connections}”: The wiring from outputs to inputs of devices. Each device may appear in any order. The inputs can be specified in any order.   
 \item “\textit{Monitor}”: An optional section containing a list of the outputs of devices which should be displayed to the user. If this section is not included, the outputs of all devices will be shown to the user
 \end{itemize}
-Tabs-breaks are not considered part of the syntax of the definition file. The order of appearance of each section is important when parsing the language. Both “devices” and “inputs” must appear ahead of “connections”. In addition, “devices” must appear before “monitor”.
-
-Curly brackets {} are used to delimit the different sections and nest subsections within a section. This will be useful in the implementation as they can be used 'checkpoints' during error handling.  
 
 Below is the grammar developed for our encryption language:
 
 \begin{spverbatim}
 device_name =  letter, {letter | digit}
 
-port_name = letter | digit, {letter | digit}
+port_name =  digit, [digit] 
 
-device_type = “CLOCK” | “SWITCH” | “DTYPE” | “NAND” | “NOR” | “XOR” | “AND” | “OR”
+devices_type = “DTYPE” | “NAND” | “NOR” | “XOR” | “AND” | “OR” | “CLOCK” | “SWITCH”
 
 connection = “to”
 
-definition = “is a” | “are” | “is” | “is an” | “are some”
+definition = “is” | “are”
 
 possession = “has” | “have”
 
@@ -159,29 +156,40 @@ range = device_name, arrow, device_name
 
 device_definition = (device_name, {comma , device_name} | range), definition, (device_type)
 
-device_specification = (name, {comma , name} | range), possession, number, [“input” | ”inputs”]
+device_specification = (name, {comma , name} | range), possession, number
 
 switch_level = “set” , (device_name, {comma , device_name} | range) , (“HIGH” | “LOW”)
 
-clock_initialiser = (name, {comma , name} | range), “has cycle time of”, number
+clock_initialiser = (name, {comma , name} | range), "has" ,“cycle", ["time of"], number
 
 connect_definition = device_name, [“BAR”], connection, device_name, dot, port_name
 
 full_device_name = “Device”, name
 
-device_connection_definition = full_device_name , colon, curly_open, connect_definition, {connect_definition}, curly_close
+device_connection_definition = full_device_name , [colon] , curly_open, connect_definition, {connect_definition}, curly_close
 
-whole_devices = (“devices” | “Devices”), colon, curly_open, device_definition, {device_definition}, device_specification, {device_specification}, curly_close
+whole_devices = (“devices” | “Devices”| "DEVICES"), [colon], curly_open, device_definition, {device_definition}, device_specification, {device_specification}, curly_close
 
-whole_init = (“init” | “Init”), colon, curly_open, device_definition, {device_definition}, {clock_initailiser | switch_level}, {device_definition}, {clock_initailiser | switch_level}, curly_close
+whole_init = (“init” | “Init” | "INIT"), [colon], curly_open, device_definition, {device_definition}, {clock_initailiser | switch_level}, {device_definition}, {clock_initailiser | switch_level}, curly_close
 
-whole_connections = (“connections” | “Connections”), colon, curly_open, device_connection_definition, {device_connection_definition}, curly_close
+whole_connections = (“connections” | “Connections” |"CONNECTIONS"), [colon], curly_open, device_connection_definition, {device_connection_definition}, curly_close
 
-whole_monitor = (“monitor” | “Monitor”), colon, curly_open, (name {comma, name} | range), {name {comma, name} | range}, curly_close
+whole_monitor = (“monitor” | “Monitor” | "MONITOR"), [colon], curly_open, (name {comma, name} | range), {name {comma, name} | range}, curly_close
 
 entirety = whole_devices, whole_init, whole_connections, whole_monitor
 
 \end{spverbatim}
+
+Notes on the language definition:
+\begin{itemize}
+\item The language treats \texttt{init} and \texttt{device} definitions identically, but these are distinct in the the parser. 
+\item Colons after a heading and before the opening of a curly bracket can be used to improve readability, but the language does not require them. 
+\item It is expected that the language definition will be revised as the implementation of the software is undertaken.  
+\item Tabs-breaks are not considered part of the syntax of the definition file. The order of appearance of each section is important when parsing the language.
+\item  Both “devices” and “inputs” must appear ahead of “connections”. In addition, “devices” must appear before “monitor”.
+\item Curly brackets {} are used to delimit the different sections and nest subsections within a section. This will be useful in the implementation as they can be used 'checkpoints' during error handling.  
+
+\end{itemize}
 
 To illustrate the EBNF detailed, two examples have been provided with their circuit diagrams. 
 
@@ -209,7 +217,7 @@ devices: {
 init: {
     S1, S2 are switches
     set S1, S2 low
-
+}
 connections: {
     device A: {
         S1 to A.1
@@ -243,10 +251,10 @@ The logic circuit described in the figure \ref{fig2:trivial complex circuit} is 
 \hline 
     Name & Gate\\
     \hline  
-    F.1 & DATA  \\
-    F.2 & RESET \\
-    F.3 & SET \\
-    F.4 & CLOCK\\
+    F.CLK & CLOCK\\
+    F.SET & SET \\
+    F.CLEAR & CLEAR\\
+    F.DATA & DATA  \\
     \hline 
 \end{tabular}
 \end{center}
@@ -301,17 +309,17 @@ Connections: {
         C to E.3
     }
     Device F: {
-        S2 to F.1
-        C to F.2
-        D to F.3
-        CLK1 to F.4
+        CLK1 to F.CLK
+        D to F.SET
+        C to F.CLEAR
+        S2 to F.DATA
     }
     Device G: {
         E to G.1
         F to G.2
     }
     Device H: {
-        not F to H.1 
+        FBAR to H.1 
         C to H.2
     }
 }
@@ -334,8 +342,9 @@ Monitor: {
 Error identification is a key aspect of a user-friendly program. Therefore, there are several ways in which errors have been handled:
 \begin{itemize}
 \item Errors are raised immediately as the parser encounters them in the definition file.
-\item A useful message describing the nature and location (displaying the erroneous line, with a cursor indicating the location of the error) will be displayed to the user. This has been treated in a separate \texttt{error.py} module.
-\item Hints with what is expected in the error's location will be given
+\item A useful message describing the nature and location (displaying the erroneous line, with a cursor indicating the point that the parser has failed) will be displayed to the user. This has been treated in a separate \texttt{error.py} module.
+\item Hints with what is expected in the error's location will be given.
+\item As the software is being developed, whenever the code makes an assumption, an error will be thrown. 
 \end{itemize}
 \hline
 \end{document}
