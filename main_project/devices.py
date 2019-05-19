@@ -235,9 +235,24 @@ class Devices:
         cycles before the clock switches state.
         """
         self.add_device(device_id, self.CLOCK)
-        device = self.get_device(device_id)
-        device.clock_half_period = clock_half_period
+
         self.cold_startup()  # clock initialised to a random point in its cycle
+
+    def set_clock(self,device_id, new_period):
+        """
+        Set the clock cycle length to a specified value
+
+        Returns true if it was successful
+        """
+        device = self.get_device(device_id)
+        if device is None:
+            return False
+        elif device.device_kind != self.CLOCK:
+            return False
+        else:
+            device.clock_half_period = new_period
+            return True        
+        self.cold_startup()
 
     def make_gate(self, device_id, device_kind, no_of_inputs):
         """Make logic gates with the specified number of inputs."""
