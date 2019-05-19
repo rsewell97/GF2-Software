@@ -133,9 +133,10 @@ class Parser:
                                                                                      self.names.get_name_string(i.device_kind), i.inputs, i.outputs))
 
         elif heading == 'init':
-            # call parse device() here to create switches
-            # temp code
             self.parse_init()
+
+            #print name of inits, and initialised conditions
+
 
         elif heading == 'connections':
             # call connect() here to add the wiring
@@ -266,14 +267,108 @@ class Parser:
             #     self.error(SyntaxError, "Unexpected symbol encountered while parsing")
 
     def parse_init(self):
-        # ----- TEMPORARY CODE TO FLY PAST SECTION ----- #
-        while True:
+        """Build inits by reading 1 line at a time"""
+        # ----------- CREATES INITIALISERS -------------- #
+        # FORMAT = A, B are SWITCHES
+        # OR FORMAT = A1 => A12 are SWITCHES
+
+        definition_delimiters = [self.scanner.IS, self.scanner.ARE]
+        attribute_delimiters = [self.scanner.HAS, self.scanner.HAVE]
+
+        devices, definition = self.get_names_before_delimiter(
+            definition_delimiters, attribute_delimiters)
+        if definition is None:
+            if devices is None:
+                # reached end of section
+                return False
+            else:
+                pass
+
+        if definition:
+            # -------------- GET INIT TYPE -------------- #
+            self.symbol = self.scanner.get_symbol()
+            if self.symbol is None:
+                self.symbol = self.scanner.get_symbol()
+            if self.symbol is None:
+                self.error(SyntaxError, "English doesn't make sense")
+
+            init_type = self.scanner.names.get_name_string(self.symbol.id)
+
+            for name in devices:
+                # add init to model
+                [i] = self.devices.names.lookup([name])
+
+                if init_type is "SWITCH":
+                    self.devices.make_switch(i,device)
+
+                elif device_type is "CLOCK":
+                    self.devices.add_device(
+                        i, self.devices.names.query(device_type))
+                    self.devices.add_output(i, None)
+                    [inp1, inp2] = self.devices.names.lookup([str(1), str(2)])
+                    self.devices.add_input(i, inp1)
+                    self.devices.add_input(i, inp2)
+
+                else:
+                    self.error(
+                        SyntaxError, "Can't create device {} in this section".format(device_type))
+
+        else:
+            # -------------- GET NUM INPUTS ------------- #
+            self.symbol = self.scanner.get_symbol()
+            if self.symbol.type == self.scanner.NUMBER:
+                num = int(self.symbol.id[0])
+
+                for device in devices:
+                    ID = self.devices.names.query(device)
+
+                    # TODO: Add proper error catching method
+                    if self.devices.get_device(ID) is None:
+                        self.error(SemanticError,
+                                   "Device '{}' does not exist".format(device))
+
+                    elif self.devices.get_device(ID).device_kind == self.devices.names.query("DTYPE"):
+                        self.error(
+                            SemanticError, "Not allowed to specify inputs for a DTYPE device")
+
+                    elif self.devices.get_device(ID).device_kind == self.devices.names.query("XOR"):
+                        if num != 2:
+                            self.error(SemanticError,
+                                       "XOR gate must have 2 inputs")
+
+                    elif self.devices.get_device(ID).device_kind == self.devices.names.query("NOT"):
+                        if num >= 2:
+                            self.error(SemanticError,
+                                       "Too many inputs for NOT gate")
+
+                    else:
+                        if num > 16:
+                            self.error(SemanticError,
+                                       "max inputs allowed is 16")
+
+                        for i in range(1, num + 1):
+                            [inp_id] = self.devices.names.lookup([str(i)])
+                            if self.devices.add_input(ID, inp_id):
+                                pass
+                            else:
+                                self.error(SemanticError,
+                                           "Adding input failure")
+
+            else:
+                self.error(SyntaxError, "Expected number")
+
+        while True:  # continue to end of line or } CAREFUL!!
             self.symbol = self.scanner.get_symbol()
             if self.symbol is None:
                 continue
-            if self.symbol.type == self.scanner.CURLY_CLOSE:
-                break
-        return True
+            elif self.symbol.type == self.scanner.NEW_LINE:
+                return True
+            elif self.symbol.type == self.scanner.CURLY_CLOSE:
+                return False
+            # else:
+            #     print(self.symbol.type)
+            #     print(self.scanner.name_string)
+            #     self.error(SyntaxError, "Unexpected symbol encountered while parsing")
 
     def parse_connections(self):
         # ----- TEMPORARY CODE TO FLY PAST SECTION ----- #
