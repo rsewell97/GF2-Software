@@ -72,11 +72,13 @@ class Scanner:
         [self.DEVICES_ID, self.CONNECTION_ID, self.MONITOR_ID] = self.names.lookup(self.heading_list)
 
 
-        self.keyword_list = ["are", "is", "have", "has", "to", "device"]
-        [self.ARE, self.IS, self.HAVE, self.HAS,
-        self.TO, self.DEVICE] = self.names.lookup(self.keyword_list)
+        self.keyword_list = ["are", "is", "have", "has", "set", "to"]
+        [self.ARE, self.IS, self.HAVE, self.HAS, self.SET,
+        self.TO] = self.names.lookup(self.keyword_list)
 
-        self.ignore = ["gate", "gates", "a", "an", "some", "initially"]
+        [self.DEVICE] = self.names.lookup(["device"])
+
+        self.ignore = ["gate", "gates", "a", "an", "some", "initially", "inputs"]
 
         self.current_character = " "
         self.current_line = 0
@@ -99,6 +101,9 @@ class Scanner:
                 symbol.type = self.HEADING
                 symbol.id = self.names.query(self.name_string.lower())
             elif self.name_string in self.keyword_list:
+                symbol.type = self.KEYWORD
+                symbol.id = self.names.query(self.name_string)
+            elif self.name_string.lower() == self.DEVICE:
                 symbol.type = self.KEYWORD
                 symbol.id = self.names.query(self.name_string)
             else:
