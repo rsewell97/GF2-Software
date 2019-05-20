@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Implement the interactive command line user interface.
 
 Used in the Logic Simulator project to enable the user to enter commands

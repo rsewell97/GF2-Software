@@ -65,24 +65,25 @@ class Scanner:
         """"Open specified file and initialise reserved words and IDs."""
         self.names = names
         self.symbol_type_list = [self.HEADING, self.KEYWORD, self.NUMBER, 
-                    self.NAME, self.COMMA, self.ARROW, self.NEW_LINE,
-                    self.CURLY_OPEN, self.CURLY_CLOSE, self.DOT, self.EOF] = range(11)
+                    self.NAME, self.COMMA, self.ARROW,
+                    self.CURLY_OPEN, self.CURLY_CLOSE, self.SEMICOLON, self.DOT, self.EOF] = range(12)
 
         self.heading_list = ["devices", "init", "connections", "monitor"]
         [self.DEVICES_ID, self.INIT_ID, self.CONNECTION_ID, self.MONITOR_ID] = self.names.lookup(self.heading_list)
 
-        self.keyword_list = ["are", "is", "have", "has", "to", "initially", "device"]
-        [self.ARE, self.IS, self.HAVE, self.HAS,
-        self.TO, self.INITIALLY, self.DEVICE] = self.names.lookup(self.keyword_list)
 
-        self.ignore = ["gate", "gates", "a", "an", "some"]
+        self.keyword_list = ["are", "is", "have", "has", "to", "device"]
+        [self.ARE, self.IS, self.HAVE, self.HAS,
+        self.TO, self.DEVICE] = self.names.lookup(self.keyword_list)
+
+        self.ignore = ["gate", "gates", "a", "an", "some", "initially"]
 
         self.current_character = ""
         self.current_line = 0
         self.character_number = 0
         self.word_number = 0
 
-    def get_symbol(self):
+    def get_symbol(self, query=False):
         """Translate the next sequence of characters into a symbol."""
         symbol = Symbol()
         self.skip_spaces() # current character now not whitespace
@@ -103,7 +104,10 @@ class Scanner:
                 symbol.id = self.names.query(self.name_string)
             else:
                 symbol.type = self.NAME
-                [symbol.id] = self.names.lookup([self.name_string])
+                if query:
+                    symbol.id = self.names.query(self.name_string)
+                else:
+                    [symbol.id] = self.names.lookup([self.name_string])
                 
             print(self.name_string, end=' ')
 
@@ -122,11 +126,6 @@ class Scanner:
         elif self.current_character == ",":
             symbol.type = self.COMMA
             self.advance()
-        
-        elif self.current_character == "\n":
-            symbol.type = self.NEW_LINE
-            self.advance()
-            print("\n",end='')
  
         elif self.current_character == "{":
             symbol.type = self.CURLY_OPEN
@@ -136,9 +135,10 @@ class Scanner:
         elif self.current_character == "}":
             symbol.type = self.CURLY_CLOSE
             self.advance()
-            print("}",end='')
+            print("}")
 
-        elif self.current_character == ":":
+        elif self.current_character == ";":
+            symbol.type = self.SEMICOLON
             self.advance()
             return None
 
@@ -188,19 +188,14 @@ class Scanner:
     def skip_spaces(self):
         """"advances until the character is no longer a space"""
 
-        while self.current_character == ' ' or self.current_character == '\t':
+        while self.current_character.isspace():
             self.current_character = self.advance()
 
-
-    def skip_newline(self):
-        while self.advance() == '\n':
-            pass
 
     def advance(self):
         """reads one further character into the document"""
 
         self.current_character = self.input_file.read(1)
-
         self.character_number += 1
 
         if self.current_character == '\n':
