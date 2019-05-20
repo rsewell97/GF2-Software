@@ -10,7 +10,7 @@ DEVICES {
    A,B,C,D,G,H have 2 inputs;
    E has 3 inputs;
    S1 => S3 are SWITCH;
-   S2 starts high;
+   S2 set 1;
    CKL1 is CLOCK;
    CKL1 has cycle 5;
 }
