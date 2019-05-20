@@ -1,20 +1,20 @@
-devices: {
-    A is a DTYPE 
+devices {
+A is a XOR;
+B is a NAND;
+S1, S2 are SWITCH;
+(S1 starts high;)
+(CLK1 has cycle 5;)
 }
-init: {
-    S1, S2 are switches
-    set S1, S2 low
+connections {
+   device A {
+       S1 to A.1;
+       B to A.2;
+   }
+   device B {
+       A to B.1;
+       S2 to B.2;
+   }
 }
-connections: {
-    device A: {
-        S1 to A.1
-        B to A.2
-    }
-    device B: {
-        A to B.1
-        S2 to B.2
-    }
-}
-monitor: {
-    A, B
+monitor {
+   A, B;
 }
