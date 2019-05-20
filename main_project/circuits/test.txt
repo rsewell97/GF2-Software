@@ -1,7 +1,8 @@
 DEVICES {
-A is NAND gate;
-B is NAND gate;
+A, B are NAND gates;
 S1, S2 are SWITCH;
+A, B have 2 inputs;
+
 }
 
 CONNECTIONS {

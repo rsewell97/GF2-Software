@@ -66,20 +66,13 @@ class Parser:
     def parse_network(self):
         """Parse the circuit definition file."""
 
-        # skip first N linebreaks
-        self.scanner.skip_newline()
-
         while True:
             self.symbol = self.scanner.get_symbol()
-            if self.symbol is None:
-                continue
 
             if self.symbol.type == self.scanner.HEADING:
                 # comment out whichever lines you want in order to debug your section
                 if self.symbol.id == self.scanner.DEVICES_ID:
                     self.parse_section('devices')
-                elif self.symbol.id == self.scanner.INIT_ID:
-                    self.parse_section('init')
                 elif self.symbol.id == self.scanner.CONNECTION_ID:
                     self.parse_section('connections')
                 elif self.symbol.id == self.scanner.MONITOR_ID:
@@ -88,13 +81,11 @@ class Parser:
                     self.error(SyntaxError, "Heading name '{}' not allowed".format(
                         self.scanner.name_string))
 
-            elif self.symbol.type == self.scanner.NEW_LINE:
-                continue
-
             elif self.symbol.type == self.scanner.EOF:
+                self.scanner.input_file.close()
                 break
             else:
-                self.error(SyntaxError, "not allowed to write {} outside of section. Expected heading name".format(
+                self.error(SyntaxError, "not allowed to write '{}' outside of section. Expected heading name".format(
                     self.scanner.name_string))
 
         # Returns True if correctly parsed
@@ -106,8 +97,6 @@ class Parser:
         while True:  # find opening curly bracket
             self.symbol = self.scanner.get_symbol()
             if self.symbol is None:
-                continue
-            elif self.symbol.type == self.scanner.NEW_LINE:
                 continue
             elif self.symbol.type == self.scanner.CURLY_OPEN:
                 break
@@ -122,9 +111,9 @@ class Parser:
             # ----------- CHECK DEVICE IS SPECIFIED ----------- #
             for i in self.devices.devices_list:
 
-                if i.inputs == {}:
+                if i.inputs == {} and i.device_kind != self.devices.SWITCH:
                     self.error(SemanticError,
-                               "No inputs specified for gate '{}' ".format(i.device_id))
+                               "No inputs specified for gate '{}' ".format(self.devices.names.get_name_string(i.device_id)))
                 if i.outputs == {}:
                     self.error(SemanticError,
                                "Gate '{}' has no output".format(i.device_id))
@@ -132,16 +121,11 @@ class Parser:
                 print("[name: {}, type: {}, num_inputs: {}, num_outputs: {}]".format(i.device_id,
                                                                                      self.names.get_name_string(i.device_kind), i.inputs, i.outputs))
 
-        elif heading == 'init':
-            self.parse_init()
-
-            #print name of inits, and initialised conditions
-
-
         elif heading == 'connections':
-            # call connect() here to add the wiring
             # temp code
-            self.parse_connections()
+            no_curlies = self.parse_connections(0)
+            while no_curlies < 2:
+                no_curlies = self.parse_connections(no_curlies)
 
         elif heading == 'monitor':
             while self.add_monitor_point():
@@ -160,12 +144,9 @@ class Parser:
 
         devices, definition = self.get_names_before_delimiter(
             definition_delimiters, attribute_delimiters)
-        if definition is None:
-            if devices is None:
-                # reached end of section
-                return False
-            else:
-                pass
+
+        if (definition and devices) is None:
+            return False
 
         if definition:
             # -------------- GET GATE TYPE -------------- #
@@ -175,41 +156,35 @@ class Parser:
             if self.symbol is None:
                 self.error(SyntaxError, "English doesn't make sense")
 
-            device_type = self.scanner.names.get_name_string(self.symbol.id)
+            # device_type = self.scanner.names.get_name_string(self.symbol.id)
 
             for name in devices:
                 # add gates to model
                 [i] = self.devices.names.lookup([name])
 
-                if device_type is "DTYPE":
+                if self.symbol.id in self.devices.gate_types:
+                    self.devices.add_device(i, self.symbol.id)
+                    self.devices.add_output(i, None)
+                    
+                    if self.symbol.id == self.devices.XOR:
+                        self.devices.add_input(i, self.devices.names.lookup("I1"))
+                        self.devices.add_input(i, self.devices.names.lookup("I2"))
+                                
+                elif self.symbol.id == self.devices.D_TYPE:
                     self.devices.make_d_type(i)
 
-                elif device_type is "XOR":
-                    self.devices.add_device(
-                        i, self.devices.names.query(device_type))
-                    self.devices.add_output(i, None)
-                    [inp1, inp2] = self.devices.names.lookup([str(1), str(2)])
-                    self.devices.add_input(i, inp1)
-                    self.devices.add_input(i, inp2)
-
-                elif device_type is "NOT":
-                    self.devices.add_device(
-                        i, self.devices.names.query(device_type))
-                    self.devices.add_output(i, None)
-                    [inp1] = self.devices.names.lookup([str(1)])
-                    self.devices.add_input(i, inp1)
-
-                # must be a gate - user must specify inputs
-                elif device_type in ["AND", "NAND", "OR", "NOR"]:
-                    self.devices.add_device(
-                        i, self.devices.names.query(device_type))
-                    self.devices.add_output(i, None)
+                elif self.symbol.id == self.devices.CLOCK:
+                    self.devices.make_clock(i, 1)
+                
+                elif self.symbol.id == self.devices.SWITCH:
+                    self.devices.make_switch(i, 0)
 
                 else:
                     self.error(
-                        SyntaxError, "Can't create device {} in this section".format(device_type))
+                        SyntaxError, "Can't create device {} in this section".format(
+                            self.scanner.names.get_name_string(self.symbol.id)))
 
-        else:
+        else: 
             # -------------- GET NUM INPUTS ------------- #
             self.symbol = self.scanner.get_symbol()
             if self.symbol.type == self.scanner.NUMBER:
@@ -243,7 +218,7 @@ class Parser:
                                        "max inputs allowed is 16")
                         else:
                             for i in range(1, num+1):
-                                [inp_id] = self.devices.names.lookup([str(i)])
+                                [inp_id] = self.devices.names.lookup(["I"+str(i)])
                                 if self.devices.add_input(ID, inp_id):
                                     pass
                                 else:
@@ -257,153 +232,53 @@ class Parser:
             self.symbol = self.scanner.get_symbol()
             if self.symbol is None:
                 continue
-            elif self.symbol.type == self.scanner.NEW_LINE:
+            elif self.symbol.type == self.scanner.SEMICOLON:
                 return True
-            elif self.symbol.type == self.scanner.CURLY_CLOSE:
-                return False
+
             # else:
             #     print(self.symbol.type)
             #     print(self.scanner.name_string)
             #     self.error(SyntaxError, "Unexpected symbol encountered while parsing")
 
-    def parse_init(self):
-        """Build inits by reading 1 line at a time"""
-        # ----------- CREATES INITIALISERS -------------- #
-        # FORMAT = A, B are SWITCHES
-        # OR FORMAT = A1 => A12 are SWITCHES
-
-        definition_delimiters = [self.scanner.IS, self.scanner.ARE]
-        attribute_delimiters = [self.scanner.HAS, self.scanner.HAVE]
-
-        devices, definition = self.get_names_before_delimiter(
-            definition_delimiters, attribute_delimiters)
-        if definition is None:
-            if devices is None:
-                # reached end of section
-                return False
-            else:
-                pass
-
-        if definition:
-            # -------------- GET INIT TYPE -------------- #
-            self.symbol = self.scanner.get_symbol()
-            if self.symbol is None:
-                self.symbol = self.scanner.get_symbol()
-            if self.symbol is None:
-                self.error(SyntaxError, "English doesn't make sense")
-
-            init_type = self.scanner.names.get_name_string(self.symbol.id)
-
-            for name in devices:
-                # add init to model
-                [i] = self.devices.names.lookup([name])
-
-                if init_type is "SWITCH":
-                    self.devices.make_switch(i,device)
-
-                elif device_type is "CLOCK":
-                    self.devices.add_device(
-                        i, self.devices.names.query(device_type))
-                    self.devices.add_output(i, None)
-                    [inp1, inp2] = self.devices.names.lookup([str(1), str(2)])
-                    self.devices.add_input(i, inp1)
-                    self.devices.add_input(i, inp2)
-
-                else:
-                    self.error(
-                        SyntaxError, "Can't create device {} in this section".format(device_type))
-
-        else:
-            # -------------- GET NUM INPUTS ------------- #
-            self.symbol = self.scanner.get_symbol()
-            if self.symbol.type == self.scanner.NUMBER:
-                num = int(self.symbol.id[0])
-
-                for device in devices:
-                    ID = self.devices.names.query(device)
-
-                    # TODO: Add proper error catching method
-                    if self.devices.get_device(ID) is None:
-                        self.error(SemanticError,
-                                   "Device '{}' does not exist".format(device))
-
-                    elif self.devices.get_device(ID).device_kind == self.devices.names.query("DTYPE"):
-                        self.error(
-                            SemanticError, "Not allowed to specify inputs for a DTYPE device")
-
-                    elif self.devices.get_device(ID).device_kind == self.devices.names.query("XOR"):
-                        if num != 2:
-                            self.error(SemanticError,
-                                       "XOR gate must have 2 inputs")
-
-                    elif self.devices.get_device(ID).device_kind == self.devices.names.query("NOT"):
-                        if num >= 2:
-                            self.error(SemanticError,
-                                       "Too many inputs for NOT gate")
-
-                    else:
-                        if num > 16:
-                            self.error(SemanticError,
-                                       "max inputs allowed is 16")
-
-                        for i in range(1, num + 1):
-                            [inp_id] = self.devices.names.lookup([str(i)])
-                            if self.devices.add_input(ID, inp_id):
-                                pass
-                            else:
-                                self.error(SemanticError,
-                                           "Adding input failure")
-
-            else:
-                self.error(SyntaxError, "Expected number")
-
-        while True:  # continue to end of line or } CAREFUL!!
-            self.symbol = self.scanner.get_symbol()
-            if self.symbol is None:
-                continue
-            elif self.symbol.type == self.scanner.NEW_LINE:
-                return True
-            elif self.symbol.type == self.scanner.CURLY_CLOSE:
-                return False
-            # else:
-            #     print(self.symbol.type)
-            #     print(self.scanner.name_string)
-            #     self.error(SyntaxError, "Unexpected symbol encountered while parsing")
-
-    def parse_connections(self): #doesn't delimit by device, as some devices will have BARs and so it makes more sense to go line by line
-
-        self.symbol = self.scanner.get_symbol()
-        if self.symbol.id != self.scanner.DEVICES_ID:
-            print("first word is not device")
-        else:
-            self.symbol = self.scanner.get_symbol()
-            if self.symbol.type != self.scanner.NAME:
-                print("second word is not a name")
-            else:
-                device = self.devices.get_device(self.symbol.id)
-                DEVICE_INPUT = device
-                if device is Nome:
-                    print("this device does not exist")
-                else:
-                    self.symbol = self.scanner.get_symbol()
-                    if self.symbol.type != self.scanner.CURLY_OPEN:
-                        print("you need an open curly")
-                    else:
-                        pass
+    # doesn't delimit by device, as some devices will have BARs and so it makes more sense to go line by line
+    def parse_connections(self, curlies):
 
         self.symbol = self.scanner.get_symbol()
 
-        if self.symbol.type == self.scanner.NAME:
-            pass
-        else:
-            print("first device is not a name")
+        if self.symbol.type == self.scanner.CURLY_CLOSE:
+            curlies += 1
+            return curlies
+
+        print(self.symbol.type)
+        if self.symbol.id != self.scanner.DEVICE:
+            self.error(SemanticError, "first word is not 'device'")
+
+        self.symbol = self.scanner.get_symbol()
+        if self.symbol.type != self.scanner.NAME:
+            self.error(SyntaxError, "second word is not a name type")
+
+        device = self.devices.get_device(self.symbol.id)
+        if device is None:
+            self.error(SemanticError, "The device '{}' does not exist".format(
+                self.scanner.name_string))
+
+        DEVICE_INPUT = device
+
+        self.symbol = self.scanner.get_symbol()
+        if self.symbol.type != self.scanner.CURLY_OPEN:
+            self.error(
+                SyntaxError, "Expected open curly bracket, parsing error")
+
+        self.symbol = self.scanner.get_symbol()
+        if self.symbol.type != self.scanner.NAME:
+            self.error(SyntaxError, "first device is not a name")
 
         first_device = self.devices.get_device(self.symbol.id)
         if first_device is None:
-            print("device at start of connection does not exist")
+            self.error(SemanticError, "device '{}' does not exist".format(
+                self.scanner.name_string))
 
-
-        if first_device.device_kind() == self.devices.D_TYPE:
+        if first_device.device_kind == self.devices.D_TYPE:
             self.symbol = self.scanner.get_symbol()
             if self.symbol.type != self.scanner.DOT:
                 print("there should be a dot after a DTPYE")
@@ -420,7 +295,8 @@ class Parser:
             print("there should be a 'to' after the first device")
 
         self.symbol = self.scanner.get_symbol()
-        end_device = self.devices.get_device(self.symbol.id) #finds device at end of "wire"
+        end_device = self.devices.get_device(
+            self.symbol.id)  # finds device at end of "wire"
 
         if end_device is None:
             print("device does not exist")
@@ -428,81 +304,31 @@ class Parser:
         if end_device != DEVICE_INPUT:
             print("you're in the wrong section")
 
-
-        self.symbol = self.scanner.get_symbol() #finds next symbol, should be a dot
+        self.symbol = self.scanner.get_symbol()  # finds next symbol, should be a dot
         if self.symbol.type != self.scanner.DOT:
             print("there should be a dot after the first device")
 
-
-        self.symbol = self.scanner.get_symbol() # finds port number
+        self.symbol = self.scanner.get_symbol()  # finds port number
 
         if self.symbol.type != self.scanner.NAME:
             print("expected port name")
 
         second_device_input_id = self.symbol.id
 
-
         if DEVICE_INPUT.device_kind == self.devices.D_TYPE:
             pass
 
-        self.network.make_connection(self, DEVICE_INPUT.id, first_device_output_id, end_device.id, second_device_input_id)
+        self.network.make_connection(
+            self, DEVICE_INPUT.id, first_device_output_id, end_device.id, second_device_input_id)
 
-        #check if port number is valid
-
-        #check if device has that many port numbers - there doesn't seem to be a method in devices for doing this, I could test for DTYPE and XOR but it should work for all of them
-        # however, the make_connections function in network already does a lot of this
-
-        """if end_device_type == "DTYPE":
-            if port_no not in dtpye_ports:
-                print("That's not a DTPYE port")
-        else:
-            if type(port_no) != int:
-                print("port number has to be an integer")
-        if end_device_type == "XOR":
-            if port_no > 2:
-                print("XOR gates can only have 2 input ports")
-
-        if port_no not in end_device_type.inputs[end_device]:
-            return("port number is not in end device inputs")
-
-        if has_not == 0:
-            self.network.make_connection(self, actual_device, actual_device, end_device, port_no)
-        else:
-            self.network.make_connection(self, actual_device, first_device, end_device, port_no)"""
-
-
-
-
-
-
-
-
-
-        # nest_count = 1 # tracks layers of curly brackets
-        # while nest_count > 0: #loops 1 line at a time by calling parse_device()
-
-        #     self.symbol = self.scanner.get_symbol()
-        #     if self.symbol is None: # ignored the current symbol
-        #         continue
-
-        #     if self.symbol.type == self.scanner.CURLY_OPEN:
-        #         nest_count += 1
-        #     elif self.symbol.type == self.scanner.CURLY_CLOSE:
-        #         nest_count -= 1
-        #     else:
-        #         self.parse_device()
-
-        #     if nest_count < 1: # end of section
-        #         break
-        #     elif nest_count > max_nest:
-        #         raise SyntaxError("unexpected token '{'")
+        return 0
 
     def add_monitor_point(self):
 
         self.symbol = self.scanner.get_symbol(query=True)
         if self.symbol.type == self.scanner.CURLY_CLOSE:
             return False
-        if self.symbol.type in [self.scanner.COMMA, self.scanner.NEW_LINE]:
+        if self.symbol.type in [self.scanner.COMMA, self.scanner.SEMICOLON]:
             return True
 
         elif self.symbol.type == self.scanner.NAME:
@@ -534,6 +360,7 @@ class Parser:
 
         devices = []
         list_format = ret_val = name_found = None
+        i = 0
         while True:
             # ------------ GET FIRST SYMBOL ------------ #
             self.symbol = self.scanner.get_symbol()
@@ -547,11 +374,8 @@ class Parser:
                 else:
                     return None, None  # if curly bracket on line, end is reached
 
-            elif self.symbol.type == self.scanner.NEW_LINE:  # trim leading linebreaks
-                if name_found:
-                    self.error(SyntaxError, "end of line, coundn't parse")
-                else:
-                    continue
+            elif self.symbol.type == self.scanner.SEMICOLON:  # trim leading linebreaks
+                continue
 
             elif self.symbol.type == self.scanner.NAME:
                 name_found = True   # checks word has been found
@@ -597,6 +421,8 @@ class Parser:
             elif self.symbol.id in false_delimiting_word_ids:  # if attribute
                 ret_val = False
                 break
+            
+            i += 1
 
         # -------- RANGE NOTATION -------- #
         if list_format == False:

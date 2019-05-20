@@ -40,10 +40,10 @@ def main():
     devices.make_gate(1, devices.names.query("NAND"), 2)
     devices.make_gate(2, devices.names.query("NAND"), 2)
 
-    network.make_connection(s1, None, 1, devices.names.query("1"))
-    network.make_connection(s2, None, 2, devices.names.query("2"))
-    network.make_connection(1, None, 2, devices.names.query("1"))
-    network.make_connection(2, None, 1, devices.names.query("2"))
+    network.make_connection(s1, None, 1, devices.names.query("I1"))
+    network.make_connection(s2, None, 2, devices.names.query("I2"))
+    network.make_connection(1, None, 2, devices.names.query("I1"))
+    network.make_connection(2, None, 1, devices.names.query("I2"))
     print(network.check_network())
 
     print(monitors.make_monitor(1,None))

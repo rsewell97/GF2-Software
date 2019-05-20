@@ -65,11 +65,11 @@ class Scanner:
         """"Open specified file and initialise reserved words and IDs."""
         self.names = names
         self.symbol_type_list = [self.HEADING, self.KEYWORD, self.NUMBER, 
-                    self.NAME, self.COMMA, self.ARROW,
-                    self.CURLY_OPEN, self.CURLY_CLOSE, self.SEMICOLON, self.DOT, self.EOF] = range(12)
+                    self.NAME, self.COMMA, self.ARROW, self.CURLY_OPEN, 
+                    self.CURLY_CLOSE, self.SEMICOLON, self.DOT, self.EOF] = range(11)
 
-        self.heading_list = ["devices", "init", "connections", "monitor"]
-        [self.DEVICES_ID, self.INIT_ID, self.CONNECTION_ID, self.MONITOR_ID] = self.names.lookup(self.heading_list)
+        self.heading_list = ["devices", "connections", "monitor"]
+        [self.DEVICES_ID, self.CONNECTION_ID, self.MONITOR_ID] = self.names.lookup(self.heading_list)
 
 
         self.keyword_list = ["are", "is", "have", "has", "to", "device"]
@@ -78,7 +78,7 @@ class Scanner:
 
         self.ignore = ["gate", "gates", "a", "an", "some", "initially"]
 
-        self.current_character = ""
+        self.current_character = " "
         self.current_line = 0
         self.character_number = 0
         self.word_number = 0
@@ -93,7 +93,6 @@ class Scanner:
             self.name_string = name_list[0]
 
             if self.name_string in self.ignore:
-                # ignore these words
                 return None
 
             elif self.name_string.lower() in self.heading_list:
@@ -140,7 +139,7 @@ class Scanner:
         elif self.current_character == ";":
             symbol.type = self.SEMICOLON
             self.advance()
-            return None
+            print(";")
 
         elif self.current_character == ".":
             symbol.type = self.DOT
