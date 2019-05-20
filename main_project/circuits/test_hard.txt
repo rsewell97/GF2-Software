@@ -38,10 +38,10 @@ Connections {
        C to E.3;
    }
    Device F {
-       S2 to F.1;
-       C to F.2;
-       D to F.3;
-       CLK1 to F.4;
+        CLK1 to F.CLK;
+        D to F.SET;
+        C to F.CLEAR;
+        S2 to F.DATA;
    }
    Device G {
        E to G.1;
@@ -49,7 +49,7 @@ Connections {
    }
    Device H {
        C to H.1;
-       FBAR to H.2;
+       F.QBAR to H.2;
    }
 }
 
