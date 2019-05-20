@@ -1,20 +1,19 @@
-devices {
-A is a XOR;
-B is a NAND;
+DEVICES {
+A is a NAND gate;
+B is a NAND gate;
 S1, S2 are SWITCH;
-(S1 starts high;)
-(CLK1 has cycle 5;)
 }
-connections {
+
+CONNECTIONS {
    device A {
-       S1 to A.1;
-       B to A.2;
+       S1 to A.I1;
+       B to A.I2;
    }
    device B {
-       A to B.1;
-       S2 to B.2;
+       A to B.I1;
+       S2 to B.)2;
    }
 }
-monitor {
+MONITOR {
    A, B;
 }
