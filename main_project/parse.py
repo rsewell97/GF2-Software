@@ -134,13 +134,13 @@ class Parser:
 
         elif heading == 'init':
             # call parse device() here to create switches
-            no_curlies = self.parse_connections(self, 0)
-            while no_curlies < 2:
-                no_curlies = self.parse_connections(self, no_curlies)
             pass
         elif heading == 'connections':
             # call connect() here to add the wiring
 
+            no_curlies = self.parse_connections(self, 0)
+            while no_curlies < 2:
+                no_curlies = self.parse_connections(self, no_curlies)
             pass
 
         elif heading == 'monitor':
