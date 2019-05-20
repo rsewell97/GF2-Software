@@ -1,0 +1,27 @@
+Entirety = devices, connections, [monitor]
+
+Devices = “DEVICES” , “{“ , definition , {“,” , (definition | attributes)}, “}”
+Connections = “CONNECTIONS” , “{“ , connection , {connection} , “}”
+Monitor = “MONITOR”, “{“,  name, { “,” , (name | range) } , ”;” , “}”
+
+definition = names, (“is” | ”are”), device_type, “;”
+attributes = names, parameter, “;”
+
+parameter = inputs | cycle_time | switch_set
+
+inputs = (“has” | “have”) , digit, [inputs]
+cycle_test = “has”, [“cycle time of”], digit, “;”
+set_switch = (“starts”| “start”), (true | false), “;”
+
+true = (“true” | “high” | “1” )
+false = (“false” | “low” | “0”)
+
+names = (name , { "," , name } ) | range
+name =  letter, { letter | digit }
+range = letter, {letter|digit}, digit , ( “=>” | “->”) , letter, {letter|digit}, digit
+
+devices_type = “DTYPE” | “NAND” | “NOR” | “XOR” | “AND” | “OR” | “CLOCK” | “SWITCH”, [“gates” | “gate”]
+
+connection = “Device”, name, "{", ( link , {link} ) , “}”
+link = name [".QBAR" | ".Q" ], “to” , port, ";"
+port = name, “.” ( ( “I”, (digit, {digit}) ) | "SET" | "CLK" | "CLEAR" | "DATA" )
