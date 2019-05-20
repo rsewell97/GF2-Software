@@ -66,7 +66,7 @@ class Scanner:
         self.names = names
         self.symbol_type_list = [self.HEADING, self.KEYWORD, self.NUMBER, 
                     self.NAME, self.COMMA, self.ARROW, self.NEW_LINE,
-                    self.CURLY_OPEN, self.CURLY_CLOSE, self.DOT, self.EOF] = range(11)
+                    self.CURLY_OPEN, self.CURLY_CLOSE, self.SEMICOLON, self.DOT, self.EOF] = range(12)
 
         self.heading_list = ["devices", "init", "connections", "monitor"]
         [self.DEVICES_ID, self.INIT_ID, self.CONNECTION_ID, self.MONITOR_ID] = self.names.lookup(self.heading_list)
@@ -141,7 +141,8 @@ class Scanner:
             self.advance()
             print("}")
 
-        elif self.current_character == ":":
+        elif self.current_character == ";":
+            symbol.type = self.SEMICOLON
             self.advance()
             return None
 

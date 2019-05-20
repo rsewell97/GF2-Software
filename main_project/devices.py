@@ -1,9 +1,6 @@
-#!/usr/bin/env python3
 """Make devices and set device properties.
-
 Used in the Logic Simulator project to make devices and ports and store their
 properties.
-
 Classes
 -------
 Device - stores device properties.
@@ -15,11 +12,9 @@ import random
 class Device:
 
     """Store device properties.
-
     Parameters
     ----------
     device_id: device ID.
-
     Public methods
     --------------
     No public methods.
@@ -47,53 +42,37 @@ class Device:
 class Devices:
 
     """Make and store devices.
-
     This class contains many functions for making devices and ports.
     It stores all the devices in a list.
-
     Parameters
     ----------
     names: instance of the names.Names() class.
-
     Public methods
     --------------
     get_device(self, device_id): Returns the Device object corresponding
                                  to the device ID.
-
     find_devices(self, device_kind=None): Returns a list of device_ids of
                                           the specified device_kind.
-
     add_device(self, device_id, device_kind): Adds the specified device to the
                                               network.
-
     add_input(self, device_id, input_id): Adds the specified input to the
                                           specified device.
-
     add_output(self, device_id, output_id, signal=0): Adds the specified output
                                                       to the specified device.
-
     get_signal_name(self, device_id, output_id): Returns the name string of the
                                                  specified signal.
-
     get_signal_ids(self, signal_name): Returns the device and output IDs of
                                        the specified signal.
-
     set_switch(self, device_id, signal): Sets switch_state of specified device
                                          to signal.
-
     make_switch(self, device_id, initial_state): Makes a switch device and sets
                                                  its initial state.
-
     make_clock(self, device_id, clock_half_period): Makes a clock device with
                                                     the specified half period.
-
     make_gate(self, device_id, device_kind, no_of_inputs): Makes logic gates
                                         with the specified number of inputs.
-
     make_d_type(self, device_id): Makes a D-type device.
-
     cold_startup(self): Simulates cold start-up of D-types and c locks.
-
     make_device(self, device_id, device_kind, device_property=None): Creates
                        the specified device and returns errors if unsuccessful.
     """
@@ -108,6 +87,7 @@ class Devices:
         gate_strings = ["AND", "OR", "NAND", "NOR", "XOR"]
         device_strings = ["CLOCK", "SWITCH", "DTYPE"]
         dtype_inputs = ["CLK", "SET", "CLEAR", "DATA"]
+        dtype_outputs = ["Q", "QBAR"]
 
         [self.NO_ERROR, self.INVALID_QUALIFIER, self.NO_QUALIFIER,
          self.BAD_DEVICE, self.QUALIFIER_PRESENT,
@@ -121,6 +101,8 @@ class Devices:
                              self.D_TYPE] = self.names.lookup(device_strings)
         self.dtype_input_ids = [self.CLK_ID, self.SET_ID, self.CLEAR_ID,
                                 self.DATA_ID] = self.names.lookup(dtype_inputs)
+        self.dtype_output_ids = [
+            self.Q_ID, self.QBAR_ID] = self.names.lookup(dtype_outputs)
 
         self.max_gate_inputs = 16
 
@@ -133,7 +115,6 @@ class Devices:
 
     def find_devices(self, device_kind=None):
         """Return a list of device IDs of the specified device_kind.
-
         Return a list of all device IDs in the network if no device_kind is
         specified.
         """
@@ -153,7 +134,6 @@ class Devices:
 
     def add_input(self, device_id, input_id):
         """Add the specified input to the specified device.
-
         Return True if successful.
         """
         device = self.get_device(device_id)
@@ -165,7 +145,6 @@ class Devices:
 
     def add_output(self, device_id, output_id, signal=0):
         """Add the specified output to the specified device.
-
         Return True if successful. The default output signal is LOW (0).
         """
         device = self.get_device(device_id)
@@ -177,7 +156,6 @@ class Devices:
 
     def get_signal_name(self, device_id, port_id):
         """Return the name string of the specified signal.
-
         The signal is specified by its device_id and port_id. Return None if
         either ID is invalid.
         """
@@ -210,7 +188,6 @@ class Devices:
 
     def set_switch(self, device_id, signal):
         """Set the switch state of the specified device to signal.
-
         Return True if successful.
         """
         device = self.get_device(device_id)
@@ -230,7 +207,6 @@ class Devices:
 
     def make_clock(self, device_id, clock_half_period):
         """Make a clock device with the specified half period.
-
         clock_half_period is an integer > 0. It is the number of simulation
         cycles before the clock switches state.
         """
@@ -245,7 +221,7 @@ class Devices:
         self.add_output(device_id, output_id=None)
 
         for input_number in range(1, no_of_inputs + 1):
-            input_name = str(input_number)
+            input_name = "".join(["I", str(input_number)])
             [input_id] = self.names.lookup([input_name])
             self.add_input(device_id, input_id)
 
@@ -254,18 +230,12 @@ class Devices:
         self.add_device(device_id, self.D_TYPE)
         for input_id in self.dtype_input_ids:
             self.add_input(device_id, input_id)
-
-        base = self.names.get_name_string(device_id)
-
-        [norm, normbar] = self.names.lookup([base, base+"BAR"])
-        self.add_output(device_id, norm)
-        self.add_output(device_id, normbar)
-
+        for output_id in self.dtype_output_ids:
+            self.add_output(device_id, output_id)
         self.cold_startup()  # D-type initialised to a random state
 
     def cold_startup(self):
         """Simulate cold start-up of D-types and clocks.
-
         Set the memory of the D-types to a random state and make the clocks
         begin from a random point in their cycles.
         """
@@ -283,7 +253,6 @@ class Devices:
 
     def make_device(self, device_id, device_kind, device_property=None):
         """Create the specified device.
-
         Return self.NO_ERROR if successful. Return corresponding error if not.
         """
         # Device has already been added to the devices_list

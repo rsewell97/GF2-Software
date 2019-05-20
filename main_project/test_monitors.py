@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Test the monitors module."""
 import pytest
 

@@ -240,14 +240,14 @@ class Parser:
                         if num > 16:
                             self.error(SemanticError,
                                        "max inputs allowed is 16")
-
-                        for i in range(1, num+1):
-                            [inp_id] = self.devices.names.lookup([str(i)])
-                            if self.devices.add_input(ID, inp_id):
-                                pass
-                            else:
-                                self.error(SemanticError,
-                                           "Adding input failure")
+                        else:
+                            for i in range(1, num+1):
+                                [inp_id] = self.devices.names.lookup([str(i)])
+                                if self.devices.add_input(ID, inp_id):
+                                    pass
+                                else:
+                                    self.error(SemanticError,
+                                               "Adding input failure")
 
             else:
                 self.error(SyntaxError, "Expected number")
