@@ -65,7 +65,7 @@ class Scanner:
         """"Open specified file and initialise reserved words and IDs."""
         self.names = names
         self.symbol_type_list = [self.HEADING, self.KEYWORD, self.NUMBER, 
-                    self.NAME, self.COMMA, self.ARROW, self.NEW_LINE,
+                    self.NAME, self.COMMA, self.ARROW,
                     self.CURLY_OPEN, self.CURLY_CLOSE, self.SEMICOLON, self.DOT, self.EOF] = range(12)
 
         self.heading_list = ["devices", "init", "connections", "monitor"]
@@ -125,11 +125,6 @@ class Scanner:
         elif self.current_character == ",":
             symbol.type = self.COMMA
             self.advance()
-        
-        elif self.current_character == "\n":
-            symbol.type = self.NEW_LINE
-            self.advance()
-            print("\n",end='')
  
         elif self.current_character == "{":
             symbol.type = self.CURLY_OPEN
@@ -192,13 +187,9 @@ class Scanner:
     def skip_spaces(self):
         """"advances until the character is no longer a space"""
 
-        while self.current_character == ' ' or self.current_character == '\t':
+        while self.current_character.isspace():
             self.current_character = self.advance()
 
-
-    def skip_newline(self):
-        while self.advance() == '\n':
-            pass
 
     def advance(self):
         """reads one further character into the document"""
