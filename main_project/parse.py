@@ -348,10 +348,19 @@ class Parser:
                 pass
 
             self.symbol = self.scanner.get_symbol()  # finds port number
-            if self.symbol.type == self.scanner.SEMICOLON:  
-                self.network.make_connection(
+            if self.symbol.type == self.scanner.SEMICOLON:
+                status = self.network.make_connection(
                     input_device.device_id, first_device_port_id, second_device.device_id, second_device_input_id)
 
+                if status == self.network.INPUT_CONNECTED:
+                    self.error(SemanticError, "{}.{} is already connected".format(
+                        second_device.device_id, self.devices.names.get_name_string(second_device_input_id)))
+                elif status == self.network.INPUT_TO_INPUT:
+                    self.error(SemanticError, "Trying to connect two input ports")
+                elif status == self.network.PORT_ABSENT:
+                    self.error(SemanticError, "Invalid port index")
+                elif status == self.network.NO_ERROR:
+                    pass
         return True
 
     def add_monitor_point(self):
