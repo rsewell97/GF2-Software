@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Map variable names and string names to unique integers.
 
 Used in the Logic Simulator project. Most of the modules in the project

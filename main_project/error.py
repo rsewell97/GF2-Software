@@ -1,5 +1,5 @@
 import sys
-sys.tracebacklimit=0
+# sys.tracebacklimit = 0
 
 class SemanticError(Exception):
     pass
@@ -15,8 +15,10 @@ class Error(Exception):
             print("\n\nSemanticError ", end='')
         elif error == SyntaxError:
             print("\n\nSyntaxError ", end='')
-                
+        elif error == ValueError:
+            print("\n\nValueError ", end='')
+
         print("""on line {}:
-        {}
-        """.format(line_num+1, line),end='')
+    {}
+    """.format(line_num+1, line),end='')
         print(char*' '+'^')

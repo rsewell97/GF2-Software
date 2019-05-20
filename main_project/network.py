@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Build and execute the network.
 
 Used in the Logic Simulator project to add and connect devices together.
