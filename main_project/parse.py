@@ -126,9 +126,13 @@ class Parser:
 
         elif heading == 'init':
             # call parse device() here to create switches
+            no_curlies = self.parse_connections(self, 0)
+            while no_curlies < 2:
+                no_curlies = self.parse_connections(self, no_curlies)
             pass
         elif heading == 'connections':
             # call connect() here to add the wiring
+
             pass
         elif heading == 'monitor':
             while self.add_monitor_point():
@@ -207,24 +211,28 @@ class Parser:
     def parse_init(self):
         pass
 
-    def parse_connections(self): #doesn't delimit by device, as some devices will have BARs and so it makes more sense to go line by line
+    def parse_connections(self, curlies): #doesn't delimit by device, as some devices will have BARs and so it makes more sense to go line by line
 
         self.symbol = self.scanner.get_symbol()
-        if self.symbol.id != self.scanner.DEVICES_ID:
-            print("first word is not device")
+        if self.symbol.type == self.scanner.CURLY_CLOSE:
+            curlies += 1
+            return curlies
+
+        if self.symbol.id != self.scanner.DEVICES_ID: #checks if first word is "Device"
+            self.error(SyntaxError, "First word is not Device")
         else:
             self.symbol = self.scanner.get_symbol()
-            if self.symbol.type != self.scanner.NAME:
-                print("second word is not a name")
+            if self.symbol.type != self.scanner.NAME: #checks is the second word is a name
+                self.error(SemanticError, "'{}' is not a name".format(self.symbol))
             else:
                 device = self.devices.get_device(self.symbol.id)
                 DEVICE_INPUT = device
-                if device is Nome:
-                    print("this device does not exist")
+                if device is Nome: #checks if second word is a valid device
+                    self.error(SyntaxError, "A device with this name does not exist")
                 else:
                     self.symbol = self.scanner.get_symbol()
                     if self.symbol.type != self.scanner.CURLY_OPEN:
-                        print("you need an open curly")
+                        self.error(SyntaxError, "After detailing the device, a curly bracket is required")
                     else:
                         pass
 
@@ -233,20 +241,20 @@ class Parser:
         if self.symbol.type == self.scanner.NAME:
             pass
         else:
-            print("first device is not a name")
+            self.error(SemanticError, "You must have a name at the start of the connection and '{}' is not a name".format(self.symbol))
 
         first_device = self.devices.get_device(self.symbol.id)
         if first_device is None:
-            print("device at start of connection does not exist")
+            self.error(SyntaxError, "A device with the name at the start of the connection does not exist")
 
 
         if first_device.device_kind() == self.devices.D_TYPE:
             self.symbol = self.scanner.get_symbol()
             if self.symbol.type != self.scanner.DOT:
-                print("there should be a dot after a DTPYE")
+                self.error(SyntaxError, "There should be a dot after the name of a DTYPE device")
             self.symbol = self.scanner.get_symbol()
             if self.symbol not in self.devices.dtype_output_ids:
-                print("invalid outpub type for dtypes")
+                self.error(SemanticError, "This is an invalid output type for a DTYPE")
             first_device_output_id = self.symbol.id
         else:
             first_device_output_id = None
@@ -255,26 +263,28 @@ class Parser:
 
         if self.symbol.type != self.scanner.TO:
             print("there should be a 'to' after the first device")
+            self.error(SyntaxError, "Please add the word 'to' between your connection points!")
 
         self.symbol = self.scanner.get_symbol()
         end_device = self.devices.get_device(self.symbol.id) #finds device at end of "wire"
 
         if end_device is None:
-            print("device does not exist")
+            self.error(SemanticError, "No such device exists at the end of the connection")
 
         if end_device != DEVICE_INPUT:
-            print("you're in the wrong section")
+            self.error(SyntaxError, "Device name at end of connection does not fit with section device name")
 
 
         self.symbol = self.scanner.get_symbol() #finds next symbol, should be a dot
         if self.symbol.type != self.scanner.DOT:
-            print("there should be a dot after the first device")
+            self.error(SyntaxError, "There should be a dot between the end device name and the port number/name")
 
 
         self.symbol = self.scanner.get_symbol() # finds port number
 
         if self.symbol.type != self.scanner.NAME:
-            print("expected port name")
+            self.error(SyntaxError, "There should be a port name for the end of the connection")
+
 
         second_device_input_id = self.symbol.id
 
@@ -283,6 +293,7 @@ class Parser:
             pass
 
         self.network.make_connection(self, DEVICE_INPUT.id, first_device_output_id, end_device.id, second_device_input_id)
+        return 0
 
         #check if port number is valid
 
