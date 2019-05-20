@@ -370,26 +370,132 @@ class Parser:
             #     print(self.scanner.name_string)
             #     self.error(SyntaxError, "Unexpected symbol encountered while parsing")
 
-    def parse_connections(self):
-        # ----- TEMPORARY CODE TO FLY PAST SECTION ----- #
-        nest_count = 1  # tracks layers of curly brackets
-        while nest_count > 0:  # loops 1 line at a time by calling parse_device()
+    def parse_connections(self): #doesn't delimit by device, as some devices will have BARs and so it makes more sense to go line by line
 
+        self.symbol = self.scanner.get_symbol()
+        if self.symbol.id != self.scanner.DEVICES_ID:
+            print("first word is not device")
+        else:
             self.symbol = self.scanner.get_symbol()
-            if self.symbol is None:  # ignored the current symbol
-                continue
+            if self.symbol.type != self.scanner.NAME:
+                print("second word is not a name")
+            else:
+                device = self.devices.get_device(self.symbol.id)
+                DEVICE_INPUT = device
+                if device is Nome:
+                    print("this device does not exist")
+                else:
+                    self.symbol = self.scanner.get_symbol()
+                    if self.symbol.type != self.scanner.CURLY_OPEN:
+                        print("you need an open curly")
+                    else:
+                        pass
 
-            if self.symbol.type == self.scanner.CURLY_OPEN:
-                nest_count += 1
-            elif self.symbol.type == self.scanner.CURLY_CLOSE:
-                nest_count -= 1
+        self.symbol = self.scanner.get_symbol()
 
-            if nest_count < 1:  # end of section
-                break
-            elif nest_count > 2:
-                raise SyntaxError("unexpected token '{'")
+        if self.symbol.type == self.scanner.NAME:
+            pass
+        else:
+            print("first device is not a name")
 
-        return True
+        first_device = self.devices.get_device(self.symbol.id)
+        if first_device is None:
+            print("device at start of connection does not exist")
+
+
+        if first_device.device_kind() == self.devices.D_TYPE:
+            self.symbol = self.scanner.get_symbol()
+            if self.symbol.type != self.scanner.DOT:
+                print("there should be a dot after a DTPYE")
+            self.symbol = self.scanner.get_symbol()
+            if self.symbol not in self.devices.dtype_output_ids:
+                print("invalid outpub type for dtypes")
+            first_device_output_id = self.symbol.id
+        else:
+            first_device_output_id = None
+
+        self.symbol = self.scanner.get_symbol()
+
+        if self.symbol.type != self.scanner.TO:
+            print("there should be a 'to' after the first device")
+
+        self.symbol = self.scanner.get_symbol()
+        end_device = self.devices.get_device(self.symbol.id) #finds device at end of "wire"
+
+        if end_device is None:
+            print("device does not exist")
+
+        if end_device != DEVICE_INPUT:
+            print("you're in the wrong section")
+
+
+        self.symbol = self.scanner.get_symbol() #finds next symbol, should be a dot
+        if self.symbol.type != self.scanner.DOT:
+            print("there should be a dot after the first device")
+
+
+        self.symbol = self.scanner.get_symbol() # finds port number
+
+        if self.symbol.type != self.scanner.NAME:
+            print("expected port name")
+
+        second_device_input_id = self.symbol.id
+
+
+        if DEVICE_INPUT.device_kind == self.devices.D_TYPE:
+            pass
+
+        self.network.make_connection(self, DEVICE_INPUT.id, first_device_output_id, end_device.id, second_device_input_id)
+
+        #check if port number is valid
+
+        #check if device has that many port numbers - there doesn't seem to be a method in devices for doing this, I could test for DTYPE and XOR but it should work for all of them
+        # however, the make_connections function in network already does a lot of this
+
+        """if end_device_type == "DTYPE":
+            if port_no not in dtpye_ports:
+                print("That's not a DTPYE port")
+        else:
+            if type(port_no) != int:
+                print("port number has to be an integer")
+        if end_device_type == "XOR":
+            if port_no > 2:
+                print("XOR gates can only have 2 input ports")
+
+        if port_no not in end_device_type.inputs[end_device]:
+            return("port number is not in end device inputs")
+
+        if has_not == 0:
+            self.network.make_connection(self, actual_device, actual_device, end_device, port_no)
+        else:
+            self.network.make_connection(self, actual_device, first_device, end_device, port_no)"""
+
+
+
+
+
+
+
+
+
+        # nest_count = 1 # tracks layers of curly brackets
+        # while nest_count > 0: #loops 1 line at a time by calling parse_device()
+
+        #     self.symbol = self.scanner.get_symbol()
+        #     if self.symbol is None: # ignored the current symbol
+        #         continue
+
+        #     if self.symbol.type == self.scanner.CURLY_OPEN:
+        #         nest_count += 1
+        #     elif self.symbol.type == self.scanner.CURLY_CLOSE:
+        #         nest_count -= 1
+        #     else:
+        #         self.parse_device()
+
+        #     if nest_count < 1: # end of section
+        #         break
+        #     elif nest_count > max_nest:
+        #         raise SyntaxError("unexpected token '{'")
 
     def add_monitor_point(self):
 
