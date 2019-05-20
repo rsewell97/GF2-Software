@@ -71,9 +71,9 @@ class Scanner:
         self.heading_list = ["devices", "init", "connections", "monitor"]
         [self.DEVICES_ID, self.INIT_ID, self.CONNECTION_ID, self.MONITOR_ID] = self.names.lookup(self.heading_list)
 
-        self.keyword_list = ["are", "is", "have", "has", "to", "initially"]
+        self.keyword_list = ["are", "is", "have", "has", "to", "initially", "device"]
         [self.ARE, self.IS, self.HAVE, self.HAS,
-        self.TO, self.INITIALLY] = self.names.lookup(self.keyword_list)
+        self.TO, self.INITIALLY, self.DEVICE] = self.names.lookup(self.keyword_list)
 
         self.ignore = ["gate", "gates", "a", "an", "some"]
 
@@ -100,7 +100,7 @@ class Scanner:
                 symbol.id = self.names.query(self.name_string.lower())
             elif self.name_string in self.keyword_list:
                 symbol.type = self.KEYWORD
-                symbol.id = self.names.query(self.name_string)                
+                symbol.id = self.names.query(self.name_string)
             else:
                 symbol.type = self.NAME
                 [symbol.id] = self.names.lookup([self.name_string])
