@@ -1,9 +1,10 @@
 devices {
-A is a XOR;
-B is a NAND;
-S1, S2 are SWITCH;
-(S1 starts high;)
-(CLK1 has cycle 5;)
+    A is a XOR;
+    B is a NAND;
+    S1, S2 are SWITCH;
+    S1 starts high;
+    CLK1 is a CLOCK
+    CLK1 has cycle 5;
 }
 connections {
    device A {
