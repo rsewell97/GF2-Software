@@ -1,17 +1,8 @@
-<<<<<<< HEAD
-devices {
-    A is a XOR;
-    B is a NAND;
-    S1, S2 are SWITCH;
-    S1 starts high;
-    CLK1 is a CLOCK
-    CLK1 has cycle 5;
-=======
 DEVICES {
-A is NAND gate;
-B is NAND gate;
+A, B are NAND gates;
 S1, S2 are SWITCH;
->>>>>>> a19fdd8ffc0aa7ec172c4c4ef4b505e40db5082d
+A, B have 2 inputs;
+
 }
 
 CONNECTIONS {
