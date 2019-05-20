@@ -15,7 +15,7 @@ devices_type = ("DTYPE" | "NAND" | "NOR" | "XOR" | "AND" | "OR" | "CLOCK" | "SWI
 parameter = inputs | cycle_time | switch_set;
 inputs = ("has" | "have") , digit, ["input" | "inputs"];
 cycle_test = ("has" | "have"), ["cycle time of"], digit, {digit}, ";";
-set_switch = ("starts" | "start"), (true | false), ";";
+set_switch = ("set"), ("1" | "0"), ";";
 
 link = name, [".QBAR" | ".Q" ], "to" , port, ";";
 port = name, "." ( ( "I", (digit, {digit}) ) | "SET" | "CLK" | "CLEAR" | "DATA" );
@@ -26,7 +26,3 @@ name =  letter, { letter | digit };
 \\ A range of device names may be defined instead of listing all the device names. Definition of a range 'A1 => A4'\\
 \\ is equivalent to the list of names 'A1, A2, A3, A4'\\
 range = letter, {letter | digit}, digit , ( "=>" | "->") , letter, {letter | digit}, digit;
-
-
-true = ("true" | "high" | "1" );
-false = ("false" | "low" | "0");
