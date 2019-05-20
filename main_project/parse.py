@@ -111,9 +111,9 @@ class Parser:
             # ----------- CHECK DEVICE IS SPECIFIED ----------- #
             for i in self.devices.devices_list:
 
-                if i.inputs == {}:
+                if i.inputs == {} and i.device_kind != self.devices.SWITCH:
                     self.error(SemanticError,
-                               "No inputs specified for gate '{}' ".format(i.device_id))
+                               "No inputs specified for gate '{}' ".format(self.devices.names.get_name_string(i.device_id)))
                 if i.outputs == {}:
                     self.error(SemanticError,
                                "Gate '{}' has no output".format(i.device_id))
@@ -131,7 +131,6 @@ class Parser:
             while no_curlies < 2:
                 no_curlies = self.parse_connections(self, no_curlies)
             pass
-
 
         elif heading == 'monitor':
             while self.add_monitor_point():
@@ -169,7 +168,12 @@ class Parser:
                 [i] = self.devices.names.lookup([name])
 
                 if self.symbol.id in self.devices.gate_types:
-                    self.devices.make_device(i, self.symbol.id)
+                    self.devices.add_device(i, self.symbol.id)
+                    self.devices.add_output(i, None)
+                    
+                    if self.symbol.id == self.devices.XOR:
+                        self.devices.add_input(i, self.devices.names.lookup("I1"))
+                        self.devices.add_input(i, self.devices.names.lookup("I2"))
                                 
                 elif self.symbol.id == self.devices.D_TYPE:
                     self.devices.make_d_type(i)
@@ -185,7 +189,7 @@ class Parser:
                         SyntaxError, "Can't create device {} in this section".format(
                             self.scanner.names.get_name_string(self.symbol.id)))
 
-        else:
+        else: 
             # -------------- GET NUM INPUTS ------------- #
             self.symbol = self.scanner.get_symbol()
             if self.symbol.type == self.scanner.NUMBER:
@@ -241,8 +245,23 @@ class Parser:
             #     print(self.scanner.name_string)
             #     self.error(SyntaxError, "Unexpected symbol encountered while parsing")
 
+<<<<<<< HEAD
 
     def parse_connections(self, curlies): #doesn't delimit by device, as some devices will have BARs and so it makes more sense to go line by line
+=======
+    # doesn't delimit by device, as some devices will have BARs and so it makes more sense to go line by line
+    def parse_connections(self, curlies):
+
+        self.symbol = self.scanner.get_symbol()
+
+        if self.symbol.type == self.scanner.CURLY_CLOSE:
+            curlies += 1
+            return curlies
+
+        print(self.symbol.type)
+        if self.symbol.id != self.scanner.DEVICE:
+            self.error(SemanticError, "first word is not 'device'")
+>>>>>>> 237bd36e22d3269ea75e28b7147d5d28494fb9ed
 
         self.symbol = self.scanner.get_symbol()
         if self.symbol.type == self.scanner.CURLY_CLOSE:
@@ -373,6 +392,8 @@ class Parser:
         #     elif nest_count > max_nest:
         #         raise SyntaxError("unexpected token '{'")
 
+
+        return 0
 
     def add_monitor_point(self):
 
