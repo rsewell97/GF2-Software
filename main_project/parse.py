@@ -111,7 +111,7 @@ class Parser:
             # ----------- CHECK DEVICE IS SPECIFIED ----------- #
             for i in self.devices.devices_list:
 
-                if i.inputs == {} and i.device_kind != self.devices.SWITCH:
+                if i.inputs == {} and i.device_kind not in [self.devices.SWITCH, self.devices.CLOCK]:
                     self.error(SemanticError,
                                "No inputs specified for gate '{}' ".format(self.devices.names.get_name_string(i.device_id)))
                 if i.outputs == {}:
@@ -167,10 +167,9 @@ class Parser:
                     self.devices.add_output(i, None)
 
                     if self.symbol.id == self.devices.XOR:
-                        self.devices.add_input(
-                            i, self.devices.names.lookup("I1"))
-                        self.devices.add_input(
-                            i, self.devices.names.lookup("I2"))
+                        i1, i2 = self.devices.names.lookup(["I1", "I2"])
+                        self.devices.add_input(i, i1)
+                        self.devices.add_input(i, i2)
 
                 elif self.symbol.id == self.devices.D_TYPE:
                     self.devices.make_d_type(i)
@@ -247,6 +246,12 @@ class Parser:
                                         self.error(SemanticError,
                                                    "Adding input failure")
 
+                elif self.symbol.id == self.scanner.CYCLE:
+                    self.symbol = self.scanner.get_symbol()
+                    if self.symbol.type == self.scanner.NUMBER:
+                        for device in devices:
+                            clk = self.devices.get_device(self.devices.names.query(device))
+                            clk.clock_half_period = int(self.symbol.id[0])
                 else:
                     self.error(SyntaxError, "Expected number")
 
@@ -271,12 +276,12 @@ class Parser:
             self.error(SemanticError, "Expected word 'device'")
 
         # ------- GET DEVICE OBJECT ------ #
-        self.symbol = self.scanner.get_symbol()
+        self.symbol = self.scanner.get_symbol(query=True)
         if self.symbol.type != self.scanner.NAME:
             self.error(SyntaxError, "second word is not a device name")
 
         input_device = self.devices.get_device(self.symbol.id)
-        if input_device is None:
+        if input_device == None:
             self.error(SemanticError, "The device '{}' does not exist".format(
                 self.scanner.name_string))
 
@@ -308,7 +313,7 @@ class Parser:
                         SyntaxError, "DTYPE ports must be indexed using a dot")
 
                 self.symbol = self.scanner.get_symbol()
-                if self.symbol not in self.devices.dtype_output_ids:
+                if self.symbol.id not in self.devices.dtype_output_ids:
                     self.error(
                         SyntaxError, "invalid output name for DTYPE device")
 
@@ -342,23 +347,20 @@ class Parser:
             if self.symbol.type != self.scanner.NAME:
                 self.error(SyntaxError, "Expected port name")
 
-            second_device_input_id = self.symbol.id
-
-            if input_device.device_kind == self.devices.D_TYPE:
-                pass
+            second_device_port_id = self.symbol.id
 
             self.symbol = self.scanner.get_symbol()  # finds port number
             if self.symbol.type == self.scanner.SEMICOLON:
                 status = self.network.make_connection(
-                    input_device.device_id, first_device_port_id, second_device.device_id, second_device_input_id)
+                    first_device.device_id, first_device_port_id, second_device.device_id, second_device_port_id)
 
                 if status == self.network.INPUT_CONNECTED:
                     self.error(SemanticError, "{}.{} is already connected".format(
-                        second_device.device_id, self.devices.names.get_name_string(second_device_input_id)))
+                        second_device.device_id, self.devices.names.get_name_string(second_device_port_id)))
                 elif status == self.network.INPUT_TO_INPUT:
                     self.error(SemanticError, "Trying to connect two input ports")
                 elif status == self.network.PORT_ABSENT:
-                    self.error(SemanticError, "Invalid port index")
+                    self.error(SemanticError, "Invalid port index '{}'".format(self.scanner.name_string))
                 elif status == self.network.NO_ERROR:
                     pass
         return True

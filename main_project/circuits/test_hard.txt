@@ -38,14 +38,14 @@ CONNECTIONS {
        C to E.I3;
    }
    device F {
-        CLK1 to F.CLK;
+        CKL1 to F.CLK;
         D to F.SET;
         C to F.CLEAR;
         S2 to F.DATA;
    }
    device G {
        E to G.I1;
-       F to G.I2;
+       F.Q to G.I2;
    }
    device H {
        C to H.I1;
