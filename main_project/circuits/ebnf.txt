@@ -1,27 +1,30 @@
-Entirety = devices, connections, [monitor]
+Entirety = deviceslist, connectionslist, [monitorlist]
 
-Devices = “DEVICES” , “{“ , definition , {“,” , (definition | attributes)}, “}”
-Connections = “CONNECTIONS” , “{“ , connection , {connection} , “}”
-Monitor = “MONITOR”, “{“,  name, { “,” , (name | range) } , ”;” , “}”
+comments = "\\", {letter|digit}, "\\";
+deviceslist = "DEVICES" , "{" , definition , {"," , (definition | attributes)}, "}";
+connectionslist = "CONNECTIONS" , "{" , connection , {connection} , "}";
+monitorlist = "MONITORS", "{", names , ";" , "}";
+\\Code will accept all cases for "DEVICES", "CONNECTIONS", "MONITORS" but using upper case is encouraged for readability\\
 
-definition = names, (“is” | ”are”), device_type, “;”
-attributes = names, parameter, “;”
+definition = names, ("is" | "are"), device_type, ";";
+attributes = names, parameter, ";";
+connection = "device", name, "{", ( link , {link} ) , "}";
 
-parameter = inputs | cycle_time | switch_set
+devices_type = ("DTYPE" | "NAND" | "NOR" | "XOR" | "AND" | "OR" | "CLOCK" | "SWITCH" ), ["gate" | "gates"];
 
-inputs = (“has” | “have”) , digit, [inputs]
-cycle_test = “has”, [“cycle time of”], digit, “;”
-set_switch = (“starts”| “start”), (true | false), “;”
+parameter = inputs | cycle_time | switch_set;
+inputs = ("has" | "have") , digit, ["input" | "inputs"];
+cycle_test = ("has" | "have"), ["cycle time of"], digit, {digit}, ";";
+set_switch = ("start" | "starts"), (true | false), ";";
 
-true = (“true” | “high” | “1” )
-false = (“false” | “low” | “0”)
+link = name [".QBAR" | ".Q" ], "to" , port, ";";
+port = name, "." ( ( "I", (digit, {digit}) ) | "SET" | "CLK" | "CLEAR" | "DATA" );
 
-names = (name , { "," , name } ) | range
-name =  letter, { letter | digit }
-range = letter, {letter|digit}, digit , ( “=>” | “->”) , letter, {letter|digit}, digit
+names = ((name , { "," , name } ) | range );
+name =  letter, { letter | digit };
+range = letter, {letter | digit}, digit , ( "=>" | "->") , letter, {letter | digit}, digit;
+\\ A range of device names may be defined instead of listing all the device names. Definition of a range 'A1 => A4'\\
+\\ is equivalent to the list of names 'A1, A2, A3, A4'\\
 
-devices_type = “DTYPE” | “NAND” | “NOR” | “XOR” | “AND” | “OR” | “CLOCK” | “SWITCH”, [“gates” | “gate”]
-
-connection = “Device”, name, "{", ( link , {link} ) , “}”
-link = name [".QBAR" | ".Q" ], “to” , port, ";"
-port = name, “.” ( ( “I”, (digit, {digit}) ) | "SET" | "CLK" | "CLEAR" | "DATA" )
+true = ("true" | "high" | "1" );
+false = ("false" | "low" | "0");
