@@ -75,7 +75,7 @@ class Scanner:
         [self.ARE, self.IS, self.HAVE, self.HAS,
         self.TO, self.DEVICE] = self.names.lookup(self.keyword_list)
 
-        self.ignore = ["gate", "gates", "a", "an", "some", "initally"]
+        self.ignore = ["gate", "gates", "a", "an", "some", "initially"]
 
         self.current_character = ""
         self.current_line = 0
