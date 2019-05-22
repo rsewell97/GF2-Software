@@ -1,5 +1,4 @@
 import sys
-# sys.tracebacklimit = 0
 
 class SemanticError(Exception):
     pass
@@ -12,13 +11,21 @@ class Error(Exception):
         super().__init__(message+'\n')
         
         if error == SemanticError:
-            print("\n\nSemanticError ", end='')
+            error_type = "SemanticError"
         elif error == SyntaxError:
-            print("\n\nSyntaxError ", end='')
+            error_type = "SyntaxError"
         elif error == ValueError:
-            print("\n\nValueError ", end='')
-
-        print("""on line {}:
-    {}
-    """.format(line_num+1, line),end='')
-        print(char*' '+'^')
+            error_type = "ValueError"
+        else:
+            error_type = "Error"
+        
+        self.error_string = """Error on line {line_num}:
+    {line}
+    {char}^
+{error_type}: {msg}\n""".format(error_type=error_type,
+                    line_num = line_num+1,
+                    line=line,
+                    char=char*' ',
+                    msg= message)
+        self.error_string += '-'*30+'\n'
+        print(self.error_string)

@@ -52,15 +52,23 @@ class Scanner:
                       and returns the symbol.
     """
 
-    def __init__(self, path, names):
+    def __init__(self, path, names, string=False):
         """Open specified file and initialise reserved words and IDs."""
-        try:
-            self.input_file = open(path, 'r')
-        except (FileNotFoundError):
-            print("Error: File doesn't exist in current directory")
-            sys.exit()
 
-        self.list_file = [line.rstrip('\n') for line in open(path, 'r')]
+        if string:
+            self.read_as_string = True
+            self.total_error_string = ""
+            self.input_file = path
+            self.list_file = [line.rstrip('\n') for line in self.input_file.split('\n')]
+            self.character_count = 0
+        else:
+            self.read_as_string = False
+            try:
+                self.input_file = open(path, 'r')
+            except (FileNotFoundError):
+                print("Error: File doesn't exist in current directory")
+                sys.exit()
+            self.list_file = [line.rstrip('\n') for line in open(path, 'r')]
 
         """"Open specified file and initialise reserved words and IDs."""
         self.names = names
@@ -198,8 +206,16 @@ class Scanner:
 
     def advance(self):
         """reads one further character into the document"""
+        if self.read_as_string:
+            try:
+                self.current_character = self.input_file[self.character_count]
+            except IndexError:
+                self.current_character = ""
+                return self.current_character
+            self.character_count += 1
+        else:
+            self.current_character = self.input_file.read(1)
 
-        self.current_character = self.input_file.read(1)
         self.character_number += 1
 
         if self.current_character == '\n':
@@ -209,5 +225,9 @@ class Scanner:
         return self.current_character
 
     def error(self, error_type, message=""):
-        raise Error(message, error_type, self.list_file[self.current_line], 
-                self.current_line, self.character_number)
+        if self.read_as_string:
+            self.total_error_string += Error(message, error_type, self.list_file[self.current_line], 
+                    self.current_line, self.character_number).error_string
+        else:
+            raise Error(message, error_type, self.list_file[self.current_line], 
+                    self.current_line, self.character_number)

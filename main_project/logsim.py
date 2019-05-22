@@ -23,7 +23,9 @@ from scanner import Scanner
 from parse import Parser
 from userint import UserInterface
 from gui import Gui
+from error import Error
 
+#_________________IMPORTANT: CHANGE GUI MODULE________________#
 
 def main(arg_list):
     """Parse the command line options and arguments specified in arg_list.
@@ -56,9 +58,9 @@ def main(arg_list):
             scanner = Scanner(path, names)
 
             parser = Parser(names, devices, network, monitors, scanner)
-            if parser.parse_network():
+            # if parser.parse_network():
                 # Initialise an instance of the userint.UserInterface() class
-                userint = UserInterface(names, devices, network, monitors)
+            userint = UserInterface(names, devices, network, monitors)
                 # userint.command_interface()
 
     if not options:  # no option given, use the graphical user interface
@@ -75,7 +77,7 @@ def main(arg_list):
             # Initialise an instance of the gui.Gui() class
             app = wx.App()
             gui = Gui("Logic Simulator", path, names, devices, network,
-                      monitors)
+                      monitors, parser)
             gui.Show(True)
             app.MainLoop()
 

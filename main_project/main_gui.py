@@ -10,6 +10,7 @@ MyGLCanvas - handles all canvas drawing operations.
 Gui - configures the main window and all the widgets.
 """
 import wx
+import wx.stc
 import wx.glcanvas as wxcanvas
 from OpenGL import GL, GLUT
 
@@ -65,9 +66,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.last_mouse_x = 0  # previous mouse x position
         self.last_mouse_y = 0  # previous mouse y position
 
-        # Initialise variables for zooming
-        self.zoom = 1
-
         # Bind events to the canvas
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
@@ -78,7 +76,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         size = self.GetClientSize()
         self.SetCurrent(self.context)
         GL.glDrawBuffer(GL.GL_BACK)
-        GL.glClearColor(1.0, 1.0, 1.0, 0.0)
+        GL.glClearColor(0.73, 0.83, 1.0, 0.0)
         GL.glViewport(0, 0, size.width, size.height)
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
@@ -86,7 +84,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
         GL.glTranslated(self.pan_x, self.pan_y, 0.0)
-        GL.glScaled(self.zoom, self.zoom, self.zoom)
 
     def render(self, text):
         """Handle all drawing operations."""
@@ -164,17 +161,13 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                             ", ", str(event.GetY()), ". Pan is now: ",
                             str(self.pan_x), ", ", str(self.pan_y)])
         if event.GetWheelRotation() < 0:
-            self.zoom *= (1.0 + (
-                event.GetWheelRotation() / (20 * event.GetWheelDelta())))
+
             self.init = False
-            text = "".join(["Negative mouse wheel rotation. Zoom is now: ",
-                            str(self.zoom)])
+
         if event.GetWheelRotation() > 0:
-            self.zoom /= (1.0 - (
-                event.GetWheelRotation() / (20 * event.GetWheelDelta())))
+
             self.init = False
-            text = "".join(["Positive mouse wheel rotation. Zoom is now: ",
-                            str(self.zoom)])
+
         if text:
             self.render(text)
         else:
@@ -217,63 +210,168 @@ class Gui(wx.Frame):
     on_text_box(self, event): Event handler for when the user enters text.
     """
 
-    def __init__(self, title, path, names, devices, network, monitors, parser):
+    def __init__(self, title):
         """Initialise widgets and layout."""
-        super().__init__(parent=None, title=title, size=(800, 600))
-
-        # Configure the file menu
-        fileMenu = wx.Menu()
-        menuBar = wx.MenuBar()
-        fileMenu.Append(wx.ID_ABOUT, "&About")
-        fileMenu.Append(wx.ID_EXIT, "&Exit")
-        menuBar.Append(fileMenu, "&File")
-        self.SetMenuBar(menuBar)
+        super().__init__(parent=None, title=title)
 
         # Canvas for drawing signals
-        self.canvas = MyGLCanvas(self, devices, monitors)
+        self.Maximize(True)
+        self.SetBackgroundColour((186, 211, 255))
+        self.header_font = wx.Font(
+            25, wx.FONTFAMILY_SWISS, wx.NORMAL, wx.FONTWEIGHT_BOLD, False)
+        self.label_font = wx.Font(
+            12, wx.FONTFAMILY_SWISS, wx.NORMAL, wx.NORMAL, False)
 
-        # Configure the widgets
-        self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
-        self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
-        self.run_button = wx.Button(self, wx.ID_ANY, "Run")
-        self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
-                                    style=wx.TE_PROCESS_ENTER)
+        self.makeLeftSizer()
+        self.makeMiddleSizer()
+        self.makeRightSizer()
 
-        # Bind events to widgets
-        self.Bind(wx.EVT_MENU, self.on_menu)
-        self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
-        self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
-        self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
 
-        # Configure sizers for layout
-        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        side_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.main_sizer.Add(self.left_panel, 3, wx.ALL, 30)
+        self.main_sizer.Add(self.middle_panel, 3, wx.ALL, 30)
+        self.main_sizer.Add(self.right_panel, 4, wx.ALL, 30)
+        self.SetSizer(self.main_sizer)
 
-        main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)
-        main_sizer.Add(side_sizer, 1, wx.ALL, 5)
+    def makeLeftSizer(self):
+        self.left_panel = wx.Panel(self)
+        self.left_panel.SetBackgroundColour((37, 103, 209))
+        self.load_btn = wx.Button(self.left_panel, wx.ID_ANY, "Browse Files")
+        self.check_btn = wx.Button(self.left_panel, wx.ID_ANY, 'Verify Code')
 
-        side_sizer.Add(self.text, 1, wx.TOP, 10)
-        side_sizer.Add(self.spin, 1, wx.ALL, 5)
-        side_sizer.Add(self.run_button, 1, wx.ALL, 5)
-        side_sizer.Add(self.text_box, 1, wx.ALL, 5)
+        left_heading = wx.StaticText(self.left_panel, -1, label="Editor")
+        left_heading.SetFont(self.header_font)
+        left_heading.SetForegroundColour((255, 255, 255))
 
-        self.SetSizeHints(600, 600)
-        self.SetSizer(main_sizer)
+        editor_font = wx.Font(14, wx.MODERN, wx.NORMAL,
+                              wx.NORMAL, False, u'Consolas')
+        self.input_text = wx.stc.StyledTextCtrl(
+            self.left_panel, size=(-1, wx.ALL))
+        self.input_text.SetMarginType(1, wx.stc.STC_MARGIN_NUMBER)
+        self.input_text.SetMarginWidth(3, 15)
+        self.input_text.SetUseHorizontalScrollBar(False)
+        self.input_text.StyleSetFont(0, editor_font)
 
-    def on_menu(self, event):
-        """Handle the event when the user selects a menu item."""
-        Id = event.GetId()
-        if Id == wx.ID_EXIT:
-            self.Close(True)
-        if Id == wx.ID_ABOUT:
-            wx.MessageBox("Logic Simulator\nCreated by Mojisola Agboola\n2017",
-                          "About Logsim", wx.ICON_INFORMATION | wx.OK)
+        self.error_text = wx.TextCtrl(self.left_panel, wx.ID_ANY, size=(
+            -1, wx.ALL), style=wx.TE_MULTILINE | wx.TE_READONLY, value="Click run to check for errors")
+        self.error_text.SetFont(editor_font)
+        self.error_text.SetStyle(0, -1, wx.TextAttr(wx.RED))
 
-    def on_spin(self, event):
-        """Handle the event when the user changes the spin control value."""
-        spin_value = self.spin.GetValue()
-        text = "".join(["New spin control value: ", str(spin_value)])
-        self.canvas.render(text)
+        self.left_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        self.left_sizer.Add(left_heading, 0, wx.ALL | wx.ALIGN_CENTER, 10)
+        row = wx.BoxSizer(wx.HORIZONTAL)
+        row.Add(self.load_btn, 1, wx.ALIGN_LEFT, 5)
+        row.Add(self.check_btn, 1, wx.ALIGN_RIGHT, 5)
+        self.left_sizer.Add(row, 0, wx.EXPAND, 5)
+        self.left_sizer.Add(self.input_text, 6, wx.EXPAND | wx.ALL, 10)
+        self.left_sizer.Add(self.error_text, 1, wx.EXPAND | wx.ALL, 10)
+
+        self.left_panel.SetSizer(self.left_sizer)
+
+        self.load_btn.Bind(wx.EVT_BUTTON, self.LoadFile)
+        self.check_btn.Bind(wx.EVT_BUTTON, self.CheckText)
+
+    def makeMiddleSizer(self):
+        self.middle_panel = wx.Panel(self)
+        self.middle_panel.SetBackgroundColour((37, 103, 209))
+        self.middle_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.middle_panel.SetSizer(self.middle_sizer)
+
+        self.middle_panel.Hide()
+        self.Layout()
+
+    def makeRightSizer(self):
+        self.right_panel = wx.Panel(self)
+        self.right_panel.SetBackgroundColour((37, 103, 209))
+        self.right_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        right_heading = wx.StaticText(self.right_panel, -1, label="Output")
+        right_heading.SetFont(self.header_font)
+        right_heading.SetForegroundColour((255, 255, 255))
+        self.right_sizer.Add(right_heading, 0, wx.ALL | wx.ALIGN_CENTER, 10)
+
+        self.right_panel.SetSizer(self.right_sizer)
+        self.right_panel.Hide()
+        self.Layout()
+
+
+    def LoadFile(self, event):
+
+        # otherwise ask the user what new file to open
+        with wx.FileDialog(self, "Open file", wildcard="TXT files (*.txt)|*.txt",
+                           style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
+
+            if fileDialog.ShowModal() == wx.ID_CANCEL:
+                return     # the user changed their mind
+
+            # Proceed loading the file chosen by the user
+            pathname = fileDialog.GetPath()
+            try:
+                with open(pathname, 'r') as f:
+                    self.input_text.Clear()
+                    self.input_text.AppendText(f.read())
+            except IOError:
+                wx.LogError("Cannot open file '%s'." % pathname)
+
+    def CheckText(self, event):
+        self.names = Names()
+        self.devices = Devices(self.names)
+        self.network = Network(self.names, self.devices)
+        self.monitors = Monitors(self.names, self.devices, self.network)
+        self.scanner = Scanner(self.input_text.GetValue(), self.names, True)
+        self.parser = Parser(self.names, self.devices,
+                             self.network, self.monitors, self.scanner)
+        status = None
+        try:
+            status = self.parser.parse_network()
+        except:
+            pass
+        
+
+        self.error_text.Clear()
+        if self.scanner.total_error_string == "":
+            self.error_text.AppendText("No errors found")
+        else:
+            self.error_text.AppendText(self.scanner.total_error_string)
+            self.error_text.SetStyle(0, -1, wx.TextAttr(wx.RED))
+
+            self.middle_sizer.Clear()
+            self.middle_panel.Hide()
+            self.right_panel.Hide()
+            self.Layout()
+            return
+
+        if status == True:
+            
+            self.monitor_options = wx.GridSizer(2)
+            for device in self.devices.devices_list:
+                name = self.devices.names.get_name_string(device.device_id)
+
+                if device.device_kind == self.devices.D_TYPE:
+                    pass
+
+                label = wx.StaticText(self.middle_panel, 1, label=name)
+                label.SetFont(self.label_font)
+                self.monitor_options.Add(label, 1,
+                                     wx.ALL | wx.ALIGN_RIGHT, 10)
+
+                device.monitor_btn = wx.ToggleButton(self.middle_panel, label=name)
+                if name in self.monitors.get_signal_names()[0]:
+                    device.monitor_btn.SetValue(True)
+
+                self.monitor_options.Add(device.monitor_btn, 1,
+                                     wx.ALL | wx.ALIGN_CENTER, 10)
+            self.middle_sizer.Add(self.monitor_options, 1,
+                                     wx.ALL | wx.ALIGN_CENTER, 10)
+            self.middle_panel.Show()
+            self.middle_panel.Layout()
+            self.Layout()
+
+
+
+
+
 
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""

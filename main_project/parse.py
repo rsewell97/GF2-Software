@@ -63,6 +63,10 @@ class Parser:
                             "SWITCH", "CLOCK", "RC", "NOT"]
         self.type_id_list = self.names.lookup(self.device_list)
 
+        self.found_devices = False
+        self.found_connections = False
+        self.found_monitor = False
+
     def parse_network(self):
         """Parse the circuit definition file."""
 
@@ -70,19 +74,34 @@ class Parser:
             self.symbol = self.scanner.get_symbol()
 
             if self.symbol.type == self.scanner.HEADING:
-                # comment out whichever lines you want in order to debug your section
+
                 if self.symbol.id == self.scanner.DEVICES_ID:
                     self.parse_section('devices')
+                    self.found_devices = True
+
                 elif self.symbol.id == self.scanner.CONNECTION_ID:
+                    if not self.found_devices:
+                        self.error(SyntaxError, "Specifying connections before devices is not allowed")
                     self.parse_section('connections')
+                    self.found_connections = True
+
                 elif self.symbol.id == self.scanner.MONITOR_ID:
+                    if not self.found_devices:
+                        self.error(SyntaxError, "Specifying monitor before devices is not allowed")
                     self.parse_section('monitor')
+                    self.found_monitor = True
+
                 else:
                     self.error(SyntaxError, "Heading name '{}' not allowed".format(
                         self.scanner.name_string))
 
             elif self.symbol.type == self.scanner.EOF:
-                self.scanner.input_file.close()
+                if not self.found_devices or not self.found_connections:
+                    self.error(SyntaxError, "A valid definition must include 'devices' section and 'connection' section")
+                try:
+                    self.scanner.input_file.close()
+                except AttributeError:
+                    pass
                 break
             else:
                 self.error(SyntaxError, "not allowed to write '{}' outside of section. Expected heading name".format(
@@ -250,7 +269,8 @@ class Parser:
                     self.symbol = self.scanner.get_symbol()
                     if self.symbol.type == self.scanner.NUMBER:
                         for device in devices:
-                            clk = self.devices.get_device(self.devices.names.query(device))
+                            clk = self.devices.get_device(
+                                self.devices.names.query(device))
                             clk.clock_half_period = int(self.symbol.id[0])
                 else:
                     self.error(SyntaxError, "Expected number")
@@ -291,78 +311,87 @@ class Parser:
             self.error(
                 SyntaxError, "Expected open curly bracket, parsing error")
 
-        # ----- PARSE EACH LINE IN BRACKETS ----- #
-        while True:
+        else:
+            # ----- PARSE EACH LINE IN BRACKETS ----- #
+            while True:
 
-            self.symbol = self.scanner.get_symbol()
-            if self.symbol.type == self.scanner.CURLY_CLOSE:
-                break
-            elif self.symbol.type != self.scanner.NAME:
-                self.error(SyntaxError, "first device must be a name")
-
-            first_device = self.devices.get_device(self.symbol.id)
-            if first_device is None:
-                self.error(SemanticError, "device '{}' does not exist".format(
-                    self.scanner.name_string))
-
-            # ----- GET FIRST DEVICE PORT ----- #
-            if first_device.device_kind == self.devices.D_TYPE:
                 self.symbol = self.scanner.get_symbol()
+                if self.symbol.type == self.scanner.CURLY_CLOSE:
+                    break
+                elif self.symbol.type != self.scanner.NAME:
+                    self.error(SyntaxError, "first device must be a name")
+
+                first_device = self.devices.get_device(self.symbol.id)
+                if first_device is None:
+                    self.error(SemanticError, "device '{}' does not exist".format(
+                        self.scanner.name_string))
+
+                # ----- GET FIRST DEVICE PORT ----- #
+                elif first_device.device_kind == self.devices.D_TYPE:
+                    self.symbol = self.scanner.get_symbol()
+                    if self.symbol.type != self.scanner.DOT:
+                        self.error(
+                            SyntaxError, "DTYPE ports must be indexed using a dot")
+
+                    self.symbol = self.scanner.get_symbol()
+                    if self.symbol.id not in self.devices.dtype_output_ids:
+                        self.error(
+                            SyntaxError, "invalid output name for DTYPE device")
+
+                    first_device_port_id = self.symbol.id
+
+                else:
+                    first_device_port_id = None
+
+                # ----- NEXT WORD MUST BE 'TO' ----- #
+                self.symbol = self.scanner.get_symbol()
+                if self.symbol.id != self.scanner.TO:
+                    self.error(
+                        SyntaxError, "there should be a 'to' after the first device")
+
+                # ----- GET SECOND DEVICE ----- #
+                self.symbol = self.scanner.get_symbol()
+                second_device = self.devices.get_device(
+                    self.symbol.id)  # finds device at end of "wire"
+                if second_device is None:
+                    self.error(SemanticError, "device does not exist")
+                if second_device != input_device:
+                    self.error(SyntaxError, "you're in the wrong section")
+
+                self.symbol = self.scanner.get_symbol()  # finds next symbol, should be a dot
                 if self.symbol.type != self.scanner.DOT:
                     self.error(
-                        SyntaxError, "DTYPE ports must be indexed using a dot")
+                        SyntaxError, "Port IDs must include a dot")
 
-                self.symbol = self.scanner.get_symbol()
-                if self.symbol.id not in self.devices.dtype_output_ids:
+                # ----- GET SECOND DEVICE PORT ID ----- #
+                self.symbol = self.scanner.get_symbol()  # finds port number
+                if self.symbol.type != self.scanner.NAME:
                     self.error(
-                        SyntaxError, "invalid output name for DTYPE device")
+                        SyntaxError, "Expected port name. Port name may be incorrect")
 
-                first_device_port_id = self.symbol.id
+                second_device_port_id = self.symbol.id
 
-            else:
-                first_device_port_id = None
+                self.symbol = self.scanner.get_symbol()  # finds semicolon
+                if self.symbol.type == self.scanner.SEMICOLON:
 
-            # ----- NEXT WORD MUST BE 'TO' ----- #
-            self.symbol = self.scanner.get_symbol()
-            if self.symbol.id != self.scanner.TO:
-                self.error(
-                    SyntaxError, "there should be a 'to' after the first device")
+                    status = self.network.make_connection(
+                        first_device.device_id, first_device_port_id, second_device.device_id, second_device_port_id)
 
-            # ----- GET SECOND DEVICE ----- #
-            self.symbol = self.scanner.get_symbol()
-            second_device = self.devices.get_device(
-                self.symbol.id)  # finds device at end of "wire"
-            if second_device is None:
-                self.error(SemanticError, "device does not exist")
-            if second_device != input_device:
-                self.error(SyntaxError, "you're in the wrong section")
-
-            self.symbol = self.scanner.get_symbol()  # finds next symbol, should be a dot
-            if self.symbol.type != self.scanner.DOT:
-                self.error(
-                    SyntaxError, "Port IDs must include a dot")
-
-            # ----- GET SECOND DEVICE PORT ID ----- #
-            self.symbol = self.scanner.get_symbol()  # finds port number
-            if self.symbol.type != self.scanner.NAME:
-                self.error(SyntaxError, "Expected port name")
-
-            second_device_port_id = self.symbol.id
-
-            self.symbol = self.scanner.get_symbol()  # finds port number
-            if self.symbol.type == self.scanner.SEMICOLON:
-                status = self.network.make_connection(
-                    first_device.device_id, first_device_port_id, second_device.device_id, second_device_port_id)
-
-                if status == self.network.INPUT_CONNECTED:
-                    self.error(SemanticError, "{}.{} is already connected".format(
-                        second_device.device_id, self.devices.names.get_name_string(second_device_port_id)))
-                elif status == self.network.INPUT_TO_INPUT:
-                    self.error(SemanticError, "Trying to connect two input ports")
-                elif status == self.network.PORT_ABSENT:
-                    self.error(SemanticError, "Invalid port index '{}'".format(self.scanner.name_string))
-                elif status == self.network.NO_ERROR:
-                    pass
+                    if status == self.network.INPUT_CONNECTED:
+                        self.error(SemanticError, "{}.{} is already connected".format(
+                            second_device.device_id, self.devices.names.get_name_string(second_device_port_id)))
+                    elif status == self.network.INPUT_TO_INPUT:
+                        self.error(SemanticError,
+                                   "Trying to connect two input ports")
+                    elif status == self.network.PORT_ABSENT:
+                        self.error(SemanticError, "Invalid port index '{}'".format(
+                            self.scanner.name_string))
+                    elif status == self.network.NO_ERROR:
+                        pass
+                else:
+                    self.error(
+                        SyntaxError, "Error in parser. Expected semicolon")
+                    return False
         return True
 
     def add_monitor_point(self):
