@@ -22,7 +22,7 @@ from monitors import Monitors
 from scanner import Scanner
 from parse import Parser
 from userint import UserInterface
-from guiRobbie import Gui
+from main_gui import Gui
 from error import Error
 
 #_________________IMPORTANT: CHANGE GUI MODULE________________#

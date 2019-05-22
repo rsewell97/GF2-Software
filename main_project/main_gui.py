@@ -188,44 +188,24 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
 
 class Gui(wx.Frame):
-    """Configure the main window and all the widgets.
-
-    This class provides a graphical user interface for the Logic Simulator and
-    enables the user to change the circuit properties and run simulations.
-
-    Parameters
-    ----------
-    title: title of the window.
-
-    Public methods
-    --------------
-    on_menu(self, event): Event handler for the file menu.
-
-    on_spin(self, event): Event handler for when the user changes the spin
-                           control value.
-
-    on_run_button(self, event): Event handler for when the user clicks the run
-                                button.
-
-    on_text_box(self, event): Event handler for when the user enters text.
-    """
 
     def __init__(self, title):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title)
 
+        self.SetIcon(wx.Icon('GUI/CUED Software.png'))
         # Canvas for drawing signals
         self.Maximize(True)
+
         self.SetBackgroundColour((186, 211, 255))
         self.header_font = wx.Font(
             25, wx.FONTFAMILY_SWISS, wx.NORMAL, wx.FONTWEIGHT_BOLD, False)
         self.label_font = wx.Font(
-            12, wx.FONTFAMILY_SWISS, wx.NORMAL, wx.NORMAL, False)
+            10, wx.FONTFAMILY_SWISS, wx.NORMAL, wx.NORMAL, False)
 
         self.makeLeftSizer()
         self.makeMiddleSizer()
         self.makeRightSizer()
-
 
         self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.main_sizer.Add(self.left_panel, 3, wx.ALL, 30)
@@ -240,8 +220,7 @@ class Gui(wx.Frame):
         self.check_btn = wx.Button(self.left_panel, wx.ID_ANY, 'Verify Code')
 
         left_heading = wx.StaticText(self.left_panel, -1, label="Editor")
-        left_heading.SetFont(self.header_font)
-        left_heading.SetForegroundColour((255, 255, 255))
+        left_heading = self.style(left_heading, self.header_font)
 
         editor_font = wx.Font(14, wx.MODERN, wx.NORMAL,
                               wx.NORMAL, False, u'Consolas')
@@ -251,6 +230,7 @@ class Gui(wx.Frame):
         self.input_text.SetMarginWidth(3, 15)
         self.input_text.SetUseHorizontalScrollBar(False)
         self.input_text.StyleSetFont(0, editor_font)
+        self.input_text.AppendText("DEVICES {\n\n}\nCONNECTIONS {\n\n}")
 
         self.error_text = wx.TextCtrl(self.left_panel, wx.ID_ANY, size=(
             -1, wx.ALL), style=wx.TE_MULTILINE | wx.TE_READONLY, value="Click run to check for errors")
@@ -263,7 +243,7 @@ class Gui(wx.Frame):
         row = wx.BoxSizer(wx.HORIZONTAL)
         row.Add(self.load_btn, 1, wx.ALIGN_LEFT, 5)
         row.Add(self.check_btn, 1, wx.ALIGN_RIGHT, 5)
-        self.left_sizer.Add(row, 0, wx.EXPAND, 5)
+        self.left_sizer.Add(row, 0, wx.ALL | wx.ALIGN_CENTER, 5)
         self.left_sizer.Add(self.input_text, 6, wx.EXPAND | wx.ALL, 10)
         self.left_sizer.Add(self.error_text, 1, wx.EXPAND | wx.ALL, 10)
 
@@ -275,9 +255,10 @@ class Gui(wx.Frame):
     def makeMiddleSizer(self):
         self.middle_panel = wx.Panel(self)
         self.middle_panel.SetBackgroundColour((37, 103, 209))
+
         self.middle_sizer = wx.BoxSizer(wx.VERTICAL)
         self.middle_panel.SetSizer(self.middle_sizer)
-
+    
         self.middle_panel.Hide()
         self.Layout()
 
@@ -295,25 +276,6 @@ class Gui(wx.Frame):
         self.right_panel.Hide()
         self.Layout()
 
-
-    def LoadFile(self, event):
-
-        # otherwise ask the user what new file to open
-        with wx.FileDialog(self, "Open file", wildcard="TXT files (*.txt)|*.txt",
-                           style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
-
-            if fileDialog.ShowModal() == wx.ID_CANCEL:
-                return     # the user changed their mind
-
-            # Proceed loading the file chosen by the user
-            pathname = fileDialog.GetPath()
-            try:
-                with open(pathname, 'r') as f:
-                    self.input_text.Clear()
-                    self.input_text.AppendText(f.read())
-            except IOError:
-                wx.LogError("Cannot open file '%s'." % pathname)
-
     def CheckText(self, event):
         self.names = Names()
         self.devices = Devices(self.names)
@@ -327,7 +289,6 @@ class Gui(wx.Frame):
             status = self.parser.parse_network()
         except:
             pass
-        
 
         self.error_text.Clear()
         if self.scanner.total_error_string == "":
@@ -342,44 +303,146 @@ class Gui(wx.Frame):
             self.Layout()
             return
 
-        if status == True:
-            
-            self.monitor_options = wx.GridSizer(2)
+        if status == True and len(self.devices.devices_list) > 0:
+        
+            middle_heading = wx.StaticText(self.middle_panel, label="Options")
+            middle_heading = self.style(middle_heading, self.header_font)
+            self.middle_sizer.Add(middle_heading, 0, wx.ALL | wx.ALIGN_CENTER, 10)
+
+            self.toggle_right_panel = wx.ToggleButton(self.middle_panel, label="show circuit (experimental)")
+            self.toggle_right_panel.Bind(wx.EVT_TOGGLEBUTTON, self.OnRightPanelToggle)
+            self.middle_sizer.Add(self.toggle_right_panel, 0, wx.ALL | wx.ALIGN_RIGHT, 5)
+        
+            self.device_info = wx.FlexGridSizer(4, 0, 15)
+            # ------------- HEADINGS ------------- #
+            label = wx.StaticText(self.middle_panel, label="Name")
+            label = self.style(label, self.label_font)
+            self.device_info.Add(label, 0,
+                                 wx.EXPAND | wx.ALL, 0)
+
+            label = wx.StaticText(self.middle_panel, label="Type")
+            label = self.style(label, self.label_font)
+            self.device_info.Add(label, 0,
+                                 wx.EXPAND | wx.ALL, 0)
+
+            label = wx.StaticText(self.middle_panel, label="Inputs")
+            label = self.style(label, self.label_font)
+            self.device_info.Add(label, 0,
+                                 wx.EXPAND | wx.ALL, 0)
+                                 
+            label = wx.StaticText(self.middle_panel, label="Outputs")
+            label = self.style(label, self.label_font)
+            self.device_info.Add(label, 0,
+                                 wx.EXPAND | wx.ALL, 0)
+
             for device in self.devices.devices_list:
+
                 name = self.devices.names.get_name_string(device.device_id)
 
-                if device.device_kind == self.devices.D_TYPE:
-                    pass
+                label = wx.StaticText(
+                    self.middle_panel, label=self.devices.names.get_name_string(device.device_id))
+                label = self.style(label, self.label_font)
+                self.device_info.Add(label, 0,
+                                     wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+                label = wx.StaticText(
+                    self.middle_panel, label=self.devices.names.get_name_string(device.device_kind))
+                label = self.style(label, self.label_font)
+                self.device_info.Add(label, 0,
+                                     wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+                label = wx.StaticText(self.middle_panel, label=name)
+                label = self.style(label, self.label_font)
+                self.device_info.Add(label, 0,
+                                     wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
 
-                label = wx.StaticText(self.middle_panel, 1, label=name)
-                label.SetFont(self.label_font)
-                self.monitor_options.Add(label, 1,
-                                     wx.ALL | wx.ALIGN_RIGHT, 10)
+                device.monitor_btn = wx.ToggleButton(
+                    self.middle_panel, label="monitor {}".format(name))
+                device.monitor_btn.Bind(
+                    wx.EVT_TOGGLEBUTTON, self.OnToggleClick)
+                device.monitor_btn.SetForegroundColour('white')
 
-                device.monitor_btn = wx.ToggleButton(self.middle_panel, label=name)
                 if name in self.monitors.get_signal_names()[0]:
                     device.monitor_btn.SetValue(True)
+                    device.monitor_btn.SetBackgroundColour('#3ac10d')
+                else:
+                    device.monitor_btn.SetBackgroundColour('#e0473a')
 
-                self.monitor_options.Add(device.monitor_btn, 1,
-                                     wx.ALL | wx.ALIGN_CENTER, 10)
-            self.middle_sizer.Add(self.monitor_options, 1,
-                                     wx.ALL | wx.ALIGN_CENTER, 10)
+                self.device_info.Add(device.monitor_btn, 1,
+                                     wx.ALL | wx.ALIGN_CENTER|wx.ALIGN_CENTER_VERTICAL, 5)
+
+            # ----------- SET INITIAL SWITCH STATES ------------ #
+            self.switch_options = wx.FlexGridSizer(2)
+            for device in self.devices.devices_list:
+                if device.device_kind != self.devices.SWITCH:
+                    continue
+                name = self.devices.names.get_name_string(device.device_id)
+
+                label = wx.StaticText(self.middle_panel, 1, label=name)
+                label = self.style(label,self.label_font)
+                self.switch_options.Add(label, 1,
+                                        wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+
+                device.switch_btn = wx.ToggleButton(
+                    self.middle_panel, label="initial switch state")
+                device.switch_btn.Bind(wx.EVT_TOGGLEBUTTON, self.OnToggleClick)
+                device.switch_btn.SetForegroundColour('white')
+                if device.switch_state:
+                    device.switch_btn.SetValue(True)
+                    device.switch_btn.SetBackgroundColour('#3ac10d')
+                else:
+                    device.switch_btn.SetBackgroundColour('#e0473a')
+
+                self.switch_options.Add(device.switch_btn, 1,
+                                        wx.ALL, 5)
+
+            self.middle_sizer.Insert(1, self.switch_options, 0,
+                                     wx.ALL | wx.ALIGN_CENTER, 30)
+            self.middle_sizer.Insert(1, self.device_info, 0,
+                                     wx.ALL | wx.ALIGN_CENTER, 30)
+                        
+            simulate_btn = wx.Button(self.middle_panel, label="Simulate!")
+            self.middle_sizer.Add(simulate_btn, 0,
+                                     wx.ALL | wx.EXPAND, 30)
             self.middle_panel.Show()
-            self.middle_panel.Layout()
             self.Layout()
+            
+    def OnRightPanelToggle(self, event):
+        obj = event.GetEventObject()
+        if obj.GetValue():
+            self.right_panel.Show()
+        else:
+            self.right_panel.Hide()
+        self.Layout()
 
 
+    def OnToggleClick(self, event):
+        obj = event.GetEventObject()
+        if obj.GetValue():
+            obj.SetBackgroundColour('#3ac10d')
+        else:
+            obj.SetBackgroundColour('#e0473a')
+
+    def style(self, obj, font, fgcolour='white', bgcolour=None):
+        obj.SetForegroundColour(fgcolour)
+        obj.SetBackgroundColour(bgcolour)
+        obj.SetFont(font)
+        return obj
 
 
+    def LoadFile(self, event):
 
+        # otherwise ask the user what new file to open
+        with wx.FileDialog(self, "Open file", wildcard="TXT files (*.txt)|*.txt",
+                           style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
+            fileDialog.SetSize((120,80))
 
-    def on_run_button(self, event):
-        """Handle the event when the user clicks the run button."""
-        text = "Run button pressed."
-        self.canvas.render(text)
+            if fileDialog.ShowModal() == wx.ID_CANCEL:
+                return     # the user changed their mind
 
-    def on_text_box(self, event):
-        """Handle the event when the user enters text."""
-        text_box_value = self.text_box.GetValue()
-        text = "".join(["New text box value: ", text_box_value])
-        self.canvas.render(text)
+            # Proceed loading the file chosen by the user
+            pathname = fileDialog.GetPath()
+            try:
+                with open(pathname, 'r') as f:
+                    self.input_text.ClearAll()
+                    self.input_text.AppendText(f.read())
+            except IOError:
+                wx.LogError("Cannot open file '%s'." % pathname)
