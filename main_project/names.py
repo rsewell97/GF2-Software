@@ -61,7 +61,7 @@ class Names:
         if not name_string.isalnum():
             raise SyntaxError("string name is not alphanumeric")
         if name_string.isdigit():
-            raise SyntaxError("name is string")
+            raise SyntaxError("name must be string")
 
         if name_string in self.names:
             return self.names.index(name_string)
