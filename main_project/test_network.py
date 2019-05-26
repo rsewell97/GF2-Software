@@ -292,7 +292,7 @@ def network_with_devices():
     new_names = Names()
     new_devices = Devices(new_names)
     new_network = Network(new_names, new_devices)
- re-evaluated again after executing devices
+    # re-evaluated again after executing devices
     sw1_output = "network.get_output_signal(SW1_ID, None)"
     sw2_output = "network.get_output_signal(SW2_ID, None)"
     sw3_output = "network.get_output_signal(SW3_ID, None)"

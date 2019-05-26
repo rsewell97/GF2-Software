@@ -11,6 +11,7 @@ Gui - configures the main window and all the widgets.
 """
 import wx
 import wx.stc
+import wx.lib.scrolledpanel
 import wx.glcanvas as wxcanvas
 from OpenGL import GL, GLUT
 
@@ -50,7 +51,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                                            operations.
     """
 
-    def __init__(self, parent, devices, monitors):
+    def __init__(self, parent, devices, network):
         """Initialise canvas properties and useful variables."""
         super().__init__(parent, -1,
                          attribList=[wxcanvas.WX_GL_RGBA,
@@ -66,6 +67,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.last_mouse_x = 0  # previous mouse x position
         self.last_mouse_y = 0  # previous mouse y position
 
+        # Initialise variables for zooming
+        self.zoom = 1
+
         # Bind events to the canvas
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
@@ -76,7 +80,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         size = self.GetClientSize()
         self.SetCurrent(self.context)
         GL.glDrawBuffer(GL.GL_BACK)
-        GL.glClearColor(0.73, 0.83, 1.0, 0.0)
+        GL.glClearColor(1.0, 1.0, 1.0, 0.0)
         GL.glViewport(0, 0, size.width, size.height)
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
@@ -84,6 +88,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
         GL.glTranslated(self.pan_x, self.pan_y, 0.0)
+        GL.glScaled(self.zoom, self.zoom, self.zoom)
 
     def render(self, text):
         """Handle all drawing operations."""
@@ -161,13 +166,17 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                             ", ", str(event.GetY()), ". Pan is now: ",
                             str(self.pan_x), ", ", str(self.pan_y)])
         if event.GetWheelRotation() < 0:
-
+            self.zoom *= (1.0 + (
+                event.GetWheelRotation() / (20 * event.GetWheelDelta())))
             self.init = False
-
+            text = "".join(["Negative mouse wheel rotation. Zoom is now: ",
+                            str(self.zoom)])
         if event.GetWheelRotation() > 0:
-
+            self.zoom /= (1.0 - (
+                event.GetWheelRotation() / (20 * event.GetWheelDelta())))
             self.init = False
-
+            text = "".join(["Positive mouse wheel rotation. Zoom is now: ",
+                            str(self.zoom)])
         if text:
             self.render(text)
         else:
@@ -185,7 +194,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 GL.glRasterPos2f(x_pos, y_pos)
             else:
                 GLUT.glutBitmapCharacter(font, ord(character))
-
 
 class Gui(wx.Frame):
 
@@ -208,9 +216,9 @@ class Gui(wx.Frame):
         self.makeRightSizer()
 
         self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.main_sizer.Add(self.left_panel, 3, wx.ALL, 30)
-        self.main_sizer.Add(self.middle_panel, 3, wx.ALL, 30)
-        self.main_sizer.Add(self.right_panel, 4, wx.ALL, 30)
+        self.main_sizer.Add(self.left_panel, 3, wx.ALL|wx.EXPAND, 30)
+        self.main_sizer.Add(self.middle_panel, 3, wx.ALL|wx.EXPAND, 30)
+        self.main_sizer.Add(self.right_panel, 3, wx.ALL|wx.EXPAND, 30)
         self.SetSizer(self.main_sizer)
 
     def makeLeftSizer(self):
@@ -253,8 +261,9 @@ class Gui(wx.Frame):
         self.check_btn.Bind(wx.EVT_BUTTON, self.CheckText)
 
     def makeMiddleSizer(self):
-        self.middle_panel = wx.Panel(self)
+        self.middle_panel = wx.lib.scrolledpanel.ScrolledPanel(self)
         self.middle_panel.SetBackgroundColour((37, 103, 209))
+        self.middle_panel.SetupScrolling(scroll_x=False)
 
         self.middle_sizer = wx.BoxSizer(wx.VERTICAL)
         self.middle_panel.SetSizer(self.middle_sizer)
@@ -266,13 +275,13 @@ class Gui(wx.Frame):
         self.right_panel = wx.Panel(self)
         self.right_panel.SetBackgroundColour((37, 103, 209))
         self.right_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.right_panel.SetSizer(self.right_sizer)
 
         right_heading = wx.StaticText(self.right_panel, -1, label="Output")
         right_heading.SetFont(self.header_font)
         right_heading.SetForegroundColour((255, 255, 255))
         self.right_sizer.Add(right_heading, 0, wx.ALL | wx.ALIGN_CENTER, 10)
 
-        self.right_panel.SetSizer(self.right_sizer)
         self.right_panel.Hide()
         self.Layout()
 
@@ -290,14 +299,13 @@ class Gui(wx.Frame):
         except:
             pass
 
-        self.error_text.Clear()
         if self.scanner.total_error_string == "":
             self.error_text.AppendText("No errors found")
         else:
+            self.error_text.Clear()
             self.error_text.AppendText(self.scanner.total_error_string)
             self.error_text.SetStyle(0, -1, wx.TextAttr(wx.RED))
 
-            self.middle_sizer.Clear()
             self.middle_panel.Hide()
             self.right_panel.Hide()
             self.Layout()
@@ -305,6 +313,15 @@ class Gui(wx.Frame):
 
         if status == True and len(self.devices.devices_list) > 0:
         
+            self.error_text.Clear()
+            self.middle_sizer.Clear(True)
+            self.middle_panel.Update()
+            try:
+                self.right_sizer.Remove(1)
+            except:
+                pass
+            self.right_panel.Update()
+
             middle_heading = wx.StaticText(self.middle_panel, label="Options")
             middle_heading = self.style(middle_heading, self.header_font)
             self.middle_sizer.Add(middle_heading, 0, wx.ALL | wx.ALIGN_CENTER, 10)
@@ -313,64 +330,108 @@ class Gui(wx.Frame):
             self.toggle_right_panel.Bind(wx.EVT_TOGGLEBUTTON, self.OnRightPanelToggle)
             self.middle_sizer.Add(self.toggle_right_panel, 0, wx.ALL | wx.ALIGN_RIGHT, 5)
         
-            self.device_info = wx.FlexGridSizer(4, 0, 15)
+            
+            device_info = wx.FlexGridSizer(4, 0, 10)
             # ------------- HEADINGS ------------- #
             label = wx.StaticText(self.middle_panel, label="Name")
             label = self.style(label, self.label_font)
-            self.device_info.Add(label, 0,
+            device_info.Add(label, 0,
                                  wx.EXPAND | wx.ALL, 0)
 
             label = wx.StaticText(self.middle_panel, label="Type")
             label = self.style(label, self.label_font)
-            self.device_info.Add(label, 0,
+            device_info.Add(label, 0,
                                  wx.EXPAND | wx.ALL, 0)
 
             label = wx.StaticText(self.middle_panel, label="Inputs")
             label = self.style(label, self.label_font)
-            self.device_info.Add(label, 0,
+            device_info.Add(label, 0,
                                  wx.EXPAND | wx.ALL, 0)
                                  
             label = wx.StaticText(self.middle_panel, label="Outputs")
             label = self.style(label, self.label_font)
-            self.device_info.Add(label, 0,
+            device_info.Add(label, 0,
                                  wx.EXPAND | wx.ALL, 0)
 
+            # ---------------- TABLE --------------- #
             for device in self.devices.devices_list:
 
                 name = self.devices.names.get_name_string(device.device_id)
 
+                # DEVICE NAME
                 label = wx.StaticText(
                     self.middle_panel, label=self.devices.names.get_name_string(device.device_id))
                 label = self.style(label, self.label_font)
-                self.device_info.Add(label, 0,
+                device_info.Add(label, 0,
                                      wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+                # DEVICE TYPE
                 label = wx.StaticText(
                     self.middle_panel, label=self.devices.names.get_name_string(device.device_kind))
                 label = self.style(label, self.label_font)
-                self.device_info.Add(label, 0,
+                device_info.Add(label, 0,
                                      wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-                label = wx.StaticText(self.middle_panel, label=name)
+                # INPUT NAMES
+                s = ""
+                for i in device.inputs:
+                    s = s + '{}.{}\n'.format(name,self.names.get_name_string(i))
+                s = s[:-1]
+
+                label = wx.StaticText(self.middle_panel, label=s)
                 label = self.style(label, self.label_font)
-                self.device_info.Add(label, 0,
-                                     wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-
-                device.monitor_btn = wx.ToggleButton(
-                    self.middle_panel, label="monitor {}".format(name))
-                device.monitor_btn.Bind(
+                device_info.Add(label, 0,
+                                     wx.EXPAND|wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+                # MONITOR OPTIONS
+                if device.device_kind == self.devices.D_TYPE:
+                    device.monitor_btn = wx.ToggleButton(
+                        self.middle_panel, label="monitor {}.Q".format(name))
+                    device.monitor_btn_bar = wx.ToggleButton(
+                        self.middle_panel, label="monitor {}.QBAR".format(name))
+                    device.monitor_btn.Bind(
                     wx.EVT_TOGGLEBUTTON, self.OnToggleClick)
-                device.monitor_btn.SetForegroundColour('white')
+                    device.monitor_btn.SetForegroundColour('white')
+                    device.monitor_btn_bar.Bind(
+                    wx.EVT_TOGGLEBUTTON, self.OnToggleClick)
+                    device.monitor_btn_bar.SetForegroundColour('white')
+                    row = wx.BoxSizer(wx.VERTICAL)
+                    row.Add(device.monitor_btn, 1,
+                                    wx.ALL | wx.ALIGN_CENTER|wx.ALIGN_CENTER_VERTICAL, 5)
+                    row.Add(device.monitor_btn_bar, 1,
+                                    wx.ALL | wx.ALIGN_CENTER|wx.ALIGN_CENTER_VERTICAL, 5)
+                    
 
-                if name in self.monitors.get_signal_names()[0]:
-                    device.monitor_btn.SetValue(True)
-                    device.monitor_btn.SetBackgroundColour('#3ac10d')
+                    if name+'.Q' in self.monitors.get_signal_names()[0]:
+                        device.monitor_btn.SetValue(True)
+                        device.monitor_btn.SetBackgroundColour('#3ac10d')
+                    else:
+                        device.monitor_btn.SetBackgroundColour('#e0473a')
+
+                    if name+'.QBAR' in self.monitors.get_signal_names()[0]:
+                        device.monitor_btn_bar.SetValue(True)
+                        device.monitor_btn_bar.SetBackgroundColour('#3ac10d')
+                    else:
+                        device.monitor_btn_bar.SetBackgroundColour('#e0473a')
+                    
+                    device_info.Add(row, 1,
+                                    wx.ALL | wx.ALIGN_CENTER|wx.ALIGN_CENTER_VERTICAL, 5)     
                 else:
-                    device.monitor_btn.SetBackgroundColour('#e0473a')
+                    device.monitor_btn = wx.ToggleButton(
+                        self.middle_panel, label="monitor {}".format(name))
+                    device.monitor_btn.Bind(
+                        wx.EVT_TOGGLEBUTTON, self.OnToggleClick)
+                    device.monitor_btn.SetForegroundColour('white')
 
-                self.device_info.Add(device.monitor_btn, 1,
-                                     wx.ALL | wx.ALIGN_CENTER|wx.ALIGN_CENTER_VERTICAL, 5)
+                    if name in self.monitors.get_signal_names()[0]:
+                        device.monitor_btn.SetValue(True)
+                        device.monitor_btn.SetBackgroundColour('#3ac10d')
+                    else:
+                        device.monitor_btn.SetBackgroundColour('#e0473a')
+
+                    device_info.Add(device.monitor_btn, 1,
+                                    wx.ALL | wx.ALIGN_CENTER|wx.ALIGN_CENTER_VERTICAL, 5)
+            
 
             # ----------- SET INITIAL SWITCH STATES ------------ #
-            self.switch_options = wx.FlexGridSizer(2)
+            self.switch_options = wx.FlexGridSizer(2, 0, 30)
             for device in self.devices.devices_list:
                 if device.device_kind != self.devices.SWITCH:
                     continue
@@ -396,7 +457,9 @@ class Gui(wx.Frame):
 
             self.middle_sizer.Insert(1, self.switch_options, 0,
                                      wx.ALL | wx.ALIGN_CENTER, 30)
-            self.middle_sizer.Insert(1, self.device_info, 0,
+            self.middle_sizer.Insert(1, wx.StaticLine(self.middle_panel), 0, wx.EXPAND, 5)
+
+            self.middle_sizer.Insert(1, device_info, 0,
                                      wx.ALL | wx.ALIGN_CENTER, 30)
                         
             simulate_btn = wx.Button(self.middle_panel, label="Simulate!")
@@ -404,7 +467,10 @@ class Gui(wx.Frame):
                                      wx.ALL | wx.EXPAND, 30)
             self.middle_panel.Show()
             self.Layout()
-            
+
+            self.canvas = MyGLCanvas(self.right_panel, self.devices, self.network)
+            self.right_sizer.Add(self.canvas, 1, wx.EXPAND | wx.ALL, 0)
+
     def OnRightPanelToggle(self, event):
         obj = event.GetEventObject()
         if obj.GetValue():

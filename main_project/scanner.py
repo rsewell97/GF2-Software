@@ -54,6 +54,7 @@ class Scanner:
 
     def __init__(self, path, names, string=False):
         """Open specified file and initialise reserved words and IDs."""
+        self.total_errors = 0
 
         if string:
             self.read_as_string = True
@@ -87,6 +88,7 @@ class Scanner:
         [self.DEVICE] = self.names.lookup(["device"])
 
         self.ignore = ["gate", "gates", "a", "an", "some", "initially", "inputs"]
+        self.stopping_symbols = [self.SEMICOLON, self.CURLY_CLOSE, self.EOF]
 
         self.current_character = " "
         self.current_line = 0
@@ -225,9 +227,24 @@ class Scanner:
         return self.current_character
 
     def error(self, error_type, message=""):
+        self.total_errors += 1
+        
         if self.read_as_string:
             self.total_error_string += Error(message, error_type, self.list_file[self.current_line], 
                     self.current_line, self.character_number).error_string
         else:
-            raise Error(message, error_type, self.list_file[self.current_line], 
-                    self.current_line, self.character_number)
+            try:
+                Error(message, error_type, self.list_file[self.current_line], 
+                        self.current_line, self.character_number)
+            except IndexError:
+                Error(message, error_type, self.list_file[-1], 
+                        self.current_line, self.character_number)
+        
+        while True:
+            self.symbol = self.get_symbol()
+            if self.symbol is None:
+                continue
+            if self.symbol.type in self.stopping_symbols:
+                break
+        
+    

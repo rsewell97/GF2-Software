@@ -155,9 +155,8 @@ class Parser:
 
     def parse_device(self):
         """Build devices by reading 1 line at a time"""
-        # ----------- CREATES DEVICES -------------- #
+        # ----------- CREATES DEVICES 1 LINE AT A TIME -------------- #
         # FORMAT = A, B are NAND gates
-        # OR FORMAT = A1 => A12 are NAND gates
 
         definition_delimiters = [self.scanner.IS, self.scanner.ARE]
         attribute_delimiters = [self.scanner.HAS,
@@ -225,7 +224,7 @@ class Parser:
                         self.error(
                             SyntaxError, "Can only set switch state to 0 or 1")
             else:
-                # -------------- GET NUM INPUTS ------------- #
+                # -------------- GET INPUTS ------------- #
                 self.symbol = self.scanner.get_symbol()
                 if self.symbol.type == self.scanner.NUMBER:
                     num = int(self.symbol.id[0])
@@ -269,8 +268,9 @@ class Parser:
                     self.symbol = self.scanner.get_symbol()
                     if self.symbol.type == self.scanner.NUMBER:
                         for device in devices:
-                            clk = self.devices.get_device(
-                                self.devices.names.query(device))
+                            clk = self.devices.get_device(self.names.query(device))
+                            if clk is None:
+                                continue
                             clk.clock_half_period = int(self.symbol.id[0])
                 else:
                     self.error(SyntaxError, "Expected number")
@@ -282,8 +282,11 @@ class Parser:
             elif self.symbol.type == self.scanner.SEMICOLON:
                 return True
             else:
+                print(self.symbol.type)
                 self.error(
-                    SyntaxError, "Unexpected symbol encountered while parsing")
+                    SyntaxError, "Unexpected symbol encountered - maybe you missed a semicolon?")
+                return True
+
 
     def parse_connections(self):
 
@@ -298,7 +301,7 @@ class Parser:
         # ------- GET DEVICE OBJECT ------ #
         self.symbol = self.scanner.get_symbol(query=True)
         if self.symbol.type != self.scanner.NAME:
-            self.error(SyntaxError, "second word is not a device name")
+            self.error(SyntaxError, "Second name is not a device")
 
         input_device = self.devices.get_device(self.symbol.id)
         if input_device == None:

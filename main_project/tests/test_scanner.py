@@ -11,24 +11,24 @@ error
 import pytest
 
 
-@pytest.fixture
-def new_scanned_item()
+# @pytest.fixture
+# def new_scanned_item()
 
 
-def test_get_symbol()
+# def test_get_symbol()
 
 
-def test_get_name()
+# def test_get_name()
 
 
-def test_get_number()
+# def test_get_number()
 
 
-def test_skip_spaces()
+# def test_skip_spaces()
 
 
-def test_advance()
+# def test_advance()
 
 
-def test_error()
+# def test_error()
 
