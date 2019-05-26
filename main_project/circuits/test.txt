@@ -7,7 +7,8 @@ DEVICES {
 CONNECTIONS {
     device A {
        S1 to A.I1;
-       B to A.I2;
+
+               B to A.I2;
     }
     device B {
        A to B.I1;

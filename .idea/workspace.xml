@@ -3,6 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="d9ba723f-04b4-4d6f-bf40-a71a48f9344f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_project/circuits/test.txt" beforeDir="false" afterPath="$PROJECT_DIR$/main_project/circuits/test.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_project/test_names.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_project/test_names.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -12,61 +14,13 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main_project/tests/test_scanner.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="493">
-              <caret line="29" column="18" selection-start-line="29" selection-start-column="18" selection-end-line="29" selection-end-column="18" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main_project/test_names.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="629">
-              <caret line="38" column="26" selection-start-line="38" selection-start-column="26" selection-end-line="38" selection-end-column="26" />
+            <state relative-caret-position="119">
+              <caret line="44" column="33" selection-start-line="44" selection-start-column="33" selection-end-line="44" selection-end-column="33" />
               <folding>
                 <element signature="e#29#42#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main_project/circuits/test.txt">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="136">
-              <caret line="8" column="18" selection-start-line="8" selection-start-column="18" selection-end-line="8" selection-end-column="18" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main_project/tests/test_parse.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="85">
-              <caret line="5" selection-start-line="5" selection-end-line="5" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/main_project/tests/test_network.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="51">
-              <caret line="3" column="10" selection-start-line="3" selection-start-column="5" selection-end-line="3" selection-end-column="10" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main_project/scanner.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="170">
-              <caret line="11" column="43" selection-start-line="11" selection-start-column="43" selection-end-line="11" selection-end-column="43" />
-              <folding>
-                <element signature="e#0#10#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -114,13 +68,13 @@
         <option value="$PROJECT_DIR$/main_project/circuits/ebnf.txt" />
         <option value="$PROJECT_DIR$/main_project/pytests_learning.py" />
         <option value="$PROJECT_DIR$/main_project/test_method1.py" />
-        <option value="$PROJECT_DIR$/main_project/circuits/test.txt" />
         <option value="$PROJECT_DIR$/main_project/test_parse.py" />
         <option value="$PROJECT_DIR$/main_project/tests/test_parse.py" />
         <option value="$PROJECT_DIR$/main_project/tests/test_network.py" />
         <option value="$PROJECT_DIR$/main_project/names.py" />
         <option value="$PROJECT_DIR$/main_project/tests/test_scanner.py" />
         <option value="$PROJECT_DIR$/main_project/tests/test_names.py" />
+        <option value="$PROJECT_DIR$/main_project/circuits/test.txt" />
         <option value="$PROJECT_DIR$/main_project/test_names.py" />
       </list>
     </option>
@@ -161,12 +115,6 @@
               <item name="main_project" type="462c0819:PsiDirectoryNode" />
               <item name="GUI" type="462c0819:PsiDirectoryNode" />
             </path>
-            <path>
-              <item name="GF2-Software" type="b2602c69:ProjectViewProjectNode" />
-              <item name="GF2-Software" type="462c0819:PsiDirectoryNode" />
-              <item name="main_project" type="462c0819:PsiDirectoryNode" />
-              <item name="tests" type="462c0819:PsiDirectoryNode" />
-            </path>
           </expand>
           <select />
         </subPane>
@@ -190,7 +138,37 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python tests.pytest for test_names.test_expected_outputs">
+  <component name="RunManager" selected="Python tests.pytest for test_names.test_query">
+    <configuration name="pytest for main_project.test_names.test_get_name_string_raises_exceptions" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+      <module name="GF2-Software" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;main_project.test_names.test_get_name_string_raises_exceptions&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pytest for test_names.test_combination_funcs" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+      <module name="GF2-Software" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/main_project" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;test_names.test_combination_funcs&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
     <configuration name="pytest for test_names.test_expected_outputs" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
       <module name="GF2-Software" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -206,7 +184,7 @@
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="pytest for test_names.test_lookup" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+    <configuration name="pytest for test_names.test_get_name_string_raises_exceptions" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
       <module name="GF2-Software" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -217,22 +195,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="_new_keywords" value="&quot;&quot;" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_names.test_lookup&quot;" />
-      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
-      <method v="2" />
-    </configuration>
-    <configuration name="pytest for test_names.test_lookup_and_get_name_string" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
-      <module name="GF2-Software" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/main_project" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="_new_keywords" value="&quot;&quot;" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_names.test_lookup_and_get_name_string&quot;" />
+      <option name="_new_target" value="&quot;test_names.test_get_name_string_raises_exceptions&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
@@ -251,28 +214,13 @@
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="pytest for test_names.test_query_and_lookup" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
-      <module name="GF2-Software" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/main_project" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="_new_keywords" value="&quot;&quot;" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_names.test_query_and_lookup&quot;" />
-      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
-      <method v="2" />
-    </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python tests.pytest for test_names.test_expected_outputs" />
         <item itemvalue="Python tests.pytest for test_names.test_query" />
-        <item itemvalue="Python tests.pytest for test_names.test_lookup_and_get_name_string" />
-        <item itemvalue="Python tests.pytest for test_names.test_lookup" />
-        <item itemvalue="Python tests.pytest for test_names.test_query_and_lookup" />
+        <item itemvalue="Python tests.pytest for test_names.test_expected_outputs" />
+        <item itemvalue="Python tests.pytest for test_names.test_combination_funcs" />
+        <item itemvalue="Python tests.pytest for test_names.test_get_name_string_raises_exceptions" />
+        <item itemvalue="Python tests.pytest for main_project.test_names.test_get_name_string_raises_exceptions" />
       </list>
     </recent_temporary>
   </component>
@@ -290,35 +238,35 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="pytest_for_test_names_test_query - 2019.05.26 at 10h 09m 29s.xml">
+    <history-entry file="pytest_for_test_names_test_expected_outputs - 2019.05.26 at 12h 24m 13s.xml">
+      <configuration name="pytest for test_names.test_expected_outputs" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_for_test_names_test_expected_outputs - 2019.05.26 at 12h 24m 34s.xml">
+      <configuration name="pytest for test_names.test_expected_outputs" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_for_test_names_test_expected_outputs - 2019.05.26 at 12h 27m 03s.xml">
+      <configuration name="pytest for test_names.test_expected_outputs" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_for_test_names_test_expected_outputs - 2019.05.26 at 12h 27m 42s.xml">
+      <configuration name="pytest for test_names.test_expected_outputs" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_for_test_names_test_expected_outputs - 2019.05.26 at 12h 27m 56s.xml">
+      <configuration name="pytest for test_names.test_expected_outputs" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_for_test_names_test_expected_outputs - 2019.05.26 at 12h 28m 16s.xml">
+      <configuration name="pytest for test_names.test_expected_outputs" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_for_test_names_test_expected_outputs - 2019.05.26 at 12h 29m 27s.xml">
+      <configuration name="pytest for test_names.test_expected_outputs" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_for_test_names_test_query - 2019.05.26 at 13h 11m 55s.xml">
       <configuration name="pytest for test_names.test_query" configurationId="tests" />
     </history-entry>
-    <history-entry file="pytest_for_test_names_test_query - 2019.05.26 at 10h 09m 46s.xml">
+    <history-entry file="pytest_for_test_names_test_query - 2019.05.26 at 13h 12m 53s.xml">
       <configuration name="pytest for test_names.test_query" configurationId="tests" />
     </history-entry>
-    <history-entry file="pytest_for_test_names_test_expected_outputs - 2019.05.26 at 10h 33m 11s.xml">
-      <configuration name="pytest for test_names.test_expected_outputs" configurationId="tests" />
-    </history-entry>
-    <history-entry file="pytest_for_test_names_test_expected_outputs - 2019.05.26 at 10h 37m 41s.xml">
-      <configuration name="pytest for test_names.test_expected_outputs" configurationId="tests" />
-    </history-entry>
-    <history-entry file="pytest_for_test_names_test_expected_outputs - 2019.05.26 at 10h 56m 39s.xml">
-      <configuration name="pytest for test_names.test_expected_outputs" configurationId="tests" />
-    </history-entry>
-    <history-entry file="pytest_for_test_names_test_expected_outputs - 2019.05.26 at 10h 57m 28s.xml">
-      <configuration name="pytest for test_names.test_expected_outputs" configurationId="tests" />
-    </history-entry>
-    <history-entry file="pytest_for_test_names_test_expected_outputs - 2019.05.26 at 10h 57m 43s.xml">
-      <configuration name="pytest for test_names.test_expected_outputs" configurationId="tests" />
-    </history-entry>
-    <history-entry file="pytest_for_test_names_test_expected_outputs - 2019.05.26 at 11h 03m 29s.xml">
-      <configuration name="pytest for test_names.test_expected_outputs" configurationId="tests" />
-    </history-entry>
-    <history-entry file="pytest_for_test_names_test_expected_outputs - 2019.05.26 at 11h 03m 44s.xml">
-      <configuration name="pytest for test_names.test_expected_outputs" configurationId="tests" />
-    </history-entry>
-    <history-entry file="pytest_for_test_names_test_expected_outputs - 2019.05.26 at 11h 47m 58s.xml">
-      <configuration name="pytest for test_names.test_expected_outputs" configurationId="tests" />
+    <history-entry file="pytest_for_test_names_test_query - 2019.05.26 at 13h 14m 03s.xml">
+      <configuration name="pytest for test_names.test_query" configurationId="tests" />
     </history-entry>
   </component>
   <component name="TodoView">
@@ -332,13 +280,14 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1295" height="695" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2145749" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.22186235" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49959514" weight="0.45115453" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49959514" visible="true" weight="0.45115453" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39964476" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -447,25 +396,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/main_project/test_parse.py" />
     <entry file="file://$PROJECT_DIR$/main_project/test_devices.py" />
-    <entry file="file://$PROJECT_DIR$/main_project/tests/test_method1.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main_project/tests/test_devices.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
+    <entry file="file://$PROJECT_DIR$/main_project/tests/test_method1.py" />
+    <entry file="file://$PROJECT_DIR$/main_project/tests/test_devices.py" />
     <entry file="file://$PROJECT_DIR$/main_project/main_gui.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-833" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/main_project/tests/test_names.py" />
-    <entry file="file://$PROJECT_DIR$/main_project/tests/test_monitors.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1309">
-          <caret line="82" column="33" lean-forward="true" selection-start-line="82" selection-start-column="33" selection-end-line="82" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/main_project/tests/test_monitors.py" />
     <entry file="file://$PROJECT_DIR$/main_project/parse.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="264">
@@ -476,34 +415,13 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main_project/tests/test_scanner.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="493">
-          <caret line="29" column="18" selection-start-line="29" selection-start-column="18" selection-end-line="29" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main_project/test_names.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="629">
-          <caret line="38" column="26" selection-start-line="38" selection-start-column="26" selection-end-line="38" selection-end-column="26" />
-          <folding>
-            <element signature="e#29#42#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/main_project/tests/test_scanner.py" />
+    <entry file="file://$PROJECT_DIR$/main_project/tests/test_parse.py" />
+    <entry file="file://$PROJECT_DIR$/main_project/tests/test_network.py" />
     <entry file="file://$PROJECT_DIR$/main_project/circuits/test.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="136">
-          <caret line="8" column="18" selection-start-line="8" selection-start-column="18" selection-end-line="8" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main_project/tests/test_parse.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="85">
-          <caret line="5" selection-start-line="5" selection-end-line="5" />
+        <state relative-caret-position="170">
+          <caret line="10" column="8" selection-start-line="10" selection-start-column="8" selection-end-line="10" selection-end-column="8" />
         </state>
       </provider>
     </entry>
@@ -517,17 +435,20 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/main_project/test_names.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="44" column="33" selection-start-line="44" selection-start-column="33" selection-end-line="44" selection-end-column="33" />
+          <folding>
+            <element signature="e#29#42#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/main_project/names.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1122">
           <caret line="66" column="48" selection-start-line="66" selection-start-column="48" selection-end-line="66" selection-end-column="48" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main_project/tests/test_network.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="51">
-          <caret line="3" column="10" selection-start-line="3" selection-start-column="5" selection-end-line="3" selection-end-column="10" />
         </state>
       </provider>
     </entry>
