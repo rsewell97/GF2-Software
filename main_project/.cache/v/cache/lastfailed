@@ -1,0 +1,4 @@
+{
+  "test_method1.py::test_file1_method1": true,
+  "test_network.py": true
+}
