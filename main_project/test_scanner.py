@@ -12,23 +12,23 @@ import pytest
 
 
 # @pytest.fixture
-# def new_scanned_item()
+#TODO: def new_scanned_item()
 
 
-# def test_get_symbol()
+#TODO: def test_get_symbol()
 
 
-# def test_get_name()
+#TODO: def test_get_name()
 
 
-# def test_get_number()
+#TODO: def test_get_number()
 
 
-# def test_skip_spaces()
+#TODO: def test_skip_spaces()
 
 
 # def test_advance()
 
 
-# def test_error()
+#TODO: def test_error()
 
