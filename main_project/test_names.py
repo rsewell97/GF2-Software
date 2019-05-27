@@ -71,9 +71,8 @@ def test_lookup_raises_exceptions(used_names):
     """ Test if lookup raises expected exceptions."""
     with pytest.raises(TypeError):
         used_names.lookup(12)
-    # with pytest.raises(TypeError):
-    #     used_names.lookup("string")
-    # TODO: ROBBIE IS GOING TO WRITE AN ERROR IF IT ISN'T A 1 VALUED LIST RATHER THAN A SINGLE STRING
+    with pytest.raises(TypeError):
+        used_names.lookup("string")
 
 
 def test_combination_funcs(name_string_list,used_names):
