@@ -70,19 +70,26 @@ def test_lookup_unique_id(used_names,name_string_list):
 def test_lookup_raises_exceptions(used_names):
     """ Test if lookup raises expected exceptions."""
     with pytest.raises(TypeError):
-        used_names.lookup(12)
-    # with pytest.raises(TypeError):
-    #     used_names.lookup("string")
-    # TODO: ROBBIE IS GOING TO WRITE AN ERROR IF IT ISN'T A 1 VALUED LIST RATHER THAN A SINGLE STRING
+        #non alphanum strings
+        used_names.lookup([12])
+        #not a list input
+        used_names.lookup("string")
+
+
+def test_query_raises_exceptions(used_names):
+    """Test if query raises the expected exceptions."""
+    with pytest.raises(SyntaxError):
+        #non name strings
+        used_names.query('1')
+        #non alphanum
+        used_names.lookup('1!')
 
 
 def test_combination_funcs(name_string_list,used_names):
     """Check that the query function on a single string works the same as the lookup function on an index list"""
     i = 0
     for name in name_string_list:
-        print (used_names.lookup(name)[i])
-        print(used_names.get_name_string(used_names.lookup(name_string_list)[i]))
-        assert used_names.lookup(name)[i] == used_names.query(name[i])
+        assert used_names.lookup([name])[0] == used_names.query(name)
         assert name_string_list[i] == used_names.get_name_string(used_names.lookup(name_string_list)[i])
         i +=1
 
