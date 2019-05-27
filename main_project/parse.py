@@ -85,11 +85,11 @@ class Parser:
                     self.parse_section('connections')
                     self.found_connections = True
 
-                elif self.symbol.id == self.scanner.MONITOR_ID:
-                    if not self.found_devices:
-                        self.error(SyntaxError, "Specifying monitor before devices is not allowed")
-                    self.parse_section('monitor')
-                    self.found_monitor = True
+                # elif self.symbol.id == self.scanner.MONITOR_ID:
+                #     if not self.found_devices:
+                #         self.error(SyntaxError, "Specifying monitor before devices is not allowed")
+                #     self.parse_section('monitor')
+                #     self.found_monitor = True
 
                 else:
                     self.error(SyntaxError, "Heading name '{}' not allowed".format(
@@ -148,7 +148,7 @@ class Parser:
                 self.error(SemanticError, "All inputs must be connected")
 
         elif heading == 'monitor':
-            while self.add_monitor_point():
+            while self.parse_monitor():
                 pass
 
         print("END OF SECTION")
@@ -287,7 +287,6 @@ class Parser:
                     SyntaxError, "Unexpected symbol encountered - maybe you missed a semicolon?")
                 return True
 
-
     def parse_connections(self):
 
         # ------- GET WORD: 'DEVICE' ------ #
@@ -397,31 +396,42 @@ class Parser:
                     return False
         return True
 
-    def add_monitor_point(self):
+    def parse_monitor(self):
 
         self.symbol = self.scanner.get_symbol(query=True)
         if self.symbol.type == self.scanner.CURLY_CLOSE:
             return False
-        if self.symbol.type in [self.scanner.COMMA, self.scanner.SEMICOLON]:
+        elif self.symbol.type in [self.scanner.COMMA, self.scanner.SEMICOLON]:
             return True
 
         elif self.symbol.type == self.scanner.NAME:
+            if self.devices.get_device(self.symbol.id).device_type == self.devices.D_TYPE:
+                self.symbol = self.scanner.get_symbol(query=True)
+                device = self.symbol.id
+                if self.symbol.type == self.scanner.DOT:
+                    self.symbol = self.scanner.get_symbol(query=True)
+                    if self.symbol.id in self.devices.dtype_output_ids:
+                        status = self.monitors.make_monitor(device, self.symbol.id)
+                    else:
+                        self.error(SyntaxError, "Expected the name of a port (Q, QBAR)")
+                else:
+                    self.error(SyntaxError, "Expected a dot to index a DTYPE port")
+            else: 
+                print("here")
+                status = self.monitors.make_monitor(
+                    self.symbol.id, None)
 
-            status = self.monitors.make_monitor(
-                self.symbol.id, None)
-
-            if status == self.monitors.network.DEVICE_ABSENT:
-                self.error(SemanticError, "Device '{}' doesn't exist".format(
-                    self.scanner.name_string))
-            elif status == self.monitors.NOT_OUTPUT:
-                self.error(SemanticError, "Name '{}' is not an output".format(
-                    self.scanner.name_string))
-            elif status == self.monitors.MONITOR_PRESENT:
-                self.error(SemanticError, "Already monitoring {}".format(
-                    self.scanner.name_string))
-            elif status == self.monitors.NO_ERROR:
-                pass
-
+                if status == self.monitors.network.DEVICE_ABSENT:
+                    self.error(SemanticError, "Device '{}' doesn't exist".format(
+                        self.scanner.name_string))
+                elif status == self.monitors.NOT_OUTPUT:
+                    self.error(SemanticError, "Name '{}' is not an output".format(
+                        self.scanner.name_string))
+                elif status == self.monitors.MONITOR_PRESENT:
+                    self.error(SemanticError, "Already monitoring {}".format(
+                        self.scanner.name_string))
+                elif status == self.monitors.NO_ERROR:
+                    pass
         return True
 
     def get_names_before_delimiter(self, true_delimiting_word_ids, false_delimiting_word_ids):

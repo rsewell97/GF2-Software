@@ -286,6 +286,7 @@ class Gui(wx.Frame):        # main options screen
             status = self.parser.parse_network()
         except:
             pass
+        print(self.parser.parse_network())
 
         if self.scanner.total_error_string == "":
             self.error_text.AppendText("No errors found")
@@ -457,8 +458,8 @@ class Gui(wx.Frame):        # main options screen
             simulate_btn = wx.Button(self.middle_panel, label="Simulate!")
             simulate_btn.Bind(wx.EVT_BUTTON, self.newSimulate)
 
-        self.middle_sizer.Add(simulate_btn, 0,
-                                wx.ALL | wx.EXPAND, 30)
+        # self.middle_sizer.Add(simulate_btn, 0,
+        #                         wx.ALL | wx.EXPAND, 30)
         self.middle_panel.Show()
         self.SimulateWindow = SimulatePage(self)
 
@@ -536,7 +537,6 @@ class SimulatePage(wx.Frame):       # simulation screen
 
         # Canvas for drawing signals
         self.canvas = Canvas(self, parent.devices, parent.monitors, parent.network)
-        # self.canvas.controls.regular_running()
 
         # Configure the widgets
         self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
@@ -593,7 +593,7 @@ class SimulatePage(wx.Frame):       # simulation screen
 
         self.SetSizerAndFit(main_sizer)
     
-    def open_help(self):
+    def open_help(self, event):
         filepath = 'GUI/helpfile.pdf'
         import subprocess, os, platform
 
@@ -603,3 +603,4 @@ class SimulatePage(wx.Frame):       # simulation screen
             os.startfile(filepath)
         else:                                   # linux variants
             subprocess.call(('xdg-open', filepath))
+        event.Skip()
