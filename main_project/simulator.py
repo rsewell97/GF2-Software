@@ -11,6 +11,7 @@ Gui - configures the main window and all the widgets.
 import wx
 import wx.glcanvas as wxcanvas
 from OpenGL import GL, GLUT
+import time
 
 # from names import Names
 # from devices import Devices
@@ -101,11 +102,11 @@ class Controls:
 
     def regular_running(self):
         while self.time < self.max_time:
-            if self.paused > 0:
-                self.glc.run_system()
-                self.glc.translate_and_draw()
-            time.sleep(self.timing)
-        return self.regular_running()
+            # if self.paused > 0:
+            self.glc.run_system()
+            self.glc.translate_and_draw()
+            # time.sleep(self.timing)
+        return
 
     def pause_play(self):
         if self.paused == 0:
@@ -192,7 +193,11 @@ class Canvas(wxcanvas.GLCanvas):
         self.y_all_time = []
 
         # Initialise a list of all devices
-        self.list_of_all_devices = self.devices.find_devices(self)
+        self.list_of_all_devices = []
+        for device in self.devices.devices_list:
+            self.list_of_all_devices.append(device.device_id)
+
+        print(self.list_of_all_devices) # REMOVE
         self.num_devices = len(self.list_of_all_devices)
 
         # Initialise variables for zooming
@@ -325,7 +330,7 @@ class Canvas(wxcanvas.GLCanvas):
 
     def get_new_coordinates(self, device, notness=0): # notness used for DTYPES
         device = self.devices.get_device(device)
-        output_port = device
+        output_port = None
 
         if device.device_kind == self.devices.D_TYPE:
             if notness == 1:
@@ -335,7 +340,7 @@ class Canvas(wxcanvas.GLCanvas):
             else:
                 print("there's a problem with the notness")
 
-        signal = self.network.get_output_signal(self.devices.names.query(device), output_port)
+        signal = self.network.get_output_signal(device.device_id, output_port)
 
         x = self.controls.time * self.width
         y = 0
@@ -368,8 +373,8 @@ class Canvas(wxcanvas.GLCanvas):
         for signal in monitored_signals:
             monitored_signal_ids.append(signal[0])
             monitored_signal_names.append(self.devices.get_signal_name(signal[0], signal[1]))
-
-        monitored_signal_names.sort(key=str.lower)
+        print("monitored", monitored_signal_ids)
+        # monitored_signal_names.sort(key=str.lower)
         i = 0
         all_x = []
         all_y = []

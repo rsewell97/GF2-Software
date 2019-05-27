@@ -510,6 +510,7 @@ class SimulatePage(wx.Frame):       # simulation screen
 
         # Canvas for drawing signals
         self.canvas = Canvas(self, parent.devices, parent.monitors, parent.network)
+        self.canvas.controls.regular_running()
 
         # Configure the widgets
         self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
@@ -521,7 +522,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.tostart = wx.Button(self, wx.ID_ANY, "START")
         self.back5 = wx.Button(self, wx.ID_ANY, "Step -5")
         self.back1 = wx.Button(self, wx.ID_ANY, "Step -1")
-        self.pause = wx.Button(self, wx.ID_ANY, "Pause")
+        self.pause = wx.ToggleButton(self, wx.ID_ANY, "Pause")
         self.fwd1 = wx.Button(self, wx.ID_ANY, "Step +1")
         self.fwd5 = wx.Button(self, wx.ID_ANY, "Step +5")
         self.toend = wx.Button(self, wx.ID_ANY, "END")
