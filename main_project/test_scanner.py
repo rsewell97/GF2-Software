@@ -6,10 +6,6 @@ from scanner import Scanner, Symbol
 
 list of functions to test:
 get_symbol
-get_name
-get_number
-skip_spaces
-advance
 error
 '''
 
@@ -58,8 +54,9 @@ def test_advance(new_scanner, no_spaces):
         i += 1
 
 
-def test_get_name(new_scanner, new_names):
-    """check that the get_name function gives out a valid name and the next character, check that the name is an alphanumerical string"""
+def test_get_name_and_num(new_scanner, new_names):
+    """check that the get_name function gives out a valid name and the next character,
+    check that the name is an alphanumerical string"""
     new_scanner.skip_spaces()
     name = new_scanner.get_name()
     assert name[0] == "device7"
@@ -72,17 +69,39 @@ def test_get_name(new_scanner, new_names):
     assert number[1] == " "
 
 
+@pytest.mark.parametrize("data, expected_output_type, expected_output_id", [("  gates", None, None), ("DEVICES",
+0,"ignore"),("NAND",3, "ignore"),("device", 1, "ignore"),
+("A12J", 3, "ignore"), (";", 8,"ignore"),("12", 2, "ignore")])
+def test_get_symbol(new_names, data, expected_output_type, expected_output_id):
+    print(data)
+    test_scan = Scanner(data, new_names, True)
+    val = test_scan.get_symbol()
+    if val == None :
+        assert 1
+    else:
+        assert val.type == expected_output_type
+
+#check add_name detects names only
+    #ignore
+    #heading
+    #keyword
+    #device
+    #names
+#check punctuation
+    #one type
+    #nonvalid
+#check word number is increasing
+#arrow
+#digit
+#eof
 
 
 
+#check add_number
+#check list_of_ignores
+#
 
 # TODO: def test_get_symbol()
-
-
-# TODO: def test_get_name()
-
-
-# TODO: def test_get_number()
 
 
 # TODO: def test_error()
