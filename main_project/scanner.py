@@ -112,7 +112,7 @@ class Scanner:
             elif self.name_string in self.keyword_list:
                 symbol.type = self.KEYWORD
                 symbol.id = self.names.query(self.name_string)
-            elif self.name_string.lower() == self.DEVICE:
+            elif self.name_string.lower() == self.names.get_name_string(self.DEVICE):
                 symbol.type = self.KEYWORD
                 symbol.id = self.names.query(self.name_string)
             else:
@@ -197,7 +197,7 @@ class Scanner:
             else:
                 return [num, self.current_character]
 
-    
+
     def skip_spaces(self):
         """"advances until the character is no longer a space"""
 
