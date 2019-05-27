@@ -25,6 +25,8 @@ from monitors import Monitors
 from scanner import Scanner
 from parse import Parser
 
+from simulator import Canvas
+
 
 class MyCanvas(wx.Panel):
 
@@ -49,51 +51,119 @@ class MyCanvas(wx.Panel):
         self.names = names
 
         self.device_size = (80, 40)
-        self.input_range = (self.device_size[1]/4, 3* self.device_size[1]/4)
+        self.input_range = (self.device_size[1]/4, 3 * self.device_size[1]/4)
 
-        w, h = self.GetClientSize()
+        # w, h = self.GetClientSize()
+
+        self.Buffer = None
 
         self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBack)
 
-    def OnPaint(self, event=None):
+    def InitBuffer(self):
+        size=self.GetClientSize()
+        # if buffer exists and size hasn't changed do nothing
+        if self.Buffer is not None and self.Buffer.GetWidth() == size.width and self.Buffer.GetHeight() == size.height:
+            return False
 
-        dc = wx.PaintDC(self)
+        self.Buffer=wx.Bitmap(size.width,size.height)
+        dc=wx.MemoryDC()
+        dc.SelectObject(self.Buffer)
+        dc.SetBackground(wx.Brush(self.GetBackgroundColour()))
+        dc.Clear()
+        self.drawShapes(dc)
+        dc.SelectObject(wx.NullBitmap)
+        return True
+
+    def OnEraseBack(self, event):
+        pass # do nothing to avoid flicker
+
+    def OnPaint(self, event):
+        if self.InitBuffer():
+            self.Refresh() # buffer changed paint in next event, this paint event may be old
+            return
+
+        dc = wx.ClientDC(self)
+        dc.DrawBitmap(self.Buffer, 0, 0)
+        self.drawShapes(dc)
+
+    def onKey(self, event): 
+        keycode = event.GetKeyCode() 
+
+        if keycode == wx.WXK_LEFT: 
+            print('You pressed left arrow!')
+        elif keycode == wx.WXK_RIGHT: 
+            print('You pressed right arrow!')
+        elif keycode == wx.WXK_UP: 
+            print('You pressed up arrow!')
+        elif keycode == wx.WXK_DOWN: 
+            print('You pressed down arrow!')
+        event.Skip() 
+
+    def onMouse(self, event): 
+        eventobj =  event.GetEventObject()
+
+        obj = None
+        for device in self.devices.devices_list:
+            if device.image == eventobj:
+                obj = device
+
+        if obj is None:
+            print("oops, can't find obj")
+        else:
+            print(self.names.get_name_string(obj.device_id))
+        obj.location[0] += 10
+        # print(obj.location)
+        # self.InitBuffer()
+        event.Skip()
+
+
+    def drawShapes(self, dc):
+
+        dc.SetPen(wx.Pen("black", 2))
         dc.Clear()
         for i, device in enumerate(self.devices.devices_list):
             device_type = self.names.get_name_string(device.device_kind)
 
             if hasattr(device, 'location'):
-                (x, y) = device.location
+                device.image.SetPosition((device.location[0], device.location[1]))
             else:
                 x, y = random.randint(0, 400), i*50
-                device.location = (x, y)
+                device.location = [x, y]
 
-            bitmap = self.scale_bitmap(
-                self.icons[device_type], self.device_size[0], self.device_size[1])
-            control = wx.StaticBitmap(self, -1, bitmap)
-            control.SetPosition((x, y))
+                if device.device_kind in [self.devices.CLOCK, self.devices.D_TYPE]:
+                    bitmap = self.scale_bitmap(
+                        self.icons[device_type], self.device_size[0], self.device_size[0])
+                else:
+                    bitmap = self.scale_bitmap(
+                        self.icons[device_type], self.device_size[0], self.device_size[1])
+            
+                device.image = wx.StaticBitmap(self, -1, bitmap)
+                device.image.SetPosition((x, y))
+                device.image.Bind(wx.EVT_LEFT_DOWN, self.onMouse)
 
         for device in self.devices.devices_list:        # device with inputs
-            for input_ in device.inputs:              
-                num_inputs = len(device.inputs)
+            num_inputs = len(device.inputs)
+
+            for input_ in device.inputs:
                 try:
                     input_num = int(self.names.get_name_string(input_)[1:])
                 except ValueError:              # must be a DTYPE - deal with that here
                     continue
-                
-                if num_inputs > 1:
+
+                try:
                     fract = (input_num-1) / (num_inputs-1)
-                else:
+                except ZeroDivisionError:
                     fract = 0.5             # only 1 input
 
                 out = self.network.get_connected_output(
                     device.device_id, input_)
                 if out[1] is None:
-                    new_device = self.devices.get_device(out[0])    # get output device
+                    new_device = self.devices.get_device(
+                        out[0])    # get output device
 
                     dc.DrawLine(device.location[0]+5, device.location[1] + self.input_range[0] + fract*(self.input_range[1] - self.input_range[0]), new_device.location[0] +
                                 self.device_size[0]-5, new_device.location[1] + self.device_size[1]/2)
-                    
 
 
     def scale_bitmap(self, bitmap, width, height):
@@ -373,14 +443,22 @@ class Gui(wx.Frame):
                                      wx.ALL | wx.ALIGN_CENTER, 30)
 
             simulate_btn = wx.Button(self.middle_panel, label="Simulate!")
-            self.middle_sizer.Add(simulate_btn, 0,
-                                  wx.ALL | wx.EXPAND, 30)
-            self.middle_panel.Show()
-            self.Layout()
+            simulate_btn.Bind(wx.EVT_BUTTON, self.newSimulate)
 
-            self.canvas = MyCanvas(
-                self.right_panel, self.devices, self.network, self.names)
-            self.right_sizer.Add(self.canvas, 1, wx.EXPAND | wx.ALL, 0)
+        self.middle_sizer.Add(simulate_btn, 0,
+                                wx.ALL | wx.EXPAND, 30)
+        self.middle_panel.Show()
+        self.SimulateWindow = SimulatePage(self)
+
+        self.canvas = MyCanvas(
+            self.right_panel, self.devices, self.network, self.names)
+        self.right_sizer.Add(self.canvas, 1, wx.EXPAND | wx.ALL, 0)
+
+        self.Layout()
+
+
+    def newSimulate(self, event):
+        self.SimulateWindow.Show()
 
     def OnRightPanelToggle(self, event):
         obj = event.GetEventObject()
@@ -421,3 +499,63 @@ class Gui(wx.Frame):
                     self.input_text.AppendText(f.read())
             except IOError:
                 wx.LogError("Cannot open file '%s'." % pathname)
+
+
+class SimulatePage(wx.Frame):
+
+    def __init__(self, parent):
+        """Initialise widgets and layout."""
+        super().__init__(parent=parent, title="Simulation", size=(800, 600))
+        self.Maximize(True)
+
+        self.SetBackgroundColour((186, 211, 255))
+
+        # Canvas for drawing signals
+        self.canvas = Canvas(self, parent.devices, parent.monitors)
+
+        # Configure the widgets
+        self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
+        self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
+        self.run_button = wx.Button(self, wx.ID_ANY, "Run")
+        self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
+                                    style=wx.TE_PROCESS_ENTER)
+        
+        self.tostart = wx.Button(self, wx.ID_ANY, "START")
+        self.back5 = wx.Button(self, wx.ID_ANY, "Step -5")
+        self.back1 = wx.Button(self, wx.ID_ANY, "Step -1")
+        self.pause = wx.Button(self, wx.ID_ANY, "Pause")
+        self.fwd1 = wx.Button(self, wx.ID_ANY, "Step +1")
+        self.fwd5 = wx.Button(self, wx.ID_ANY, "Step +5")
+        self.toend = wx.Button(self, wx.ID_ANY, "END")
+
+
+        # Configure sizers for layout
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        left_sizer = wx.BoxSizer(wx.VERTICAL)
+        toolbar = wx.GridSizer(9)
+        right_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        main_sizer.Add(left_sizer, 5, wx.ALL|wx.EXPAND, 0)
+        main_sizer.Add(right_sizer, 1, wx.ALL|wx.EXPAND, 5)
+
+        left_sizer.Add(self.canvas, 1, wx.ALL|wx.EXPAND,0)
+        left_sizer.Add(toolbar, 0, wx.ALL|wx.EXPAND, 5)
+
+        toolbar.Add(self.tostart, 0, wx.ALL|wx.ALIGN_LEFT, 5)
+        toolbar.AddSpacer(50)
+        toolbar.Add(self.back5, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+        toolbar.Add(self.back1, 0, wx.ALL|wx.ALIGN_CENTER, 5)
+        toolbar.Add(self.pause, 0, wx.ALL|wx.ALIGN_CENTER, 5)
+        toolbar.Add(self.fwd1, 0, wx.ALL|wx.ALIGN_CENTER, 5)
+        toolbar.Add(self.fwd5, 0, wx.ALL|wx.ALIGN_LEFT, 5)
+        toolbar.AddSpacer(50)
+        toolbar.Add(self.toend, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+
+
+
+        right_sizer.Add(self.text, 1, wx.TOP, 10)
+        right_sizer.Add(self.spin, 1, wx.ALL, 5)
+        right_sizer.Add(self.run_button, 1, wx.ALL, 5)
+        right_sizer.Add(self.text_box, 1, wx.ALL, 5)
+
+        self.SetSizer(main_sizer)
