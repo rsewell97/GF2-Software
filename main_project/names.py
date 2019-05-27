@@ -73,6 +73,8 @@ class Names:
 
         If the name string is not present in the names list, add it.
         """
+        if type(name_string_list) is not list:
+            raise TypeError("Lookup function argument must be a list")
         id_list = []
         for name_string in name_string_list:
             if name_string not in self.names:

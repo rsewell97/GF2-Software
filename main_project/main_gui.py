@@ -11,8 +11,12 @@ Gui - configures the main window and all the widgets.
 """
 import wx
 import wx.stc
+import wx.lib.scrolledpanel
 import wx.glcanvas as wxcanvas
 from OpenGL import GL, GLUT
+from PIL import Image
+import numpy as np
+import random
 
 from names import Names
 from devices import Devices
@@ -22,169 +26,80 @@ from scanner import Scanner
 from parse import Parser
 
 
-class MyGLCanvas(wxcanvas.GLCanvas):
-    """Handle all drawing operations.
+class MyCanvas(wx.Panel):
 
-    This class contains functions for drawing onto the canvas. It
-    also contains handlers for events relating to the canvas.
-
-    Parameters
-    ----------
-    parent: parent window.
-    devices: instance of the devices.Devices() class.
-    monitors: instance of the monitors.Monitors() class.
-
-    Public methods
-    --------------
-    init_gl(self): Configures the OpenGL context.
-
-    render(self, text): Handles all drawing operations.
-
-    on_paint(self, event): Handles the paint event.
-
-    on_size(self, event): Handles the canvas resize event.
-
-    on_mouse(self, event): Handles mouse events.
-
-    render_text(self, text, x_pos, y_pos): Handles text drawing
-                                           operations.
-    """
-
-    def __init__(self, parent, devices, monitors):
+    def __init__(self, parent, devices, network, names):
         """Initialise canvas properties and useful variables."""
-        super().__init__(parent, -1,
-                         attribList=[wxcanvas.WX_GL_RGBA,
-                                     wxcanvas.WX_GL_DOUBLEBUFFER,
-                                     wxcanvas.WX_GL_DEPTH_SIZE, 16, 0])
-        GLUT.glutInit()
-        self.init = False
-        self.context = wxcanvas.GLContext(self)
+        self.icons = {
+            "OR": wx.Bitmap('GUI/Gates/OR.png'),
+            "XOR": wx.Bitmap('GUI/Gates/XOR.png'),
+            "SWITCH": wx.Bitmap('GUI/Gates/SWITCH.png'),
+            "CLOCK": wx.Bitmap('GUI/Gates/CLOCK.png'),
+            "DTYPE": wx.Bitmap('GUI/Gates/DTYPE.png'),
+            "AND": wx.Bitmap('GUI/Gates/AND.png'),
+            "NAND": wx.Bitmap('GUI/Gates/NAND.png'),
+            "NOT": wx.Bitmap('GUI/Gates/NOT.png'),
+            "NOR": wx.Bitmap('GUI/Gates/NOR.png')
+        }
+        super().__init__(parent)
+        self.SetBackgroundColour('white')
 
-        # Initialise variables for panning
-        self.pan_x = 0
-        self.pan_y = 0
-        self.last_mouse_x = 0  # previous mouse x position
-        self.last_mouse_y = 0  # previous mouse y position
+        self.devices = devices
+        self.network = network
+        self.names = names
 
-        # Bind events to the canvas
-        self.Bind(wx.EVT_PAINT, self.on_paint)
-        self.Bind(wx.EVT_SIZE, self.on_size)
-        self.Bind(wx.EVT_MOUSE_EVENTS, self.on_mouse)
+        self.device_size = (80, 40)
+        self.input_range = (self.device_size[1]/4, 3* self.device_size[1]/4)
 
-    def init_gl(self):
-        """Configure and initialise the OpenGL context."""
-        size = self.GetClientSize()
-        self.SetCurrent(self.context)
-        GL.glDrawBuffer(GL.GL_BACK)
-        GL.glClearColor(0.73, 0.83, 1.0, 0.0)
-        GL.glViewport(0, 0, size.width, size.height)
-        GL.glMatrixMode(GL.GL_PROJECTION)
-        GL.glLoadIdentity()
-        GL.glOrtho(0, size.width, 0, size.height, -1, 1)
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        GL.glLoadIdentity()
-        GL.glTranslated(self.pan_x, self.pan_y, 0.0)
+        w, h = self.GetClientSize()
 
-    def render(self, text):
-        """Handle all drawing operations."""
-        self.SetCurrent(self.context)
-        if not self.init:
-            # Configure the viewport, modelview and projection matrices
-            self.init_gl()
-            self.init = True
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
 
-        # Clear everything
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+    def OnPaint(self, event=None):
 
-        # Draw specified text at position (10, 10)
-        self.render_text(text, 10, 10)
+        dc = wx.PaintDC(self)
+        dc.Clear()
+        for i, device in enumerate(self.devices.devices_list):
+            device_type = self.names.get_name_string(device.device_kind)
 
-        # Draw a sample signal trace
-        GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue
-        GL.glBegin(GL.GL_LINE_STRIP)
-        for i in range(10):
-            x = (i * 20) + 10
-            x_next = (i * 20) + 30
-            if i % 2 == 0:
-                y = 75
+            if hasattr(device, 'location'):
+                (x, y) = device.location
             else:
-                y = 100
-            GL.glVertex2f(x, y)
-            GL.glVertex2f(x_next, y)
-        GL.glEnd()
+                x, y = random.randint(0, 400), i*50
+                device.location = (x, y)
 
-        # We have been drawing to the back buffer, flush the graphics pipeline
-        # and swap the back buffer to the front
-        GL.glFlush()
-        self.SwapBuffers()
+            bitmap = self.scale_bitmap(
+                self.icons[device_type], self.device_size[0], self.device_size[1])
+            control = wx.StaticBitmap(self, -1, bitmap)
+            control.SetPosition((x, y))
 
-    def on_paint(self, event):
-        """Handle the paint event."""
-        self.SetCurrent(self.context)
-        if not self.init:
-            # Configure the viewport, modelview and projection matrices
-            self.init_gl()
-            self.init = True
+        for device in self.devices.devices_list:        # device with inputs
+            for input_ in device.inputs:              
+                num_inputs = len(device.inputs)
+                try:
+                    input_num = int(self.names.get_name_string(input_)[1:])
+                except ValueError:              # must be a DTYPE - deal with that here
+                    continue
+                
+                if num_inputs > 1:
+                    fract = (input_num-1) / (num_inputs-1)
+                else:
+                    fract = 0.5             # only 1 input
 
-        size = self.GetClientSize()
-        text = "".join(["Canvas redrawn on paint event, size is ",
-                        str(size.width), ", ", str(size.height)])
-        self.render(text)
+                out = self.network.get_connected_output(
+                    device.device_id, input_)
+                if out[1] is None:
+                    new_device = self.devices.get_device(out[0])    # get output device
 
-    def on_size(self, event):
-        """Handle the canvas resize event."""
-        # Forces reconfiguration of the viewport, modelview and projection
-        # matrices on the next paint event
-        self.init = False
+                    dc.DrawLine(device.location[0]+5, device.location[1] + self.input_range[0] + fract*(self.input_range[1] - self.input_range[0]), new_device.location[0] +
+                                self.device_size[0]-5, new_device.location[1] + self.device_size[1]/2)
+                    
 
-    def on_mouse(self, event):
-        """Handle mouse events."""
-        text = ""
-        if event.ButtonDown():
-            self.last_mouse_x = event.GetX()
-            self.last_mouse_y = event.GetY()
-            text = "".join(["Mouse button pressed at: ", str(event.GetX()),
-                            ", ", str(event.GetY())])
-        if event.ButtonUp():
-            text = "".join(["Mouse button released at: ", str(event.GetX()),
-                            ", ", str(event.GetY())])
-        if event.Leaving():
-            text = "".join(["Mouse left canvas at: ", str(event.GetX()),
-                            ", ", str(event.GetY())])
-        if event.Dragging():
-            self.pan_x += event.GetX() - self.last_mouse_x
-            self.pan_y -= event.GetY() - self.last_mouse_y
-            self.last_mouse_x = event.GetX()
-            self.last_mouse_y = event.GetY()
-            self.init = False
-            text = "".join(["Mouse dragged to: ", str(event.GetX()),
-                            ", ", str(event.GetY()), ". Pan is now: ",
-                            str(self.pan_x), ", ", str(self.pan_y)])
-        if event.GetWheelRotation() < 0:
 
-            self.init = False
-
-        if event.GetWheelRotation() > 0:
-
-            self.init = False
-
-        if text:
-            self.render(text)
-        else:
-            self.Refresh()  # triggers the paint event
-
-    def render_text(self, text, x_pos, y_pos):
-        """Handle text drawing operations."""
-        GL.glColor3f(0.0, 0.0, 0.0)  # text is black
-        GL.glRasterPos2f(x_pos, y_pos)
-        font = GLUT.GLUT_BITMAP_HELVETICA_12
-
-        for character in text:
-            if character == '\n':
-                y_pos = y_pos - 20
-                GL.glRasterPos2f(x_pos, y_pos)
-            else:
-                GLUT.glutBitmapCharacter(font, ord(character))
+    def scale_bitmap(self, bitmap, width, height):
+        image = bitmap.ConvertToImage()
+        image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
+        return wx.Bitmap(image)
 
 
 class Gui(wx.Frame):
@@ -208,9 +123,9 @@ class Gui(wx.Frame):
         self.makeRightSizer()
 
         self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.main_sizer.Add(self.left_panel, 3, wx.ALL, 30)
-        self.main_sizer.Add(self.middle_panel, 3, wx.ALL, 30)
-        self.main_sizer.Add(self.right_panel, 4, wx.ALL, 30)
+        self.main_sizer.Add(self.left_panel, 3, wx.ALL | wx.EXPAND, 30)
+        self.main_sizer.Add(self.middle_panel, 3, wx.ALL | wx.EXPAND, 30)
+        self.main_sizer.Add(self.right_panel, 3, wx.ALL | wx.EXPAND, 30)
         self.SetSizer(self.main_sizer)
 
     def makeLeftSizer(self):
@@ -253,12 +168,13 @@ class Gui(wx.Frame):
         self.check_btn.Bind(wx.EVT_BUTTON, self.CheckText)
 
     def makeMiddleSizer(self):
-        self.middle_panel = wx.Panel(self)
+        self.middle_panel = wx.lib.scrolledpanel.ScrolledPanel(self)
         self.middle_panel.SetBackgroundColour((37, 103, 209))
+        self.middle_panel.SetupScrolling(scroll_x=False)
 
         self.middle_sizer = wx.BoxSizer(wx.VERTICAL)
         self.middle_panel.SetSizer(self.middle_sizer)
-    
+
         self.middle_panel.Hide()
         self.Layout()
 
@@ -266,13 +182,13 @@ class Gui(wx.Frame):
         self.right_panel = wx.Panel(self)
         self.right_panel.SetBackgroundColour((37, 103, 209))
         self.right_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.right_panel.SetSizer(self.right_sizer)
 
         right_heading = wx.StaticText(self.right_panel, -1, label="Output")
         right_heading.SetFont(self.header_font)
         right_heading.SetForegroundColour((255, 255, 255))
         self.right_sizer.Add(right_heading, 0, wx.ALL | wx.ALIGN_CENTER, 10)
 
-        self.right_panel.SetSizer(self.right_sizer)
         self.right_panel.Hide()
         self.Layout()
 
@@ -290,96 +206,150 @@ class Gui(wx.Frame):
         except:
             pass
 
-        self.error_text.Clear()
         if self.scanner.total_error_string == "":
             self.error_text.AppendText("No errors found")
         else:
+            self.error_text.Clear()
             self.error_text.AppendText(self.scanner.total_error_string)
             self.error_text.SetStyle(0, -1, wx.TextAttr(wx.RED))
 
-            self.middle_sizer.Clear()
             self.middle_panel.Hide()
             self.right_panel.Hide()
             self.Layout()
             return
 
         if status == True and len(self.devices.devices_list) > 0:
-        
+
+            self.error_text.Clear()
+            self.middle_sizer.Clear(True)
+            self.middle_panel.Update()
+            try:
+                self.right_sizer.Remove(1)
+            except:
+                pass
+            self.right_panel.Update()
+
             middle_heading = wx.StaticText(self.middle_panel, label="Options")
             middle_heading = self.style(middle_heading, self.header_font)
-            self.middle_sizer.Add(middle_heading, 0, wx.ALL | wx.ALIGN_CENTER, 10)
+            self.middle_sizer.Add(
+                middle_heading, 0, wx.ALL | wx.ALIGN_CENTER, 10)
 
-            self.toggle_right_panel = wx.ToggleButton(self.middle_panel, label="show circuit (experimental)")
-            self.toggle_right_panel.Bind(wx.EVT_TOGGLEBUTTON, self.OnRightPanelToggle)
-            self.middle_sizer.Add(self.toggle_right_panel, 0, wx.ALL | wx.ALIGN_RIGHT, 5)
-        
-            self.device_info = wx.FlexGridSizer(4, 0, 15)
+            self.toggle_right_panel = wx.ToggleButton(
+                self.middle_panel, label="show circuit (experimental)")
+            self.toggle_right_panel.Bind(
+                wx.EVT_TOGGLEBUTTON, self.OnRightPanelToggle)
+            self.middle_sizer.Add(self.toggle_right_panel,
+                                  0, wx.ALL | wx.ALIGN_RIGHT, 5)
+
+            device_info = wx.FlexGridSizer(4, 0, 10)
             # ------------- HEADINGS ------------- #
             label = wx.StaticText(self.middle_panel, label="Name")
             label = self.style(label, self.label_font)
-            self.device_info.Add(label, 0,
-                                 wx.EXPAND | wx.ALL, 0)
+            device_info.Add(label, 0,
+                            wx.EXPAND | wx.ALL, 0)
 
             label = wx.StaticText(self.middle_panel, label="Type")
             label = self.style(label, self.label_font)
-            self.device_info.Add(label, 0,
-                                 wx.EXPAND | wx.ALL, 0)
+            device_info.Add(label, 0,
+                            wx.EXPAND | wx.ALL, 0)
 
             label = wx.StaticText(self.middle_panel, label="Inputs")
             label = self.style(label, self.label_font)
-            self.device_info.Add(label, 0,
-                                 wx.EXPAND | wx.ALL, 0)
-                                 
+            device_info.Add(label, 0,
+                            wx.EXPAND | wx.ALL, 0)
+
             label = wx.StaticText(self.middle_panel, label="Outputs")
             label = self.style(label, self.label_font)
-            self.device_info.Add(label, 0,
-                                 wx.EXPAND | wx.ALL, 0)
+            device_info.Add(label, 0,
+                            wx.EXPAND | wx.ALL, 0)
 
+            # ---------------- TABLE --------------- #
             for device in self.devices.devices_list:
 
                 name = self.devices.names.get_name_string(device.device_id)
 
+                # DEVICE NAME
                 label = wx.StaticText(
                     self.middle_panel, label=self.devices.names.get_name_string(device.device_id))
                 label = self.style(label, self.label_font)
-                self.device_info.Add(label, 0,
-                                     wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+                device_info.Add(label, 0,
+                                wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+                # DEVICE TYPE
                 label = wx.StaticText(
                     self.middle_panel, label=self.devices.names.get_name_string(device.device_kind))
                 label = self.style(label, self.label_font)
-                self.device_info.Add(label, 0,
-                                     wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
-                label = wx.StaticText(self.middle_panel, label=name)
+                device_info.Add(label, 0,
+                                wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+                # INPUT NAMES
+                s = ""
+                for i in device.inputs:
+                    s = s + '{}.{}\n'.format(name,
+                                             self.names.get_name_string(i))
+                s = s[:-1]
+
+                label = wx.StaticText(self.middle_panel, label=s)
                 label = self.style(label, self.label_font)
-                self.device_info.Add(label, 0,
-                                     wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+                device_info.Add(label, 0,
+                                wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+                # MONITOR OPTIONS
+                if device.device_kind == self.devices.D_TYPE:
+                    device.monitor_btn = wx.ToggleButton(
+                        self.middle_panel, label="monitor {}.Q".format(name))
+                    device.monitor_btn_bar = wx.ToggleButton(
+                        self.middle_panel, label="monitor {}.QBAR".format(name))
+                    device.monitor_btn.Bind(
+                        wx.EVT_TOGGLEBUTTON, self.OnToggleClick)
+                    device.monitor_btn.SetForegroundColour('white')
+                    device.monitor_btn_bar.Bind(
+                        wx.EVT_TOGGLEBUTTON, self.OnToggleClick)
+                    device.monitor_btn_bar.SetForegroundColour('white')
+                    row = wx.BoxSizer(wx.VERTICAL)
+                    row.Add(device.monitor_btn, 1,
+                            wx.ALL | wx.ALIGN_CENTER | wx.ALIGN_CENTER_VERTICAL, 5)
+                    row.Add(device.monitor_btn_bar, 1,
+                            wx.ALL | wx.ALIGN_CENTER | wx.ALIGN_CENTER_VERTICAL, 5)
 
-                device.monitor_btn = wx.ToggleButton(
-                    self.middle_panel, label="monitor {}".format(name))
-                device.monitor_btn.Bind(
-                    wx.EVT_TOGGLEBUTTON, self.OnToggleClick)
-                device.monitor_btn.SetForegroundColour('white')
+                    if name+'.Q' in self.monitors.get_signal_names()[0]:
+                        device.monitor_btn.SetValue(True)
+                        device.monitor_btn.SetBackgroundColour('#3ac10d')
+                    else:
+                        device.monitor_btn.SetBackgroundColour('#e0473a')
 
-                if name in self.monitors.get_signal_names()[0]:
-                    device.monitor_btn.SetValue(True)
-                    device.monitor_btn.SetBackgroundColour('#3ac10d')
+                    if name+'.QBAR' in self.monitors.get_signal_names()[0]:
+                        device.monitor_btn_bar.SetValue(True)
+                        device.monitor_btn_bar.SetBackgroundColour('#3ac10d')
+                    else:
+                        device.monitor_btn_bar.SetBackgroundColour('#e0473a')
+
+                    device_info.Add(row, 1,
+                                    wx.ALL | wx.ALIGN_CENTER | wx.ALIGN_CENTER_VERTICAL, 5)
                 else:
-                    device.monitor_btn.SetBackgroundColour('#e0473a')
+                    device.monitor_btn = wx.ToggleButton(
+                        self.middle_panel, label="monitor {}".format(name))
+                    device.monitor_btn.Bind(
+                        wx.EVT_TOGGLEBUTTON, self.OnToggleClick)
+                    device.monitor_btn.SetForegroundColour('white')
 
-                self.device_info.Add(device.monitor_btn, 1,
-                                     wx.ALL | wx.ALIGN_CENTER|wx.ALIGN_CENTER_VERTICAL, 5)
+                    if name in self.monitors.get_signal_names()[0]:
+                        device.monitor_btn.SetValue(True)
+                        device.monitor_btn.SetBackgroundColour('#3ac10d')
+                    else:
+                        device.monitor_btn.SetBackgroundColour('#e0473a')
+
+                    device_info.Add(device.monitor_btn, 1,
+                                    wx.ALL | wx.ALIGN_CENTER | wx.ALIGN_CENTER_VERTICAL, 5)
 
             # ----------- SET INITIAL SWITCH STATES ------------ #
-            self.switch_options = wx.FlexGridSizer(2)
+            self.switch_options = wx.FlexGridSizer(2, 0, 30)
             for device in self.devices.devices_list:
                 if device.device_kind != self.devices.SWITCH:
                     continue
                 name = self.devices.names.get_name_string(device.device_id)
 
                 label = wx.StaticText(self.middle_panel, 1, label=name)
-                label = self.style(label,self.label_font)
+                label = self.style(label, self.label_font)
                 self.switch_options.Add(label, 1,
-                                        wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5)
+                                        wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
                 device.switch_btn = wx.ToggleButton(
                     self.middle_panel, label="initial switch state")
@@ -396,15 +366,22 @@ class Gui(wx.Frame):
 
             self.middle_sizer.Insert(1, self.switch_options, 0,
                                      wx.ALL | wx.ALIGN_CENTER, 30)
-            self.middle_sizer.Insert(1, self.device_info, 0,
+            self.middle_sizer.Insert(1, wx.StaticLine(
+                self.middle_panel), 0, wx.EXPAND, 5)
+
+            self.middle_sizer.Insert(1, device_info, 0,
                                      wx.ALL | wx.ALIGN_CENTER, 30)
-                        
+
             simulate_btn = wx.Button(self.middle_panel, label="Simulate!")
             self.middle_sizer.Add(simulate_btn, 0,
-                                     wx.ALL | wx.EXPAND, 30)
+                                  wx.ALL | wx.EXPAND, 30)
             self.middle_panel.Show()
             self.Layout()
-            
+
+            self.canvas = MyCanvas(
+                self.right_panel, self.devices, self.network, self.names)
+            self.right_sizer.Add(self.canvas, 1, wx.EXPAND | wx.ALL, 0)
+
     def OnRightPanelToggle(self, event):
         obj = event.GetEventObject()
         if obj.GetValue():
@@ -412,7 +389,6 @@ class Gui(wx.Frame):
         else:
             self.right_panel.Hide()
         self.Layout()
-
 
     def OnToggleClick(self, event):
         obj = event.GetEventObject()
@@ -427,13 +403,12 @@ class Gui(wx.Frame):
         obj.SetFont(font)
         return obj
 
-
     def LoadFile(self, event):
 
         # otherwise ask the user what new file to open
         with wx.FileDialog(self, "Open file", wildcard="TXT files (*.txt)|*.txt",
                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
-            fileDialog.SetSize((120,80))
+            fileDialog.SetSize((120, 80))
 
             if fileDialog.ShowModal() == wx.ID_CANCEL:
                 return     # the user changed their mind
