@@ -17,6 +17,7 @@ from OpenGL import GL, GLUT
 from PIL import Image
 import numpy as np
 import random
+import subprocess
 
 from names import Names
 from devices import Devices
@@ -26,6 +27,14 @@ from scanner import Scanner
 from parse import Parser
 
 from simulator import Canvas
+
+def scale_bitmap(bitmap, width, height):
+    image = bitmap.ConvertToImage()
+    image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
+    return wx.Bitmap(image)
+
+
+
 
 class CircuitDiagram(wx.Panel):
 
@@ -131,10 +140,10 @@ class CircuitDiagram(wx.Panel):
                 device.location = [x, y]
 
                 if device.device_kind in [self.devices.CLOCK, self.devices.D_TYPE]:
-                    bitmap = self.scale_bitmap(
+                    bitmap = scale_bitmap(
                         self.icons[device_type], self.device_size[0], self.device_size[0])
                 else:
-                    bitmap = self.scale_bitmap(
+                    bitmap = scale_bitmap(
                         self.icons[device_type], self.device_size[0], self.device_size[1])
             
                 device.image = wx.StaticBitmap(self, -1, bitmap)
@@ -165,10 +174,7 @@ class CircuitDiagram(wx.Panel):
                                 self.device_size[0]-5, new_device.location[1] + self.device_size[1]/2)
 
 
-    def scale_bitmap(self, bitmap, width, height):
-        image = bitmap.ConvertToImage()
-        image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
-        return wx.Bitmap(image)
+
 
 class Gui(wx.Frame):        # main options screen
 
@@ -190,11 +196,18 @@ class Gui(wx.Frame):        # main options screen
         self.makeMiddleSizer()
         self.makeRightSizer()
 
+        outer = wx.BoxSizer(wx.VERTICAL)
         self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.main_sizer.Add(self.left_panel, 3, wx.ALL | wx.EXPAND, 30)
-        self.main_sizer.Add(self.middle_panel, 3, wx.ALL | wx.EXPAND, 30)
-        self.main_sizer.Add(self.right_panel, 3, wx.ALL | wx.EXPAND, 30)
-        self.SetSizer(self.main_sizer)
+        self.main_sizer.Add(self.left_panel, 3, wx.ALL | wx.EXPAND, 20)
+        self.main_sizer.Add(self.middle_panel, 3, wx.ALL | wx.EXPAND, 20)
+        self.main_sizer.Add(self.right_panel, 3, wx.ALL | wx.EXPAND, 20)
+
+        
+        helpBtn = wx.Button(self, wx.ID_ANY, "Help")
+        helpBtn.Bind(wx.EVT_BUTTON, self.open_help)
+        outer.Add(helpBtn, 0, wx.ALL|wx.ALIGN_RIGHT, 0)
+        outer.Add(self.main_sizer, 0, wx.EXPAND|wx.ALL, 0)
+        self.SetSizer(outer)
 
     def makeLeftSizer(self):
         self.left_panel = wx.Panel(self)
@@ -360,6 +373,7 @@ class Gui(wx.Frame):        # main options screen
                 device_info.Add(label, 0,
                                 wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
                 # MONITOR OPTIONS
+                # TODO: make them do somwthing
                 if device.device_kind == self.devices.D_TYPE:
                     device.monitor_btn = wx.ToggleButton(
                         self.middle_panel, label="monitor {}.Q".format(name))
@@ -454,7 +468,6 @@ class Gui(wx.Frame):        # main options screen
 
         self.Layout()
 
-
     def newSimulate(self, event):
         self.SimulateWindow.Show()
 
@@ -497,6 +510,18 @@ class Gui(wx.Frame):        # main options screen
                     self.input_text.AppendText(f.read())
             except IOError:
                 wx.LogError("Cannot open file '%s'." % pathname)
+    
+    def open_help(self, event):
+        filepath = 'GUI/helpfile.pdf'
+        import subprocess, os, platform
+
+        if platform.system() == 'Darwin':       # macOS
+            subprocess.call(('open', filepath))
+        elif platform.system() == 'Windows':    # Windows
+            os.startfile(filepath)
+        else:                                   # linux variants
+            subprocess.call(('xdg-open', filepath))
+        event.Skip()
 
 
 class SimulatePage(wx.Frame):       # simulation screen
@@ -504,13 +529,14 @@ class SimulatePage(wx.Frame):       # simulation screen
     def __init__(self, parent):
         """Initialise widgets and layout."""
         super().__init__(parent=parent, title="Simulation")
-        self.Maximize(True)
 
+        self.SetIcon(wx.Icon('GUI/CUED Software.png'))
+        self.Maximize(True)
         self.SetBackgroundColour((186, 211, 255))
 
         # Canvas for drawing signals
         self.canvas = Canvas(self, parent.devices, parent.monitors, parent.network)
-        self.canvas.controls.regular_running()
+        # self.canvas.controls.regular_running()
 
         # Configure the widgets
         self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
@@ -522,7 +548,9 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.tostart = wx.Button(self, wx.ID_ANY, "START")
         self.back5 = wx.Button(self, wx.ID_ANY, "Step -5")
         self.back1 = wx.Button(self, wx.ID_ANY, "Step -1")
-        self.pause = wx.ToggleButton(self, wx.ID_ANY, "Pause")
+        play_pause = wx.Bitmap('GUI/Glyphicons/playpause.png')
+        play_pause = scale_bitmap(play_pause, 20, 20)
+        self.pause = wx.BitmapToggleButton(self, wx.ID_ANY, play_pause)
         self.fwd1 = wx.Button(self, wx.ID_ANY, "Step +1")
         self.fwd5 = wx.Button(self, wx.ID_ANY, "Step +5")
         self.toend = wx.Button(self, wx.ID_ANY, "END")
@@ -550,10 +578,28 @@ class SimulatePage(wx.Frame):       # simulation screen
         toolbar.AddSpacer(70)
         toolbar.Add(self.toend, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
 
+        helpBtn = wx.Button(self, wx.ID_ANY, "Help")
+        helpBtn.Bind(wx.EVT_BUTTON, self.open_help)
+        right_sizer.Add(helpBtn, 0, wx.ALL|wx.ALIGN_RIGHT, 0)
 
         right_sizer.Add(self.text, 1, wx.TOP, 10)
         right_sizer.Add(self.spin, 1, wx.ALL, 5)
         right_sizer.Add(self.run_button, 1, wx.ALL, 5)
         right_sizer.Add(self.text_box, 1, wx.ALL, 5)
 
+        # speed slider
+        # change each switch
+        # help button
+
         self.SetSizerAndFit(main_sizer)
+    
+    def open_help(self):
+        filepath = 'GUI/helpfile.pdf'
+        import subprocess, os, platform
+
+        if platform.system() == 'Darwin':       # macOS
+            subprocess.call(('open', filepath))
+        elif platform.system() == 'Windows':    # Windows
+            os.startfile(filepath)
+        else:                                   # linux variants
+            subprocess.call(('xdg-open', filepath))
