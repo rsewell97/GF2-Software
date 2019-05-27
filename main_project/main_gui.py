@@ -27,8 +27,7 @@ from parse import Parser
 
 from simulator import Canvas
 
-
-class MyCanvas(wx.Panel):
+class CircuitDiagram(wx.Panel):
 
     def __init__(self, parent, devices, network, names):
         """Initialise canvas properties and useful variables."""
@@ -171,8 +170,7 @@ class MyCanvas(wx.Panel):
         image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
         return wx.Bitmap(image)
 
-
-class Gui(wx.Frame):
+class Gui(wx.Frame):        # main options screen
 
     def __init__(self, title):
         """Initialise widgets and layout."""
@@ -450,7 +448,7 @@ class Gui(wx.Frame):
         self.middle_panel.Show()
         self.SimulateWindow = SimulatePage(self)
 
-        self.canvas = MyCanvas(
+        self.canvas = CircuitDiagram(
             self.right_panel, self.devices, self.network, self.names)
         self.right_sizer.Add(self.canvas, 1, wx.EXPAND | wx.ALL, 0)
 
@@ -501,17 +499,17 @@ class Gui(wx.Frame):
                 wx.LogError("Cannot open file '%s'." % pathname)
 
 
-class SimulatePage(wx.Frame):
+class SimulatePage(wx.Frame):       # simulation screen
 
     def __init__(self, parent):
         """Initialise widgets and layout."""
-        super().__init__(parent=parent, title="Simulation", size=(800, 600))
+        super().__init__(parent=parent, title="Simulation")
         self.Maximize(True)
 
         self.SetBackgroundColour((186, 211, 255))
 
         # Canvas for drawing signals
-        self.canvas = Canvas(self, parent.devices, parent.monitors)
+        self.canvas = Canvas(self, parent.devices, parent.monitors, parent.network)
 
         # Configure the widgets
         self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
@@ -538,19 +536,18 @@ class SimulatePage(wx.Frame):
         main_sizer.Add(left_sizer, 5, wx.ALL|wx.EXPAND, 0)
         main_sizer.Add(right_sizer, 1, wx.ALL|wx.EXPAND, 5)
 
-        left_sizer.Add(self.canvas, 1, wx.ALL|wx.EXPAND,0)
+        left_sizer.Add(self.canvas, 100, wx.ALL|wx.EXPAND,0)
         left_sizer.Add(toolbar, 0, wx.ALL|wx.EXPAND, 5)
 
-        toolbar.Add(self.tostart, 0, wx.ALL|wx.ALIGN_LEFT, 5)
-        toolbar.AddSpacer(50)
-        toolbar.Add(self.back5, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
-        toolbar.Add(self.back1, 0, wx.ALL|wx.ALIGN_CENTER, 5)
-        toolbar.Add(self.pause, 0, wx.ALL|wx.ALIGN_CENTER, 5)
-        toolbar.Add(self.fwd1, 0, wx.ALL|wx.ALIGN_CENTER, 5)
-        toolbar.Add(self.fwd5, 0, wx.ALL|wx.ALIGN_LEFT, 5)
-        toolbar.AddSpacer(50)
+        toolbar.Add(self.tostart, 1, wx.ALL|wx.ALIGN_LEFT, 5)
+        toolbar.AddSpacer(70)
+        toolbar.Add(self.back5, 1, wx.ALL|wx.EXPAND|wx.ALIGN_RIGHT, 5)
+        toolbar.Add(self.back1, 1, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER, 5)
+        toolbar.Add(self.pause, 1, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER, 5)
+        toolbar.Add(self.fwd1, 1, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER, 5)
+        toolbar.Add(self.fwd5, 1, wx.ALL|wx.EXPAND|wx.ALIGN_LEFT, 5)
+        toolbar.AddSpacer(70)
         toolbar.Add(self.toend, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
-
 
 
         right_sizer.Add(self.text, 1, wx.TOP, 10)
@@ -558,4 +555,4 @@ class SimulatePage(wx.Frame):
         right_sizer.Add(self.run_button, 1, wx.ALL, 5)
         right_sizer.Add(self.text_box, 1, wx.ALL, 5)
 
-        self.SetSizer(main_sizer)
+        self.SetSizerAndFit(main_sizer)
