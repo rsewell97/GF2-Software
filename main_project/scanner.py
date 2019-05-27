@@ -66,8 +66,8 @@ class Scanner:
             self.read_as_string = False
             try:
                 self.input_file = open(path, 'r')
-            except (FileNotFoundError):
-                print("Error: File doesn't exist in current directory")
+            except FileNotFoundError:
+                raise FileNotFoundError ("Error: File doesn't exist in current directory")
                 sys.exit()
             self.list_file = [line.rstrip('\n') for line in open(path, 'r')]
 
