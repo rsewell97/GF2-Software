@@ -97,15 +97,16 @@ class Parser:
 
             elif self.symbol.type == self.scanner.EOF:
                 if not self.found_devices or not self.found_connections:
-                    self.error(SyntaxError, "A valid definition must include 'devices' section and 'connection' section")
+                    self.error(SyntaxError, "A valid definition must include 'devices' "
+                                            "section and 'connection' section")
                 try:
                     self.scanner.input_file.close()
                 except AttributeError:
                     pass
                 break
             else:
-                self.error(SyntaxError, "not allowed to write '{}' outside of section. Expected heading name".format(
-                    self.scanner.name_string))
+                self.error(SyntaxError, "not allowed to write '{}' outside of section.Expected "
+                                        "heading name".format(self.scanner.name_string))
 
         # Returns True if correctly parsed
         return True
@@ -121,7 +122,7 @@ class Parser:
                 break
             else:
                 self.error(
-                    SyntaxError, "Illegal character after heading title")
+                    SyntaxError, "Illegal character after heading title, expect {")
 
         if heading == 'devices':
             while self.parse_device():
@@ -132,13 +133,14 @@ class Parser:
 
                 if i.inputs == {} and i.device_kind not in [self.devices.SWITCH, self.devices.CLOCK]:
                     self.error(SemanticError,
-                               "No inputs specified for gate '{}' ".format(self.devices.names.get_name_string(i.device_id)))
+                               "No inputs specified for gate '{}' "
+                               .format(self.devices.names.get_name_string(i.device_id)))
                 if i.outputs == {}:
                     self.error(SemanticError,
                                "Gate '{}' has no output".format(i.device_id))
 
-                print("[name: {}, type: {}, num_inputs: {}, num_outputs: {}]".format(i.device_id,
-                                                                                     self.names.get_name_string(i.device_kind), i.inputs, i.outputs))
+                print("[name: {}, type: {}, num_inputs: {}, num_outputs: {}]"
+                      .format(i.device_id,self.names.get_name_string(i.device_kind), i.inputs, i.outputs))
 
         elif heading == 'connections':
             while self.parse_connections():
