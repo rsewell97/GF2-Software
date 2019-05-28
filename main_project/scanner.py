@@ -103,9 +103,8 @@ class Scanner:
             name_list = self.get_name()
             self.name_string = name_list[0]
 
-            if self.name_string in self.ignore:
+            if self.name_string.lower() in self.ignore:
                 return None
-
             elif self.name_string.lower() in self.heading_list:
                 symbol.type = self.HEADING
                 symbol.id = self.names.query(self.name_string.lower())

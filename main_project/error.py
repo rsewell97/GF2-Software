@@ -12,12 +12,16 @@ class Error(Exception):
         
         if error == SemanticError:
             error_type = "SemanticError"
+            raise SemanticError
         elif error == SyntaxError:
             error_type = "SyntaxError"
+            raise SyntaxError
         elif error == ValueError:
             error_type = "ValueError"
+            raise ValueError
         else:
             error_type = "Error"
+            raise Error
         
         self.error_string = """Error on line {line_num}:
     {line}
