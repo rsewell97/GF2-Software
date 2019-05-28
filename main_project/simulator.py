@@ -119,7 +119,6 @@ class Controls:
         self.timing = t
         return
 
-
 class Canvas(wxcanvas.GLCanvas):
     """Handle all drawing operations.
 

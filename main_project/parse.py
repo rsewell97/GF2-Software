@@ -310,7 +310,7 @@ class Parser:
         self.symbol = self.scanner.get_symbol()
         if self.symbol.type != self.scanner.CURLY_OPEN:
             self.error(
-                SyntaxError, "Expected open curly bracket, parsing error")
+                SyntaxError, "Expected '{', parsing error")
 
         else:
             # ----- PARSE EACH LINE IN BRACKETS ----- #
@@ -467,6 +467,7 @@ class Parser:
                 if name_found:
                     self.error(
                         SyntaxError, "} encountered, couldn't parse")
+                    return None, None
                 else:
                     return None, None  # if curly bracket on line, end is reached
 

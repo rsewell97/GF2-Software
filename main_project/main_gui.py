@@ -101,36 +101,6 @@ class CircuitDiagram(wx.Panel):
         dc.DrawBitmap(self.Buffer, 0, 0)
         self.drawShapes(dc)
 
-    def onKey(self, event):
-        keycode = event.GetKeyCode()
-
-        if keycode == wx.WXK_LEFT:
-            print('You pressed left arrow!')
-        elif keycode == wx.WXK_RIGHT:
-            print('You pressed right arrow!')
-        elif keycode == wx.WXK_UP:
-            print('You pressed up arrow!')
-        elif keycode == wx.WXK_DOWN:
-            print('You pressed down arrow!')
-        event.Skip()
-
-    def onMouse(self, event):
-        eventobj = event.GetEventObject()
-
-        obj = None
-        for device in self.devices.devices_list:
-            if device.image == eventobj:
-                obj = device
-
-        if obj is None:
-            print("oops, can't find obj")
-        else:
-            print(self.names.get_name_string(obj.device_id))
-        obj.location[0] += 10
-        # print(obj.location)
-        # self.InitBuffer()
-        event.Skip()
-
     def drawShapes(self, dc):
 
         dc.SetPen(wx.Pen("black", 2))
@@ -146,21 +116,23 @@ class CircuitDiagram(wx.Panel):
                     (device.location[0], device.location[1]))
             else:
                 if device_type in ['SWITCH', 'CLOCK']:
-                    x, y = 50, i*50
+                    x, y = 50, (i+1)*40
                 else:
-                    x, y = random.randint(150, 400), i*50
+                    x, y = random.randint(150, 400), (i+1)*40
                 device.location = [x, y]
 
-                if device.device_kind in [self.devices.CLOCK, self.devices.D_TYPE]:
+                if device.device_kind == self.devices.D_TYPE:
                     bitmap = scale_bitmap(
                         self.icons[device_type], self.device_size[0], self.device_size[0])
+                elif device.device_kind == self.devices.CLOCK:
+                    bitmap = scale_bitmap(
+                        self.icons[device_type], self.device_size[1], self.device_size[1])
                 else:
                     bitmap = scale_bitmap(
                         self.icons[device_type], self.device_size[0], self.device_size[1])
 
                 device.image = wx.StaticBitmap(self, -1, bitmap)
                 device.image.SetPosition((x, y))
-                device.image.Bind(wx.EVT_LEFT_DOWN, self.onMouse)
 
         # ----------- DRAW LINES ----------- #
         for device in self.devices.devices_list:        # device with inputs
@@ -187,8 +159,11 @@ class CircuitDiagram(wx.Panel):
                     out[0])
                 if out[1] is None:
                        # get output device
-
-                    dc.DrawLine(device.location[0]+xo, device.location[1] + yo, new_device.location[0] +
+                    if new_device.device_kind == self.devices.CLOCK:
+                        dc.DrawLine(device.location[0]+xo, device.location[1] + yo, new_device.location[0] +
+                                self.device_size[1]-5, new_device.location[1] + self.device_size[1]/2)
+                    else:
+                        dc.DrawLine(device.location[0]+xo, device.location[1] + yo, new_device.location[0] +
                                 self.device_size[0]-5, new_device.location[1] + self.device_size[1]/2)
                 else:  # it's a dtype output
                     (x1, y1) = self.dtype_posns[self.names.get_name_string(
@@ -300,11 +275,10 @@ class Gui(wx.Frame):        # main options screen
         self.parser = Parser(self.names, self.devices,
                              self.network, self.monitors, self.scanner)
         status = None
-        # try:
-        status = self.parser.parse_network()
-        # except:
-        #     pass
-        print(self.parser.parse_network())
+        try:
+            status = self.parser.parse_network()
+        except:
+            pass
 
         if self.scanner.total_error_string == "":
             self.error_text.AppendText("No errors found")
@@ -412,7 +386,6 @@ class Gui(wx.Frame):        # main options screen
                     row.Add(device.monitor_btn_bar, 1,
                             wx.ALL | wx.ALIGN_CENTER | wx.ALIGN_CENTER_VERTICAL, 5)
 
-                    print(self.monitors.get_signal_names())
                     if name+'.Q' in self.monitors.get_signal_names()[0]:
                         device.monitor_btn.SetValue(True)
                         device.monitor_btn.SetBackgroundColour('#3ac10d')
@@ -492,6 +465,26 @@ class Gui(wx.Frame):        # main options screen
 
     def newSimulate(self, event):
         self.SimulateWindow.Show()
+
+        self.monitors.reset_monitors()
+
+        for device in self.devices.devices_list:
+            if hasattr(device, 'monitor_btn'):
+                if device.monitor_btn.GetValue():
+                    if device.device_kind == self.devices.D_TYPE:
+                        self.monitors.make_monitor(device.device_id,self.names.query("Q"))
+                    else:
+                        self.monitors.make_monitor(device.device_id,None)
+
+            if hasattr(device, 'monitor_btn_bar'):
+                if device.monitor_btn_bar.GetValue():
+                    self.monitors.make_monitor(device.device_id,self.names.query("QBAR"))
+            
+            if hasattr(device, 'switch_btn'):
+                if device.switch_btn.GetValue():
+                    self.devices.set_switch(device.device_id, self.devices.HIGH)
+                else:
+                    self.devices.set_switch(device.device_id, self.devices.LOW)
 
     def OnRightPanelToggle(self, event):
         obj = event.GetEventObject()
@@ -586,7 +579,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         left_sizer.Add(self.canvas, 100, wx.ALL | wx.EXPAND, 0)
         left_sizer.Add(toolbar, 0, wx.ALL | wx.EXPAND, 5)
 
-        toolbar.Add(self.tostart, 1, wx.ALL | wx.ALIGN_LEFT, 5)
+        toolbar.Add(self.tostart, 1, wx.ALL | wx.ALIGN_LEFT|wx.EXPAND, 5)
         toolbar.AddSpacer(70)
         toolbar.Add(self.back5, 1, wx.ALL | wx.EXPAND | wx.ALIGN_RIGHT, 5)
         toolbar.Add(self.back1, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER, 5)
@@ -594,7 +587,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         toolbar.Add(self.fwd1, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER, 5)
         toolbar.Add(self.fwd5, 1, wx.ALL | wx.EXPAND | wx.ALIGN_LEFT, 5)
         toolbar.AddSpacer(70)
-        toolbar.Add(self.toend, 0, wx.ALL | wx.ALIGN_RIGHT, 5)
+        toolbar.Add(self.toend, 0, wx.ALL | wx.ALIGN_RIGHT|wx.EXPAND, 5)
 
         helpBtn = wx.Button(self, wx.ID_ANY, "Help")
         helpBtn.Bind(wx.EVT_BUTTON, self.open_help)
@@ -614,10 +607,6 @@ class SimulatePage(wx.Frame):       # simulation screen
 
                 right_sizer.Add(row, 0)
 
-        # speed slider
-        # change each switch
-        # help button
-
         self.SetSizerAndFit(main_sizer)
 
     def open_help(self, event):
@@ -629,6 +618,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         if platform.system() == 'Darwin':       # macOS
             subprocess.call(('open', filepath))
         elif platform.system() == 'Windows':    # Windows
+            filepath = filepath.replace('/','\\')
             os.startfile(filepath)
         else:                                   # linux variants
             subprocess.call(('xdg-open', filepath))
