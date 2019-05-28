@@ -300,6 +300,8 @@ class Parser:
 
         # ------- GET DEVICE OBJECT ------ #
         self.symbol = self.scanner.get_symbol(query=True)
+        print(self.scanner.name_string)
+
         if self.symbol.type != self.scanner.NAME:
             self.error(SyntaxError, "Second name is not a device")
 
