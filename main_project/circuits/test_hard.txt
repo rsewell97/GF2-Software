@@ -54,5 +54,5 @@ CONNECTIONS {
 }
 
 MONITOR {
-   B, G, H;
+   B, F.Q, H;
 }

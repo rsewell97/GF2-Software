@@ -197,7 +197,6 @@ class Canvas(wxcanvas.GLCanvas):
         for device in self.devices.devices_list:
             self.list_of_all_devices.append(device.device_id)
 
-        print(self.list_of_all_devices) # REMOVE
         self.num_devices = len(self.list_of_all_devices)
 
         # Initialise variables for zooming
@@ -325,8 +324,8 @@ class Canvas(wxcanvas.GLCanvas):
             if character == '\n':
                 y_pos = y_pos - 20
                 GL.glRasterPos2f(x_pos, y_pos)
-            else:
-                GLUT.glutBitmapCharacter(font, ord(character))
+            # else:
+            #     GLUT.glutBitmapCharacter(font, ord(character))
 
     def get_new_coordinates(self, device, notness=0): # notness used for DTYPES
         device = self.devices.get_device(device)

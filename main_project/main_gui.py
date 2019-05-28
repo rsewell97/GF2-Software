@@ -17,6 +17,7 @@ from OpenGL import GL, GLUT
 from PIL import Image
 import numpy as np
 import random
+import subprocess
 
 from names import Names
 from devices import Devices
@@ -26,6 +27,13 @@ from scanner import Scanner
 from parse import Parser
 
 from simulator import Canvas
+
+
+def scale_bitmap(bitmap, width, height):
+    image = bitmap.ConvertToImage()
+    image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
+    return wx.Bitmap(image)
+
 
 class CircuitDiagram(wx.Panel):
 
@@ -43,7 +51,7 @@ class CircuitDiagram(wx.Panel):
             "NOR": wx.Bitmap('GUI/Gates/NOR.png')
         }
         super().__init__(parent)
-        self.SetBackgroundColour('white')
+        self.SetOwnBackgroundColour('white')
 
         self.devices = devices
         self.network = network
@@ -51,6 +59,14 @@ class CircuitDiagram(wx.Panel):
 
         self.device_size = (80, 40)
         self.input_range = (self.device_size[1]/4, 3 * self.device_size[1]/4)
+        self.dtype_posns = {
+            "CLK": (5, self.device_size[0]*2/3),
+            "DATA": (5, self.device_size[0]/3),
+            "SET": (self.device_size[0]/2, 5),
+            "CLEAR": (self.device_size[0]/2, self.device_size[0]-5),
+            "Q": (self.device_size[0] - 5, self.device_size[0]/3),
+            "QBAR": (self.device_size[0] - 5, self.device_size[0]*2/3)
+        }
 
         # w, h = self.GetClientSize()
 
@@ -60,47 +76,46 @@ class CircuitDiagram(wx.Panel):
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBack)
 
     def InitBuffer(self):
-        size=self.GetClientSize()
+        size = self.GetClientSize()
         # if buffer exists and size hasn't changed do nothing
         if self.Buffer is not None and self.Buffer.GetWidth() == size.width and self.Buffer.GetHeight() == size.height:
             return False
 
-        self.Buffer=wx.Bitmap(size.width,size.height)
-        dc=wx.MemoryDC()
+        self.Buffer = wx.Bitmap(size.width, size.height)
+        dc = wx.MemoryDC()
         dc.SelectObject(self.Buffer)
-        dc.SetBackground(wx.Brush(self.GetBackgroundColour()))
         dc.Clear()
         self.drawShapes(dc)
         dc.SelectObject(wx.NullBitmap)
         return True
 
     def OnEraseBack(self, event):
-        pass # do nothing to avoid flicker
+        pass  # do nothing to avoid flicker
 
     def OnPaint(self, event):
         if self.InitBuffer():
-            self.Refresh() # buffer changed paint in next event, this paint event may be old
+            self.Refresh()  # buffer changed paint in next event, this paint event may be old
             return
 
         dc = wx.ClientDC(self)
         dc.DrawBitmap(self.Buffer, 0, 0)
         self.drawShapes(dc)
 
-    def onKey(self, event): 
-        keycode = event.GetKeyCode() 
+    def onKey(self, event):
+        keycode = event.GetKeyCode()
 
-        if keycode == wx.WXK_LEFT: 
+        if keycode == wx.WXK_LEFT:
             print('You pressed left arrow!')
-        elif keycode == wx.WXK_RIGHT: 
+        elif keycode == wx.WXK_RIGHT:
             print('You pressed right arrow!')
-        elif keycode == wx.WXK_UP: 
+        elif keycode == wx.WXK_UP:
             print('You pressed up arrow!')
-        elif keycode == wx.WXK_DOWN: 
+        elif keycode == wx.WXK_DOWN:
             print('You pressed down arrow!')
-        event.Skip() 
+        event.Skip()
 
-    def onMouse(self, event): 
-        eventobj =  event.GetEventObject()
+    def onMouse(self, event):
+        eventobj = event.GetEventObject()
 
         obj = None
         for device in self.devices.devices_list:
@@ -116,59 +131,71 @@ class CircuitDiagram(wx.Panel):
         # self.InitBuffer()
         event.Skip()
 
-
     def drawShapes(self, dc):
 
         dc.SetPen(wx.Pen("black", 2))
         dc.Clear()
-        for i, device in enumerate(self.devices.devices_list):
+        # --------- DRAW BITMAPS --------- #
+        tmp = self.devices.devices_list
+        random.shuffle(tmp)
+        for i, device in enumerate(tmp):
             device_type = self.names.get_name_string(device.device_kind)
 
             if hasattr(device, 'location'):
-                device.image.SetPosition((device.location[0], device.location[1]))
+                device.image.SetPosition(
+                    (device.location[0], device.location[1]))
             else:
-                x, y = random.randint(0, 400), i*50
+                if device_type in ['SWITCH', 'CLOCK']:
+                    x, y = 50, i*50
+                else:
+                    x, y = random.randint(150, 400), i*50
                 device.location = [x, y]
 
                 if device.device_kind in [self.devices.CLOCK, self.devices.D_TYPE]:
-                    bitmap = self.scale_bitmap(
+                    bitmap = scale_bitmap(
                         self.icons[device_type], self.device_size[0], self.device_size[0])
                 else:
-                    bitmap = self.scale_bitmap(
+                    bitmap = scale_bitmap(
                         self.icons[device_type], self.device_size[0], self.device_size[1])
-            
+
                 device.image = wx.StaticBitmap(self, -1, bitmap)
                 device.image.SetPosition((x, y))
                 device.image.Bind(wx.EVT_LEFT_DOWN, self.onMouse)
 
+        # ----------- DRAW LINES ----------- #
         for device in self.devices.devices_list:        # device with inputs
             num_inputs = len(device.inputs)
 
             for input_ in device.inputs:
-                try:
+                if device.device_kind == self.devices.D_TYPE:
+                    (xo, yo) = self.dtype_posns[self.names.get_name_string(
+                        input_)]
+                # elif device.device_kind == self.devices.CLOCK:
+                #     (xo, yo) = (self.device_size[0], self.device_size[0]/2)
+                else:
                     input_num = int(self.names.get_name_string(input_)[1:])
-                except ValueError:              # must be a DTYPE - deal with that here
-                    continue
-
-                try:
-                    fract = (input_num-1) / (num_inputs-1)
-                except ZeroDivisionError:
-                    fract = 0.5             # only 1 input
+                    try:
+                        fract = (input_num-1) / (num_inputs-1)
+                    except ZeroDivisionError:
+                        fract = 0.5             # only 1 input
+                    (xo, yo) = (
+                        5, self.input_range[0]+fract*(self.input_range[1]-self.input_range[0]))
 
                 out = self.network.get_connected_output(
                     device.device_id, input_)
+                new_device = self.devices.get_device(
+                    out[0])
                 if out[1] is None:
-                    new_device = self.devices.get_device(
-                        out[0])    # get output device
+                       # get output device
 
-                    dc.DrawLine(device.location[0]+5, device.location[1] + self.input_range[0] + fract*(self.input_range[1] - self.input_range[0]), new_device.location[0] +
+                    dc.DrawLine(device.location[0]+xo, device.location[1] + yo, new_device.location[0] +
                                 self.device_size[0]-5, new_device.location[1] + self.device_size[1]/2)
+                else:  # it's a dtype output
+                    (x1, y1) = self.dtype_posns[self.names.get_name_string(
+                        out[1])]
+                    dc.DrawLine(device.location[0]+xo, device.location[1] + yo, new_device.location[0] +
+                                x1, new_device.location[1] + y1)
 
-
-    def scale_bitmap(self, bitmap, width, height):
-        image = bitmap.ConvertToImage()
-        image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
-        return wx.Bitmap(image)
 
 class Gui(wx.Frame):        # main options screen
 
@@ -177,9 +204,7 @@ class Gui(wx.Frame):        # main options screen
         super().__init__(parent=None, title=title)
 
         self.SetIcon(wx.Icon('GUI/CUED Software.png'))
-        # Canvas for drawing signals
         self.Maximize(True)
-
         self.SetBackgroundColour((186, 211, 255))
         self.header_font = wx.Font(
             25, wx.FONTFAMILY_SWISS, wx.NORMAL, wx.FONTWEIGHT_BOLD, False)
@@ -190,11 +215,17 @@ class Gui(wx.Frame):        # main options screen
         self.makeMiddleSizer()
         self.makeRightSizer()
 
+        outer = wx.BoxSizer(wx.VERTICAL)
         self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.main_sizer.Add(self.left_panel, 3, wx.ALL | wx.EXPAND, 30)
-        self.main_sizer.Add(self.middle_panel, 3, wx.ALL | wx.EXPAND, 30)
-        self.main_sizer.Add(self.right_panel, 3, wx.ALL | wx.EXPAND, 30)
-        self.SetSizer(self.main_sizer)
+        self.main_sizer.Add(self.left_panel, 3, wx.ALL | wx.EXPAND, 20)
+        self.main_sizer.Add(self.middle_panel, 3, wx.ALL | wx.EXPAND, 20)
+        self.main_sizer.Add(self.right_panel, 3, wx.ALL | wx.EXPAND, 20)
+
+        helpBtn = wx.Button(self, wx.ID_ANY, "Help")
+        helpBtn.Bind(wx.EVT_BUTTON, self.open_help)
+        outer.Add(helpBtn, 0, wx.ALL | wx.ALIGN_RIGHT, 0)
+        outer.Add(self.main_sizer, 0, wx.EXPAND | wx.ALL, 0)
+        self.SetSizer(outer)
 
     def makeLeftSizer(self):
         self.left_panel = wx.Panel(self)
@@ -269,10 +300,11 @@ class Gui(wx.Frame):        # main options screen
         self.parser = Parser(self.names, self.devices,
                              self.network, self.monitors, self.scanner)
         status = None
-        try:
-            status = self.parser.parse_network()
-        except:
-            pass
+        # try:
+        status = self.parser.parse_network()
+        # except:
+        #     pass
+        print(self.parser.parse_network())
 
         if self.scanner.total_error_string == "":
             self.error_text.AppendText("No errors found")
@@ -360,6 +392,7 @@ class Gui(wx.Frame):        # main options screen
                 device_info.Add(label, 0,
                                 wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
                 # MONITOR OPTIONS
+                # TODO: make them do somwthing
                 if device.device_kind == self.devices.D_TYPE:
                     device.monitor_btn = wx.ToggleButton(
                         self.middle_panel, label="monitor {}.Q".format(name))
@@ -367,16 +400,19 @@ class Gui(wx.Frame):        # main options screen
                         self.middle_panel, label="monitor {}.QBAR".format(name))
                     device.monitor_btn.Bind(
                         wx.EVT_TOGGLEBUTTON, self.OnToggleClick)
+
                     device.monitor_btn.SetForegroundColour('white')
                     device.monitor_btn_bar.Bind(
                         wx.EVT_TOGGLEBUTTON, self.OnToggleClick)
                     device.monitor_btn_bar.SetForegroundColour('white')
+
                     row = wx.BoxSizer(wx.VERTICAL)
                     row.Add(device.monitor_btn, 1,
                             wx.ALL | wx.ALIGN_CENTER | wx.ALIGN_CENTER_VERTICAL, 5)
                     row.Add(device.monitor_btn_bar, 1,
                             wx.ALL | wx.ALIGN_CENTER | wx.ALIGN_CENTER_VERTICAL, 5)
 
+                    print(self.monitors.get_signal_names())
                     if name+'.Q' in self.monitors.get_signal_names()[0]:
                         device.monitor_btn.SetValue(True)
                         device.monitor_btn.SetBackgroundColour('#3ac10d')
@@ -444,7 +480,7 @@ class Gui(wx.Frame):        # main options screen
             simulate_btn.Bind(wx.EVT_BUTTON, self.newSimulate)
 
         self.middle_sizer.Add(simulate_btn, 0,
-                                wx.ALL | wx.EXPAND, 30)
+                              wx.ALL | wx.EXPAND, 30)
         self.middle_panel.Show()
         self.SimulateWindow = SimulatePage(self)
 
@@ -453,7 +489,6 @@ class Gui(wx.Frame):        # main options screen
         self.right_sizer.Add(self.canvas, 1, wx.EXPAND | wx.ALL, 0)
 
         self.Layout()
-
 
     def newSimulate(self, event):
         self.SimulateWindow.Show()
@@ -498,35 +533,46 @@ class Gui(wx.Frame):        # main options screen
             except IOError:
                 wx.LogError("Cannot open file '%s'." % pathname)
 
+    def open_help(self, event):
+        filepath = 'GUI/helpfile.pdf'
+        import subprocess
+        import os
+        import platform
+
+        if platform.system() == 'Darwin':       # macOS
+            subprocess.call(('open', filepath))
+        elif platform.system() == 'Windows':    # Windows
+            os.startfile(filepath)
+        else:                                   # linux variants
+            subprocess.call(('xdg-open', filepath))
+        event.Skip()
+
 
 class SimulatePage(wx.Frame):       # simulation screen
 
     def __init__(self, parent):
         """Initialise widgets and layout."""
         super().__init__(parent=parent, title="Simulation")
-        self.Maximize(True)
 
+        self.SetIcon(wx.Icon('GUI/CUED Software.png'))
+        self.Maximize(True)
         self.SetBackgroundColour((186, 211, 255))
+        self.parent = parent
 
         # Canvas for drawing signals
-        self.canvas = Canvas(self, parent.devices, parent.monitors, parent.network)
-        self.canvas.controls.regular_running()
+        self.canvas = Canvas(self, parent.devices,
+                             parent.monitors, parent.network)
 
         # Configure the widgets
-        self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
-        self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
-        self.run_button = wx.Button(self, wx.ID_ANY, "Run")
-        self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
-                                    style=wx.TE_PROCESS_ENTER)
-        
-        self.tostart = wx.Button(self, wx.ID_ANY, "START")
+        self.tostart = wx.Button(self, wx.ID_ANY, "GOTO START")
         self.back5 = wx.Button(self, wx.ID_ANY, "Step -5")
         self.back1 = wx.Button(self, wx.ID_ANY, "Step -1")
-        self.pause = wx.ToggleButton(self, wx.ID_ANY, "Pause")
+        play_pause = wx.Bitmap('GUI/Glyphicons/playpause.png')
+        play_pause = scale_bitmap(play_pause, 25, 25)
+        self.pause = wx.BitmapToggleButton(self, wx.ID_ANY, play_pause)
         self.fwd1 = wx.Button(self, wx.ID_ANY, "Step +1")
         self.fwd5 = wx.Button(self, wx.ID_ANY, "Step +5")
-        self.toend = wx.Button(self, wx.ID_ANY, "END")
-
+        self.toend = wx.Button(self, wx.ID_ANY, "GOTO END")
 
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -534,26 +580,56 @@ class SimulatePage(wx.Frame):       # simulation screen
         toolbar = wx.GridSizer(9)
         right_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        main_sizer.Add(left_sizer, 5, wx.ALL|wx.EXPAND, 0)
-        main_sizer.Add(right_sizer, 1, wx.ALL|wx.EXPAND, 5)
+        main_sizer.Add(left_sizer, 5, wx.ALL | wx.EXPAND, 0)
+        main_sizer.Add(right_sizer, 1, wx.ALL | wx.EXPAND, 5)
 
-        left_sizer.Add(self.canvas, 100, wx.ALL|wx.EXPAND,0)
-        left_sizer.Add(toolbar, 0, wx.ALL|wx.EXPAND, 5)
+        left_sizer.Add(self.canvas, 100, wx.ALL | wx.EXPAND, 0)
+        left_sizer.Add(toolbar, 0, wx.ALL | wx.EXPAND, 5)
 
-        toolbar.Add(self.tostart, 1, wx.ALL|wx.ALIGN_LEFT, 5)
+        toolbar.Add(self.tostart, 1, wx.ALL | wx.ALIGN_LEFT, 5)
         toolbar.AddSpacer(70)
-        toolbar.Add(self.back5, 1, wx.ALL|wx.EXPAND|wx.ALIGN_RIGHT, 5)
-        toolbar.Add(self.back1, 1, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER, 5)
-        toolbar.Add(self.pause, 1, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER, 5)
-        toolbar.Add(self.fwd1, 1, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER, 5)
-        toolbar.Add(self.fwd5, 1, wx.ALL|wx.EXPAND|wx.ALIGN_LEFT, 5)
+        toolbar.Add(self.back5, 1, wx.ALL | wx.EXPAND | wx.ALIGN_RIGHT, 5)
+        toolbar.Add(self.back1, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER, 5)
+        toolbar.Add(self.pause, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER, 5)
+        toolbar.Add(self.fwd1, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER, 5)
+        toolbar.Add(self.fwd5, 1, wx.ALL | wx.EXPAND | wx.ALIGN_LEFT, 5)
         toolbar.AddSpacer(70)
-        toolbar.Add(self.toend, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+        toolbar.Add(self.toend, 0, wx.ALL | wx.ALIGN_RIGHT, 5)
 
+        helpBtn = wx.Button(self, wx.ID_ANY, "Help")
+        helpBtn.Bind(wx.EVT_BUTTON, self.open_help)
+        right_sizer.Add(helpBtn, 0, wx.ALL | wx.ALIGN_RIGHT, 0)
 
-        right_sizer.Add(self.text, 1, wx.TOP, 10)
-        right_sizer.Add(self.spin, 1, wx.ALL, 5)
-        right_sizer.Add(self.run_button, 1, wx.ALL, 5)
-        right_sizer.Add(self.text_box, 1, wx.ALL, 5)
+        self.speedSizer = wx.Slider(self, value=30, minValue=5, maxValue=60)
+        right_sizer.Add(self.speedSizer, 1, wx.ALL | wx.EXPAND, 10)
+
+        for device in self.parent.devices.devices_list:
+            if device.device_kind == self.parent.devices.SWITCH:
+                row = wx.BoxSizer(wx.HORIZONTAL)
+                device.switch_btn = wx.ToggleButton(self, label="On/Off")
+
+                row.Add(wx.StaticText(self, 0, label=self.parent.names.get_name_string(
+                    device.device_id)), 0, wx.ALL | wx.EXPAND)
+                row.Add(device.switch_btn, 0, wx.ALL | wx.EXPAND)
+
+                right_sizer.Add(row, 0)
+
+        # speed slider
+        # change each switch
+        # help button
 
         self.SetSizerAndFit(main_sizer)
+
+    def open_help(self, event):
+        filepath = 'GUI/helpfile.pdf'
+        import subprocess
+        import os
+        import platform
+
+        if platform.system() == 'Darwin':       # macOS
+            subprocess.call(('open', filepath))
+        elif platform.system() == 'Windows':    # Windows
+            os.startfile(filepath)
+        else:                                   # linux variants
+            subprocess.call(('xdg-open', filepath))
+        event.Skip()
