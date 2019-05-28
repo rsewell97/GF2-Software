@@ -76,10 +76,12 @@ def test_get_symbol(new_names, data, expected_output_type, expected_output_id):
     print(data)
     test_scan = Scanner(data, new_names, True)
     val = test_scan.get_symbol()
-    if val == None :
-        assert 1
+    print(v
+    if test_scan in test_scan.ignore:
+        assert val == expected_output_type
     else:
-        assert val.type == expected_output_type
+        assert 0
+        #assert val.type == expected_output_type
 
 #check add_name detects names only
     #ignore
