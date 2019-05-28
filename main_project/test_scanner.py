@@ -68,43 +68,64 @@ def test_get_name_and_num(new_scanner, new_names):
     assert number[0] == "12"
     assert number[1] == " "
 
-
-@pytest.mark.parametrize("data, expected_output_type, expected_output_id", [("  gates", None, None), ("DEVICES",
+@pytest.mark.parametrize("data, expected_output_type, expected_output_id", [("DEVICES",
 0,"ignore"),("NAND",3, "ignore"),("device", 1, "ignore"),
 ("A12J", 3, "ignore"), (";", 8,"ignore"),("12", 2, "ignore")])
 def test_get_symbol(new_names, data, expected_output_type, expected_output_id):
-    print(data)
+    """Test that names, numbers, symbols and keywords are all
+    initialised and stored in the right sections"""
     test_scan = Scanner(data, new_names, True)
     val = test_scan.get_symbol()
-    print(v
-    if test_scan in test_scan.ignore:
-        assert val == expected_output_type
-    else:
-        assert 0
-        #assert val.type == expected_output_type
-
-#check add_name detects names only
-    #ignore
-    #heading
-    #keyword
-    #device
-    #names
-#check punctuation
-    #one type
-    #nonvalid
-#check word number is increasing
-#arrow
-#digit
-#eof
+    assert val.type == expected_output_type
 
 
+def test_arrow_recognition(new_names):
+    """Tests the recognition of an arrow symbol and that it raises the
+    correct syntax error when a character other than a > follows a - or = """
+    test_scan = Scanner("=>", new_names, True)
+    val = test_scan.get_symbol()
+    assert val.type == 5
+    test_scan2 = Scanner("=.", new_names, True)
+    with pytest.raises(SyntaxError):
+        val2 = test_scan2.get_symbol()
 
-#check add_number
-#check list_of_ignores
-#
 
-# TODO: def test_get_symbol()
+def test_get_symbol_ignore():
+    empty_names= Names()
+    """check that the words in the scanner.ignore list are not appended to the name class"""
+    test_strings = ('gates', 'gate', 'initially', 'INITIALLY', '    INitialLY')
+    before = len(empty_names.names)
+    for word in test_strings:
+        test_scan = Scanner(word, empty_names, True)
+        # this will make symbols for all 11 defined symbols, but none for the ignored strings inputed
+        val = test_scan.get_symbol()
+        assert val is None
+    after_num = len(empty_names.names)
+    assert before + 11 == after_num
+    assert empty_names.names == ["devices", "connections", "monitor","are", "is", "have", "has",
+                                 "set", "to", "cycle","device"]
 
 
-# TODO: def test_error()
+def test_wordcount(new_names):
+    """test to see whether the names in the input string are added
+    correctly and that the wordcount is counting well too"""
+    Scanner("", new_names, True)
+    before = []
+    after = []
+    before.append(len(new_names.names))
+    before.append(0)
+    test_scan = Scanner("A1 to A2.I4", new_names, True)
+    i = 0
+    while i <= 4:
+        test_scan.get_symbol()
+        i += 1
+    after.append(len(new_names.names))
+    after.append(test_scan.word_number)
+    assert after[0] == before[0] + 3
+    assert after[1] == before[1] + 5
 
+
+def test_non_valid_symbol(new_names):
+    with pytest.raises(SyntaxError):
+        Scanner(" +", new_names, True).get_symbol() # + is not a valid symbol
+        Scanner(" 4fjd", new_names, True).get_symbol() #
