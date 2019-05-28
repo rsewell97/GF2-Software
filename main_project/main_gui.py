@@ -254,14 +254,9 @@ class Gui(wx.Frame):        # main options screen
 
     def makeRightSizer(self):
         self.right_panel = wx.Panel(self)
-        self.right_panel.SetBackgroundColour((37, 103, 209))
+        self.right_panel.SetBackgroundColour('white')
         self.right_sizer = wx.BoxSizer(wx.VERTICAL)
         self.right_panel.SetSizer(self.right_sizer)
-
-        right_heading = wx.StaticText(self.right_panel, -1, label="Output")
-        right_heading.SetFont(self.header_font)
-        right_heading.SetForegroundColour((255, 255, 255))
-        self.right_sizer.Add(right_heading, 0, wx.ALL | wx.ALIGN_CENTER, 10)
 
         self.right_panel.Hide()
         self.Layout()
@@ -595,18 +590,29 @@ class SimulatePage(wx.Frame):       # simulation screen
         right_sizer.Add(helpBtn, 0, wx.ALL | wx.ALIGN_RIGHT, 0)
 
         self.speedSizer = wx.Slider(self, value=30, minValue=5, maxValue=60)
-        right_sizer.Add(self.speedSizer, 1, wx.ALL | wx.EXPAND, 10)
+        right_sizer.Add(self.speedSizer, 0, wx.ALL|wx.GROW, 10)
+
+        row = wx.BoxSizer(wx.HORIZONTAL)
+        self.continueSpin = wx.SpinCtrl(self, wx.ID_ANY, "5")
+        self.continueBtn = wx.Button(self, wx.ID_ANY, "Continue")
+
+        right_sizer.AddSpacer(30)
+        row.Add(self.continueSpin, 0, wx.ALL, 10)
+        right_sizer.AddSpacer(30)
+        row.Add(self.continueBtn, 0, wx.ALL, 10)
+        right_sizer.Add(row, 0, wx.EXPAND, 10)
+        right_sizer.AddSpacer(30)
 
         for device in self.parent.devices.devices_list:
             if device.device_kind == self.parent.devices.SWITCH:
                 row = wx.BoxSizer(wx.HORIZONTAL)
                 device.switch_btn = wx.ToggleButton(self, label="On/Off")
 
-                row.Add(wx.StaticText(self, 0, label=self.parent.names.get_name_string(
-                    device.device_id)), 0, wx.ALL | wx.EXPAND)
+                row.Add(wx.StaticText(self, 0, label=self.parent.names.get_name_string(device.device_id)), 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+                row.AddSpacer(30)
                 row.Add(device.switch_btn, 0, wx.ALL | wx.EXPAND)
 
-                right_sizer.Add(row, 0)
+                right_sizer.Add(row, 0, wx.ALIGN_CENTER)
 
         self.SetSizerAndFit(main_sizer)
 
