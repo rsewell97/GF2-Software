@@ -535,6 +535,7 @@ class Gui(wx.Frame):        # main options screen
         if platform.system() == 'Darwin':       # macOS
             subprocess.call(('open', filepath))
         elif platform.system() == 'Windows':    # Windows
+            filepath = filepath.replace('/','\\')
             os.startfile(filepath)
         else:                                   # linux variants
             subprocess.call(('xdg-open', filepath))
