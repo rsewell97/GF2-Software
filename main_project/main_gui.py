@@ -445,8 +445,9 @@ class Gui(wx.Frame):        # main options screen
             simulate_btn = wx.Button(self.middle_panel, label="Simulate!")
             simulate_btn.Bind(wx.EVT_BUTTON, self.newSimulate)
 
-        self.middle_sizer.Add(simulate_btn, 0,
-                              wx.ALL | wx.EXPAND, 30)
+            self.middle_sizer.Add(simulate_btn, 0,
+                                wx.ALL | wx.EXPAND, 30)
+
         self.middle_panel.Show()
         self.SimulateWindow = SimulatePage(self)
 

@@ -99,6 +99,7 @@ class Parser:
                 if not self.found_devices or not self.found_connections:
                     self.error(SyntaxError, "A valid definition must include 'devices' "
                                             "section and 'connection' section")
+                    
                 try:
                     self.scanner.input_file.close()
                 except AttributeError:
@@ -122,8 +123,8 @@ class Parser:
                 break
             else:
                 self.error(
-                    SyntaxError, "Illegal character after heading title, expect {")
-
+                    SyntaxError, "Illegal character after heading title, expected {")
+                break
         if heading == 'devices':
             while self.parse_device():
                 pass
@@ -301,13 +302,13 @@ class Parser:
         # ------- GET DEVICE OBJECT ------ #
         self.symbol = self.scanner.get_symbol(query=True)
 
-        if self.symbol.type != self.scanner.NAME:
+        if self.symbol.type == self.scanner.NAME:
+            input_device = self.devices.get_device(self.symbol.id)
+            if input_device == None:
+                self.error(SemanticError, "The device '{}' does not exist".format(
+                    self.scanner.name_string))
+        else:
             self.error(SyntaxError, "Second name is not a device")
-
-        input_device = self.devices.get_device(self.symbol.id)
-        if input_device == None:
-            self.error(SemanticError, "The device '{}' does not exist".format(
-                self.scanner.name_string))
 
         # ----- GET OPENING CURLY BRACKET ----- #
         self.symbol = self.scanner.get_symbol()
