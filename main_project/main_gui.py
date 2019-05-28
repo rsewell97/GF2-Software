@@ -116,9 +116,9 @@ class CircuitDiagram(wx.Panel):
                     (device.location[0], device.location[1]))
             else:
                 if device_type in ['SWITCH', 'CLOCK']:
-                    x, y = 50, (i+1)*40
+                    x, y = 50, i*50
                 else:
-                    x, y = random.randint(150, 400), (i+1)*40
+                    x, y = random.randint(150, 400), i*50
                 device.location = [x, y]
 
                 if device.device_kind == self.devices.D_TYPE:
@@ -158,7 +158,6 @@ class CircuitDiagram(wx.Panel):
                 new_device = self.devices.get_device(
                     out[0])
                 if out[1] is None:
-                       # get output device
                     if new_device.device_kind == self.devices.CLOCK:
                         dc.DrawLine(device.location[0]+xo, device.location[1] + yo, new_device.location[0] +
                                 self.device_size[1]-5, new_device.location[1] + self.device_size[1]/2)
@@ -170,7 +169,6 @@ class CircuitDiagram(wx.Panel):
                         out[1])]
                     dc.DrawLine(device.location[0]+xo, device.location[1] + yo, new_device.location[0] +
                                 x1, new_device.location[1] + y1)
-
 
 class Gui(wx.Frame):        # main options screen
 
@@ -452,8 +450,10 @@ class Gui(wx.Frame):        # main options screen
         self.middle_panel.Show()
         self.SimulateWindow = SimulatePage(self)
 
+
         self.canvas = CircuitDiagram(
             self.right_panel, self.devices, self.network, self.names)
+        self.right_sizer.Clear()
         self.right_sizer.Add(self.canvas, 1, wx.EXPAND | wx.ALL, 0)
 
         self.Layout()
