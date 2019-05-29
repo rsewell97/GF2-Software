@@ -164,7 +164,7 @@ class Parser:
     def parse_device(self):
         """Build devices by reading 1 line at a time"""
         # ----------- CREATES DEVICES 1 LINE AT A TIME -------------- #
-        # FORMAT = A, B are NAND gates
+        # FORMAT = A, B are NAND gates;
 
         definition_delimiters = [self.scanner.IS, self.scanner.ARE]
         attribute_delimiters = [self.scanner.HAS,
@@ -558,4 +558,5 @@ class Parser:
         return devices, ret_val
 
     def error(self, error_type, message=""):
+        self.error_counter += self.error_counter
         self.scanner.error(error_type, message)

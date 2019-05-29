@@ -7,7 +7,7 @@ from network import Network
 from devices import Devices
 from parse import Parser
 from monitors import Monitors
-from error import SyntaxError , SemanticError , ValueError, UnclassedError
+from error import SyntaxError, SemanticError, ValueError, UnclassedError
 
 
 def startup_parser(data):
@@ -24,39 +24,60 @@ def startup_parser(data):
                          [("devices{} connections{}", True),
                           ("devices{} monitor{} connections{}", True),
                           ("devices{} connections{} monitor{}", True),
-                          ("devices{}", False),
-                          ("connections{} devices{}", False)])
-def test_heading_ordering(input, expected_outputs):
+                          ])
+def test_heading_recognition(input, expected_outputs):
     new_parser = startup_parser(input)
-    
     new_parser.parse_network()
-    print ("Has the parser found the heading devices?", new_parser.found_devices)
-    print("Has the parser found the heading connection?", new_parser.found_connections)
-    print("Has the parser found the heading monitors?", new_parser.found_monitor)
     bool = new_parser.found_devices and new_parser.found_connections or new_parser.found_monitor
-    if not new_parser.found_devices:
-        with pytest.raises(SyntaxError):
-            new_parser.parse_network()
-    else:
-        pass
     assert bool == expected_outputs
 
 
-# @pytest.mark.parametrize("input, expected outputs",
-#                          [("{A is a NAND gate; B is a DTYPE;}", True),
-#                             ("A is a NAND gate; B is a DTYPE;", False)])
-# def test_finds_start_section(input, expected_outputs):
-#     new_parser = startup_parser(input)
-#     new_parser.parse_heading('devices')
+@pytest.mark.parametrize("input", ["devices{}", "connections{} devices{}"])
+def test_heading_ordering(input):
+    new_parser = startup_parser(input)
+    with pytest.raises(SyntaxError):
+        new_parser.parse_network()
 
 
-def test_parse_devices_defined():
+@pytest.mark.parametrize("inputs, id", [("{ A is NAND gate; B is a DTYPE; A has 2 inputs;}",0 ),  # works
+                                            ("A is a NAND gate; B is a DTYPE; A has 2 inputs;", 1),  # need curlies - syntax
+                                            ("{A is a NAND gate; B is a DTYPE;}", 2)])  # NAND gates need num of inputs defined - semantic
+def test_devices_section(inputs, id):
+    new_parser = startup_parser(inputs)
+    if id == 0:
+        new_parser.parse_section('devices')
+        assert new_parser.parse_error_count == 0
+    elif id == 1:
+        with pytest.raises(SyntaxError):
+            new_parser.parse_section('devices')
+    elif id == 2:
+        with pytest.raises(SemanticError):
+            new_parser.parse_section('devices')
 
-    assert 1
 
-
-def test_parse_connections():
-    assert 1
+@pytest.mark.parametrize("string, id",
+                         [("{device A {S1 to A.I1; S1 to A.I2;}}",0),  # works
+                            ("{device A {S1 to A.I1;}}",1),  # not all inputs are connected - semantic
+                            ("{device A {S1 to A.I1; S1 to A.I2}}",2),  # missing semi colon - syntax
+                            ("{device B {S1 to A.I1; S1 to A.I2;}}",3)]  # device not defined - semantic
+                          )
+def test_connections_section(string,id):
+    device_init = "devices{A is a NAND gate; S1 is SWITCH; A has 2 inputs;} connections"
+    for i in range(4):
+        input = device_init + string
+        print (input)
+        new_parser = startup_parser(input)
+        if id == 0:
+            new_parser.parse_network()
+            assert new_parser.parse_error_count == 0
+        elif id == (1 or 3):
+            with pytest.raises(SemanticError):
+                new_parser.parse_network()
+        elif id == 2:
+            with pytest.raises(SyntaxError):
+                new_parser.parse_network()
+        else:
+            assert 1
 
 
 def test_parse_monitor():
