@@ -479,6 +479,8 @@ class Gui(wx.Frame):        # main options screen
                     self.devices.set_switch(device.device_id, self.devices.HIGH)
                 else:
                     self.devices.set_switch(device.device_id, self.devices.LOW)
+        
+        self.SimulateWindow.run(5)
 
     def OnRightPanelToggle(self, event):
         obj = event.GetEventObject()
@@ -549,6 +551,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         # Canvas for drawing signals
         self.canvas = Canvas(self, parent.devices,
                              parent.monitors, parent.network)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
         
         # Configure the widgets
         self.tostart = wx.Button(self, wx.ID_ANY, "GOTO START")
@@ -564,6 +567,10 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.toend = wx.Button(self, wx.ID_ANY, "GOTO END")
         self.toend.name = 'end'
         self.toend.Bind(wx.EVT_BUTTON, self.on_btn, self.toend)
+
+        self.reset = wx.Button(self, wx.ID_ANY, "Reset Scene")
+        self.reset.name = 'reset'
+        self.reset.Bind(wx.EVT_BUTTON, self.on_btn, self.reset)
 
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -592,7 +599,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         right_sizer.Add(helpBtn, 0, wx.ALL | wx.ALIGN_RIGHT, 0)
 
         self.speedSizer = wx.Slider(self, value=30, minValue=5, maxValue=60)
-        right_sizer.Add(self.speedSizer, 0, wx.ALL|wx.GROW, 10)
+        # right_sizer.Add(self.speedSizer, 0, wx.ALL|wx.GROW, 10)
 
         row = wx.BoxSizer(wx.HORIZONTAL)
         self.continueSpin = wx.SpinCtrl(self, wx.ID_ANY, "5")
@@ -619,8 +626,12 @@ class SimulatePage(wx.Frame):       # simulation screen
                 row.Add(device.switch_btn, 0, wx.ALL | wx.EXPAND)
 
                 right_sizer.Add(row, 0, wx.ALIGN_CENTER)
-
+        
+        right_sizer.AddSpacer(30)
+        right_sizer.Add(self.reset, 0, wx.EXPAND|wx.ALIGN_CENTER|wx.BOTTOM, 5)
         self.SetSizerAndFit(main_sizer)
+
+        
 
     def on_btn(self, event):
         obj = event.GetEventObject()
@@ -643,12 +654,22 @@ class SimulatePage(wx.Frame):       # simulation screen
                 self.canvas.init = False
                 self.canvas.Refresh()
 
+        elif name == 'reset':
+            self.parent.monitors.reset_monitors()
+            self.canvas.signals = []
+            self.canvas.init = False
+            self.canvas.Refresh()
+
         elif name.split(' ')[0] == 'switch':
             if obj.GetValue():
                 self.parent.devices.set_switch(int(name.split(' ')[-1]), 1)
             else:
                 self.parent.devices.set_switch(int(name.split(' ')[-1]), 0)
         
+    def on_close(self, event):
+        self.Destroy()  
+        c = self.__class__
+        self.parent.SimulateWindow = c(self.parent)
 
 
     def run(self, num, reset=False):
@@ -669,6 +690,8 @@ class SimulatePage(wx.Frame):       # simulation screen
             self.canvas.signals.append([monitor_name, value])
             count += 1
         self.canvas.render()
+
+
 
     def open_help(self, event):
         filepath = 'GUI/helpfile.pdf'

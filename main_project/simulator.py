@@ -59,6 +59,9 @@ class Canvas(wxcanvas.GLCanvas):
         self.last_mouse_x = 0  # previous mouse x position
         self.last_mouse_y = 0  # previous mouse y position
 
+        self.scale_x = 50
+        self.scale_y = 50
+
         self.devices = devices
         self.network = network
         self.monitors = monitors
@@ -99,16 +102,16 @@ class Canvas(wxcanvas.GLCanvas):
         if len(self.signals) > 0:
             # ruler
             for i in range(0, len(self.signals[0][1])):
-                self.render_text(str(i), 100 + i*50, self.size.height - 50)
+                self.render_text(str(i), 100 + i*self.scale_x, self.size.height - 30)
 
             # signal
             count = 1
             for sig in self.signals:
-                self.draw_signal(sig[1], (100,self.size.height - count*100))
-                self.render_text(sig[0], 50, self.size.height - count*100)
+                self.draw_signal(sig[1], (100,self.size.height - count*2*self.scale_y))
+                self.render_text(sig[0], 50, self.size.height - count*2*self.scale_y)
                 count += 1
 
-        self.pan_x += 2
+        # self.auto_scroll()
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
         GL.glFlush()
@@ -167,19 +170,19 @@ class Canvas(wxcanvas.GLCanvas):
             else:
                 GLUT.glutBitmapCharacter(font, ord(character))
 
-    def draw_signal(self, signal, offset, scale_x=50, scale_y=50):
-        self.max_x = scale_x *(len(signal)-1)
+    def draw_signal(self, signal, offset,):
+        self.max_x = self.scale_x *(len(signal)-1)
 
         GL.glBegin(GL.GL_LINE_STRIP)
         for i, val in enumerate(signal):
             if val == 1:
-                GL.glVertex2f(offset[0]+i*scale_x, offset[1]+scale_y)
+                GL.glVertex2f(offset[0]+i*self.scale_x, offset[1]+self.scale_y)
             else:
-                GL.glVertex2f(offset[0]+i*scale_x, offset[1])
+                GL.glVertex2f(offset[0]+i*self.scale_x, offset[1])
 
             try:
-                next_val = signal[i+1] * scale_y
-                GL.glVertex2f(offset[0]+i*scale_x, offset[1] + next_val)
+                next_val = signal[i+1] * self.scale_y
+                GL.glVertex2f(offset[0]+i*self.scale_x, offset[1] + next_val)
             except IndexError:
                 pass
 
