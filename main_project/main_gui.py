@@ -692,7 +692,6 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.canvas.render()
 
 
-
     def open_help(self, event):
         filepath = 'GUI/helpfile.pdf'
         import subprocess
