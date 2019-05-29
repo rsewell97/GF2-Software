@@ -226,7 +226,7 @@ class Scanner:
 
     def error(self, error_type, message=""):
         self.total_errors += 1
-        
+
         if self.read_as_string:
             self.total_error_string += Error(message, error_type, self.list_file[self.current_line], 
                     self.current_line, self.character_number).error_string

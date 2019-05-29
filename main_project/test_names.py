@@ -1,4 +1,6 @@
-"""Test the names module."""
+"""Test the names module.
+
+Written by Lea"""
 import pytest
 from names import Names
 

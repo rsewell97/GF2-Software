@@ -1,4 +1,6 @@
-"""Test the parse module"""
+"""Test the parse module
+
+Writen by Lea """
 import pytest
 
 from names import Names
@@ -63,28 +65,54 @@ def test_devices_section(inputs, id):
                           )
 def test_connections_section(string,id):
     device_init = "devices{A is a NAND gate; S1 is SWITCH; A has 2 inputs;} connections"
-    for i in range(4):
-        input = device_init + string
-        print (input)
-        new_parser = startup_parser(input)
-        if id == 0:
+    input = device_init + string
+    print (input)
+    new_parser = startup_parser(input)
+    if id == 0:
+        new_parser.parse_network()
+        assert new_parser.parse_error_count == 0
+    elif id == (1 or 3):
+        with pytest.raises(SemanticError):
             new_parser.parse_network()
-            assert new_parser.parse_error_count == 0
-        elif id == (1 or 3):
-            with pytest.raises(SemanticError):
-                new_parser.parse_network()
-        elif id == 2:
-            with pytest.raises(SyntaxError):
-                new_parser.parse_network()
-        else:
-            assert 1
+    elif id == 2:
+        with pytest.raises(SyntaxError):
+            new_parser.parse_network()
+    else:
+        assert 1
 
 
-def test_parse_monitor():
-    assert 1
+
+@pytest.mark.parametrize("inputs, id", [
+        ("{A;}", 0),
+        ("{A,B;}", 1),  # undefined name - semantic
+        ("{A,A;}", 2),  # double defined - semantic
+        ("{12;}", 3)])  # not a valid name - syntax
+def test_parse_monitor(inputs, id):
+    device_init = "devices{A is a NAND gate; S1 is SWITCH; A has 2 inputs;} " \
+                  "connections{device A{S1 to A.I1; S1 to A.I2;}} monitor"
+    input = device_init + inputs
+    print(input)
+    new_parser = startup_parser(input)
+    if id == 0:
+        new_parser.parse_network()
+        assert new_parser.parse_error_count == 0
+    elif id == (1 or 2):
+        with pytest.raises(SemanticError):
+            new_parser.parse_network()
+    elif id == 3:
+        with pytest.raises(SyntaxError):
+            new_parser.parse_network()
+
+    else:
+        assert 1
 
 
-#
+# def test_testing():
+#     test_parse = startup_parser("connections{}")
+#     test_parse.parse_network()
+#     print(test_parse.msg)
+#     assert 0
+# #
 
 
 # TODO:

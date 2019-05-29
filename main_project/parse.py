@@ -48,7 +48,7 @@ class Parser:
 
         self.symbol_type = None
         self.symbol_id = None
-        self.error_counter = 0
+        self.parse_error_count = 0
 
         [self.NO_DEVICE_KEYWORD, self.NO_CONNECTIONS_KEYWORD,
          self.NO_MONITOR_KEYWORD, self.MISSING_COLON, self.MISSING_SEMICOLON,
@@ -414,7 +414,7 @@ class Parser:
 
         elif self.symbol.type == self.scanner.NAME:
             if self.symbol.id is None:
-                self.error(SyntaxError, "Unknown name '{}'".format(self.scanner.name_string))
+                self.error(SemanticError, "Undefined device '{}'".format(self.scanner.name_string))
 
             if self.devices.get_device(self.symbol.id).device_kind == self.devices.D_TYPE:
                 device = self.symbol.id
@@ -456,6 +456,8 @@ class Parser:
                         self.scanner.name_string))
                 elif status == self.monitors.NO_ERROR:
                     pass
+        else:
+            self.error(SyntaxError, "{} is not a valid signal name".format(self.scanner.name_string))
         return True
 
     def get_names_before_delimiter(self, true_delimiting_word_ids, false_delimiting_word_ids):
@@ -558,5 +560,5 @@ class Parser:
         return devices, ret_val
 
     def error(self, error_type, message=""):
-        self.error_counter += self.error_counter
+        self.parse_error_count += self.parse_error_count
         self.scanner.error(error_type, message)

@@ -1,3 +1,7 @@
+"""Test the parse module
+
+Writen by Lea """
+
 import pytest
 from names import Names
 from scanner import Scanner
