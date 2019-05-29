@@ -479,6 +479,8 @@ class Gui(wx.Frame):        # main options screen
                     self.devices.set_switch(device.device_id, self.devices.HIGH)
                 else:
                     self.devices.set_switch(device.device_id, self.devices.LOW)
+        
+        self.SimulateWindow.run(5)
 
     def OnRightPanelToggle(self, event):
         obj = event.GetEventObject()
@@ -565,6 +567,10 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.toend.name = 'end'
         self.toend.Bind(wx.EVT_BUTTON, self.on_btn, self.toend)
 
+        self.reset = wx.Button(self, wx.ID_ANY, "Reset Scene")
+        self.reset.name = 'reset'
+        self.reset.Bind(wx.EVT_BUTTON, self.on_btn, self.reset)
+
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         left_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -619,8 +625,12 @@ class SimulatePage(wx.Frame):       # simulation screen
                 row.Add(device.switch_btn, 0, wx.ALL | wx.EXPAND)
 
                 right_sizer.Add(row, 0, wx.ALIGN_CENTER)
-
+        
+        right_sizer.AddSpacer(30)
+        right_sizer.Add(self.reset, 0, wx.EXPAND|wx.ALIGN_CENTER|wx.BOTTOM, 5)
         self.SetSizerAndFit(main_sizer)
+
+        
 
     def on_btn(self, event):
         obj = event.GetEventObject()
@@ -642,6 +652,12 @@ class SimulatePage(wx.Frame):       # simulation screen
                 self.canvas.pan_x = -self.canvas.max_x-100 + self.canvas.size.width
                 self.canvas.init = False
                 self.canvas.Refresh()
+
+        elif name == 'reset':
+            self.parent.monitors.reset_monitors()
+            self.canvas.signals = []
+            self.canvas.init = False
+            self.canvas.Refresh()
 
         elif name.split(' ')[0] == 'switch':
             if obj.GetValue():
