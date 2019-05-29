@@ -26,8 +26,8 @@ from monitors import Monitors
 from scanner import Scanner
 from parse import Parser
 
+# from simulator import Canvas
 from simulator import Canvas
-
 
 def scale_bitmap(bitmap, width, height):
     image = bitmap.ConvertToImage()
@@ -67,8 +67,6 @@ class CircuitDiagram(wx.Panel):
             "Q": (self.device_size[0] - 5, self.device_size[0]/3),
             "QBAR": (self.device_size[0] - 5, self.device_size[0]*2/3)
         }
-
-        # w, h = self.GetClientSize()
 
         self.Buffer = None
 
@@ -268,10 +266,10 @@ class Gui(wx.Frame):        # main options screen
         self.parser = Parser(self.names, self.devices,
                              self.network, self.monitors, self.scanner)
         status = None
-        try:
-            status = self.parser.parse_network()
-        except:
-            pass
+        # try:
+        status = self.parser.parse_network()
+        # except:
+        #     pass
 
         if self.scanner.total_error_string == "":
             self.error_text.AppendText("No errors found")
@@ -432,7 +430,7 @@ class Gui(wx.Frame):        # main options screen
                     device.switch_btn.SetBackgroundColour('#e0473a')
 
                 self.switch_options.Add(device.switch_btn, 1,
-                                        wx.ALL, 5)
+                                       wx.ALL, 5)
 
             self.middle_sizer.Insert(1, self.switch_options, 0,
                                      wx.ALL | wx.ALIGN_CENTER, 30)
@@ -537,7 +535,6 @@ class Gui(wx.Frame):        # main options screen
             subprocess.call(('xdg-open', filepath))
         event.Skip()
 
-
 class SimulatePage(wx.Frame):       # simulation screen
 
     def __init__(self, parent):
@@ -552,9 +549,11 @@ class SimulatePage(wx.Frame):       # simulation screen
         # Canvas for drawing signals
         self.canvas = Canvas(self, parent.devices,
                              parent.monitors, parent.network)
-
+        
         # Configure the widgets
         self.tostart = wx.Button(self, wx.ID_ANY, "GOTO START")
+        self.tostart.name = 'start'
+        self.tostart.Bind(wx.EVT_BUTTON, self.on_btn, self.tostart)
         self.back5 = wx.Button(self, wx.ID_ANY, "Step -5")
         self.back1 = wx.Button(self, wx.ID_ANY, "Step -1")
         play_pause = wx.Bitmap('GUI/Glyphicons/playpause.png')
@@ -563,6 +562,8 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.fwd1 = wx.Button(self, wx.ID_ANY, "Step +1")
         self.fwd5 = wx.Button(self, wx.ID_ANY, "Step +5")
         self.toend = wx.Button(self, wx.ID_ANY, "GOTO END")
+        self.toend.name = 'end'
+        self.toend.Bind(wx.EVT_BUTTON, self.on_btn, self.toend)
 
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -596,6 +597,8 @@ class SimulatePage(wx.Frame):       # simulation screen
         row = wx.BoxSizer(wx.HORIZONTAL)
         self.continueSpin = wx.SpinCtrl(self, wx.ID_ANY, "5")
         self.continueBtn = wx.Button(self, wx.ID_ANY, "Continue")
+        self.continueBtn.name = "continue"
+        self.continueBtn.Bind(wx.EVT_BUTTON, self.on_btn, self.continueBtn)
 
         right_sizer.AddSpacer(30)
         row.Add(self.continueSpin, 0, wx.ALL, 10)
@@ -608,6 +611,8 @@ class SimulatePage(wx.Frame):       # simulation screen
             if device.device_kind == self.parent.devices.SWITCH:
                 row = wx.BoxSizer(wx.HORIZONTAL)
                 device.switch_btn = wx.ToggleButton(self, label="On/Off")
+                device.switch_btn.name = 'switch '+str(device.device_id)
+                device.switch_btn.Bind(wx.EVT_TOGGLEBUTTON, self.on_btn, device.switch_btn)
 
                 row.Add(wx.StaticText(self, 0, label=self.parent.names.get_name_string(device.device_id)), 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL)
                 row.AddSpacer(30)
@@ -616,6 +621,54 @@ class SimulatePage(wx.Frame):       # simulation screen
                 right_sizer.Add(row, 0, wx.ALIGN_CENTER)
 
         self.SetSizerAndFit(main_sizer)
+
+    def on_btn(self, event):
+        obj = event.GetEventObject()
+        name = obj.name
+
+        if name == 'start':
+            self.canvas.pan_x = 0
+            self.canvas.init = False
+            self.canvas.Refresh()
+
+        elif name == 'end':
+            self.canvas.pan_x = -self.canvas.max_x-100 + self.canvas.size.width
+            self.canvas.init = False
+            self.canvas.Refresh()
+
+        elif name == 'continue':
+            self.run(int(self.continueSpin.GetValue()))
+            if self.canvas.max_x > self.canvas.size.width:
+                self.canvas.pan_x = -self.canvas.max_x-100 + self.canvas.size.width
+                self.canvas.init = False
+                self.canvas.Refresh()
+
+        elif name.split(' ')[0] == 'switch':
+            if obj.GetValue():
+                self.parent.devices.set_switch(int(name.split(' ')[-1]), 1)
+            else:
+                self.parent.devices.set_switch(int(name.split(' ')[-1]), 0)
+        
+
+
+    def run(self, num, reset=False):
+        if reset:
+            self.parent.monitors.reset_monitors()
+        
+        for _ in range(num):
+            if self.parent.network.execute_network():
+                self.parent.monitors.record_signals()
+            else:
+                print("Error! Network oscillating.")
+
+        self.canvas.signals = []
+
+        count = 0
+        for (device_id, output_id), value in self.parent.monitors.monitors_dictionary.items():
+            monitor_name = self.parent.devices.get_signal_name(device_id, output_id)
+            self.canvas.signals.append([monitor_name, value])
+            count += 1
+        self.canvas.render()
 
     def open_help(self, event):
         filepath = 'GUI/helpfile.pdf'

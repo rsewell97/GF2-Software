@@ -408,6 +408,9 @@ class Parser:
             return True
 
         elif self.symbol.type == self.scanner.NAME:
+            if self.symbol.id is None:
+                self.error(SyntaxError, "Unknown name '{}'".format(self.scanner.name_string))
+
             if self.devices.get_device(self.symbol.id).device_kind == self.devices.D_TYPE:
                 device = self.symbol.id
                 self.symbol = self.scanner.get_symbol(query=True)
