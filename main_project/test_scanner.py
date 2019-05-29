@@ -1,6 +1,7 @@
 import pytest
 from names import Names
-from scanner import Scanner, Symbol
+from scanner import Scanner
+from error import SyntaxError , SemanticError , ValueError, UnclassedError
 
 '''Test the scanner module'
 
@@ -80,20 +81,16 @@ def test_get_symbol(new_names, data, expected_output_type, expected_output_id):
 
 
 def test_arrow_recognition(new_names):
-    """Tests the recognition of an arrow symbol and that it raises the
-    correct syntax error when a character other than a > follows a - or = """
+    """Tests the recognition of an arrow symbol """
     test_scan = Scanner("=>", new_names, True)
     val = test_scan.get_symbol()
     assert val.type == 5
-    test_scan2 = Scanner("=.", new_names, True)
-    with pytest.raises(SyntaxError):
-        val2 = test_scan2.get_symbol()
 
 
 def test_get_symbol_ignore():
     empty_names= Names()
     """check that the words in the scanner.ignore list are not appended to the name class"""
-    test_strings = ('gates', 'gate', 'initially', 'INITIALLY', '    INitialLY')
+    test_strings = ('gates', 'gate', 'initially', '  initially')
     before = len(empty_names.names)
     for word in test_strings:
         test_scan = Scanner(word, empty_names, True)

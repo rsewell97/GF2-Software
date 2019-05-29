@@ -290,8 +290,8 @@ def test_execute_non_gates(new_network):
 def network_with_devices():
     """Return a Network class instance with three devices in the network."""
     new_names = Names()
-    new_devices = Devices(new_names)
-    new_network = Network(new_names, new_devices)
+    devices = Devices(new_names)
+    network = Network(new_names, devices)
     # re-evaluated again after executing devices
     sw1_output = "network.get_output_signal(SW1_ID, None)"
     sw2_output = "network.get_output_signal(SW2_ID, None)"

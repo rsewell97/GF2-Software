@@ -1,6 +1,6 @@
 import re
 import sys
-from error import SemanticError
+from error import SyntaxError , SemanticError , ValueError, UnclassedError
 
 """Parse the definition file and build the logic network.
 
@@ -76,20 +76,25 @@ class Parser:
             if self.symbol.type == self.scanner.HEADING:
 
                 if self.symbol.id == self.scanner.DEVICES_ID:
-                    self.parse_section('devices')
                     self.found_devices = True
+                    self.parse_section('devices')
+
 
                 elif self.symbol.id == self.scanner.CONNECTION_ID:
+                    self.found_connections = True
                     if not self.found_devices:
                         self.error(SyntaxError, "Specifying connections before devices is not allowed")
+                        break
                     self.parse_section('connections')
-                    self.found_connections = True
+
 
                 elif self.symbol.id == self.scanner.MONITOR_ID:
+                    self.found_monitor = True
                     if not self.found_devices:
                         self.error(SyntaxError, "Specifying monitor before devices is not allowed")
+                        break
                     self.parse_section('monitor')
-                    self.found_monitor = True
+
 
                 else:
                     self.error(SyntaxError, "Heading name '{}' not allowed".format(
@@ -138,10 +143,10 @@ class Parser:
                                .format(self.devices.names.get_name_string(i.device_id)))
                 if i.outputs == {}:
                     self.error(SemanticError,
-                               "Gate '{}' has no output".format(i.device_id))
+                               "Gate '{}' has no output".format(self.devices.names.get_name_string(i.device_id)))
 
                 print("[name: {}, type: {}, num_inputs: {}, num_outputs: {}]"
-                      .format(i.device_id,self.names.get_name_string(i.device_kind), i.inputs, i.outputs))
+                      .format(self.devices.names.get_name_string(i.device_id),self.names.get_name_string(i.device_kind), i.inputs, i.outputs))
 
         elif heading == 'connections':
             while self.parse_connections():

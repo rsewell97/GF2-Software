@@ -2,7 +2,15 @@ import sys
 
 class SemanticError(Exception):
     pass
-        
+
+class SyntaxError(Exception):
+    pass
+
+class ValueError(Exception):
+    pass
+
+class UnclassedError(Exception):
+    pass
         
 class Error(Exception):
     def __init__(self, message, error, line, line_num, char):
@@ -12,13 +20,13 @@ class Error(Exception):
         
         if error == SemanticError:
             error_type = "SemanticError"
-            # raise SemanticError
+            raise SemanticError
         elif error == SyntaxError:
             error_type = "SyntaxError"
-            # raise SyntaxError
+            raise SyntaxError
         elif error == ValueError:
             error_type = "ValueError"
-            # raise ValueError
+            raise ValueError
         else:
             error_type = "Error"
             # raise Error
