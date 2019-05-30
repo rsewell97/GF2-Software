@@ -107,18 +107,4 @@ def test_parse_monitor(inputs, id):
         assert 1
 
 
-# def test_testing():
-#     test_parse = startup_parser("connections{}")
-#     test_parse.parse_network()
-#     print(test_parse.msg)
-#     assert 0
-# #
-
-
-# TODO:
-# TODO: HEADINGS order of heading names, finding heading names robustly, how it handles not finding a heading name
-# TODO: SECTIONS finds start and end of section
-# TODO: DEVICES
-# TODO: CONNECTIONS
-# TODO: MONITOR
 
