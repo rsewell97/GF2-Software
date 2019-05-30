@@ -197,3 +197,4 @@ def test_display_signals(capsys, new_monitors):
             "Clock1: -__--__--__--__--__-" in traces)
 
     assert "" in traces  # additional empty line at the end
+

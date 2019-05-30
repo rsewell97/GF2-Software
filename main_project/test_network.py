@@ -258,7 +258,6 @@ def test_execute_non_xor_gates(new_network, gate_id, switch_outputs,
 
 def test_execute_non_gates(new_network):
     """Test if execute_network returns the correct output for non-gate devices.
-
     Tests switches, D-types and clocks.
     """
     network = new_network
@@ -284,15 +283,7 @@ def test_execute_non_gates(new_network):
     network.make_connection(SW3_ID, None, D_ID, devices.CLEAR_ID)
 
     # Get device outputs, the expression is in a string here so that it
-    # can be
-
-@pytest.fixture
-def network_with_devices():
-    """Return a Network class instance with three devices in the network."""
-    new_names = Names()
-    devices = Devices(new_names)
-    network = Network(new_names, devices)
-    # re-evaluated again after executing devices
+    # can be re-evaluated again after executing devices
     sw1_output = "network.get_output_signal(SW1_ID, None)"
     sw2_output = "network.get_output_signal(SW2_ID, None)"
     sw3_output = "network.get_output_signal(SW3_ID, None)"

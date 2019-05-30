@@ -15,6 +15,7 @@ class UnclassedError(Exception):
 class Error(Exception):
     def __init__(self, message, error, line, line_num, char):
         self.msg = message
+        self.error_type = error
         # Call the base class constructor with the parameters it needs
         super().__init__(message+'\n')
         
@@ -28,8 +29,8 @@ class Error(Exception):
             error_type = "ValueError"
             # raise ValueError
         else:
-            error_type = "Error"
-            # raise Error
+            error_type = "UnclassedError"
+            # raise UnclassedError
         
         self.error_string = """Error on line {line_num}:
     {line}
