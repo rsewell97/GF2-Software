@@ -22,7 +22,7 @@ from monitors import Monitors
 from scanner import Scanner
 from parse import Parser
 from userint import UserInterface
-from gui import Gui
+from gui_3D import Gui
 from error import Error
 
 #_________________IMPORTANT: CHANGE GUI MODULE________________#
@@ -77,7 +77,7 @@ def main(arg_list):
             # Initialise an instance of the gui.Gui() class
             app = wx.App()
             gui = Gui("Logic Simulator", path, names, devices, network,
-                      monitors, parser)
+                      monitors)
             gui.Show(True)
             app.MainLoop()
 
