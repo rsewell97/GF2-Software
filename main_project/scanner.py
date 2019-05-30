@@ -80,9 +80,9 @@ class Scanner:
         self.heading_list = ["devices", "connections", "monitor"]
         [self.DEVICES_ID, self.CONNECTION_ID, self.MONITOR_ID] = self.names.lookup(self.heading_list)
 
-        self.keyword_list = ["are", "is", "have", "has", "set", "to", "cycle"]
+        self.keyword_list = ["are", "is", "have", "has", "set", "to", "cycle", "trace"]
         [self.ARE, self.IS, self.HAVE, self.HAS, self.SET,
-        self.TO, self.CYCLE] = self.names.lookup(self.keyword_list)
+        self.TO, self.CYCLE, self.TRACE] = self.names.lookup(self.keyword_list)
 
         [self.DEVICE] = self.names.lookup(["device"])
 

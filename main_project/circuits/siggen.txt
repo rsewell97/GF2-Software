@@ -1,0 +1,10 @@
+DEVICES {
+   A is SIGGEN;
+   A has trace 10010;
+}
+
+CONNECTIONS {}
+
+MONITOR {
+   A;
+}
