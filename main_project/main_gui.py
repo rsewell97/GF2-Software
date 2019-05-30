@@ -192,7 +192,7 @@ class Gui(wx.Frame):        # main options screen
         self.main_sizer.Add(self.middle_panel, 3, wx.ALL | wx.EXPAND, 20)
         self.main_sizer.Add(self.right_panel, 3, wx.ALL | wx.EXPAND, 20)
 
-        helpBtn = wx.Button(self, wx.ID_ANY, "Help")
+        helpBtn = wx.Button(self, wx.ID_ANY, _("Help"))
         helpBtn.Bind(wx.EVT_BUTTON, self.open_help)
         outer.Add(helpBtn, 0, wx.ALL | wx.ALIGN_RIGHT, 0)
         outer.Add(self.main_sizer, 0, wx.EXPAND | wx.ALL, 0)
@@ -201,10 +201,10 @@ class Gui(wx.Frame):        # main options screen
     def makeLeftSizer(self):
         self.left_panel = wx.Panel(self)
         self.left_panel.SetBackgroundColour((37, 103, 209))
-        self.load_btn = wx.Button(self.left_panel, wx.ID_ANY, "Browse Files")
-        self.check_btn = wx.Button(self.left_panel, wx.ID_ANY, 'Verify Code')
+        self.load_btn = wx.Button(self.left_panel, wx.ID_ANY, _("Browse Files"))
+        self.check_btn = wx.Button(self.left_panel, wx.ID_ANY, _('Verify Code'))
 
-        left_heading = wx.StaticText(self.left_panel, -1, label="Editor")
+        left_heading = wx.StaticText(self.left_panel, -1, label= _("Editor"))
         left_heading = self.style(left_heading, self.header_font)
 
         editor_font = wx.Font(14, wx.MODERN, wx.NORMAL,
@@ -218,7 +218,7 @@ class Gui(wx.Frame):        # main options screen
         self.input_text.AppendText("DEVICES {\n\n}\nCONNECTIONS {\n\n}")
 
         self.error_text = wx.TextCtrl(self.left_panel, wx.ID_ANY, size=(
-            -1, wx.ALL), style=wx.TE_MULTILINE | wx.TE_READONLY, value="Click run to check for errors")
+            -1, wx.ALL), style=wx.TE_MULTILINE | wx.TE_READONLY, value=_("Click run to check for errors"))
         self.error_text.SetFont(editor_font)
         self.error_text.SetStyle(0, -1, wx.TextAttr(wx.RED))
 
@@ -272,7 +272,7 @@ class Gui(wx.Frame):        # main options screen
         #     pass
 
         if self.scanner.total_error_string == "":
-            self.error_text.AppendText("No errors found")
+            self.error_text.AppendText(_("No errors found"))
         else:
             self.error_text.Clear()
             self.error_text.AppendText(self.scanner.total_error_string)
@@ -294,13 +294,13 @@ class Gui(wx.Frame):        # main options screen
                 pass
             self.right_panel.Update()
 
-            middle_heading = wx.StaticText(self.middle_panel, label="Options")
+            middle_heading = wx.StaticText(self.middle_panel, label=_("Options"))
             middle_heading = self.style(middle_heading, self.header_font)
             self.middle_sizer.Add(
                 middle_heading, 0, wx.ALL | wx.ALIGN_CENTER, 10)
 
             self.toggle_right_panel = wx.ToggleButton(
-                self.middle_panel, label="show circuit (experimental)")
+                self.middle_panel, label=_("show circuit (experimental)"))
             self.toggle_right_panel.Bind(
                 wx.EVT_TOGGLEBUTTON, self.OnRightPanelToggle)
             self.middle_sizer.Add(self.toggle_right_panel,
@@ -308,22 +308,22 @@ class Gui(wx.Frame):        # main options screen
 
             device_info = wx.FlexGridSizer(4, 0, 10)
             # ------------- HEADINGS ------------- #
-            label = wx.StaticText(self.middle_panel, label="Name")
+            label = wx.StaticText(self.middle_panel, label=_("Name"))
             label = self.style(label, self.label_font)
             device_info.Add(label, 0,
                             wx.EXPAND | wx.ALL, 0)
 
-            label = wx.StaticText(self.middle_panel, label="Type")
+            label = wx.StaticText(self.middle_panel, label=_("Type"))
             label = self.style(label, self.label_font)
             device_info.Add(label, 0,
                             wx.EXPAND | wx.ALL, 0)
 
-            label = wx.StaticText(self.middle_panel, label="Inputs")
+            label = wx.StaticText(self.middle_panel, label=_("Inputs"))
             label = self.style(label, self.label_font)
             device_info.Add(label, 0,
                             wx.EXPAND | wx.ALL, 0)
 
-            label = wx.StaticText(self.middle_panel, label="Outputs")
+            label = wx.StaticText(self.middle_panel, label=_("Outputs"))
             label = self.style(label, self.label_font)
             device_info.Add(label, 0,
                             wx.EXPAND | wx.ALL, 0)
@@ -357,7 +357,7 @@ class Gui(wx.Frame):        # main options screen
                 device_info.Add(label, 0,
                                 wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
                 # MONITOR OPTIONS
-                # TODO: make them do somwthing
+                # TODO: make them do something
                 if device.device_kind == self.devices.D_TYPE:
                     device.monitor_btn = wx.ToggleButton(
                         self.middle_panel, label="monitor {}.Q".format(name))
@@ -420,7 +420,7 @@ class Gui(wx.Frame):        # main options screen
                                         wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
 
                 device.switch_btn = wx.ToggleButton(
-                    self.middle_panel, label="initial switch state")
+                    self.middle_panel, label=_("initial switch state"))
                 device.switch_btn.Bind(wx.EVT_TOGGLEBUTTON, self.OnToggleClick)
                 device.switch_btn.SetForegroundColour('white')
                 if device.switch_state:
@@ -440,7 +440,7 @@ class Gui(wx.Frame):        # main options screen
             self.middle_sizer.Insert(1, device_info, 0,
                                      wx.ALL | wx.ALIGN_CENTER, 30)
 
-            simulate_btn = wx.Button(self.middle_panel, label="Simulate!")
+            simulate_btn = wx.Button(self.middle_panel, label=_("Simulate!"))
             simulate_btn.Bind(wx.EVT_BUTTON, self.newSimulate)
 
             self.middle_sizer.Add(simulate_btn, 0,
@@ -506,7 +506,7 @@ class Gui(wx.Frame):        # main options screen
     def LoadFile(self, event):
 
         # otherwise ask the user what new file to open
-        with wx.FileDialog(self, "Open file", wildcard="TXT files (*.txt)|*.txt",
+        with wx.FileDialog(self, _("Open file"), wildcard="TXT files (*.txt)|*.txt",
                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
             fileDialog.SetSize((120, 80))
 
@@ -520,7 +520,7 @@ class Gui(wx.Frame):        # main options screen
                     self.input_text.ClearAll()
                     self.input_text.AppendText(f.read())
             except IOError:
-                wx.LogError("Cannot open file '%s'." % pathname)
+                wx.LogError(_("Cannot open file '%s'.") % pathname)
 
     def open_help(self, event):
         filepath = 'GUI/helpfile.pdf'
@@ -541,7 +541,7 @@ class SimulatePage(wx.Frame):       # simulation screen
 
     def __init__(self, parent):
         """Initialise widgets and layout."""
-        super().__init__(parent=parent, title="Simulation")
+        super().__init__(parent=parent, title=_("Simulation"))
 
         self.SetIcon(wx.Icon('GUI/CUED Software.png'))
         self.Maximize(True)
@@ -554,22 +554,22 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.Bind(wx.EVT_CLOSE, self.on_close)
         
         # Configure the widgets
-        self.tostart = wx.Button(self, wx.ID_ANY, "GOTO START")
+        self.tostart = wx.Button(self, wx.ID_ANY, _("GOTO START"))
         self.tostart.name = 'start'
         self.tostart.Bind(wx.EVT_BUTTON, self.on_btn, self.tostart)
-        self.back5 = wx.Button(self, wx.ID_ANY, "Step -5")
-        self.back1 = wx.Button(self, wx.ID_ANY, "Step -1")
+        self.back5 = wx.Button(self, wx.ID_ANY, _("Step -5"))
+        self.back1 = wx.Button(self, wx.ID_ANY, _("Step -1"))
         play_pause = wx.Bitmap('GUI/Glyphicons/playpause.png')
         play_pause = scale_bitmap(play_pause, 25, 25)
         self.pause = wx.BitmapToggleButton(self, wx.ID_ANY, play_pause)
-        self.fwd1 = wx.Button(self, wx.ID_ANY, "Step +1")
-        self.fwd5 = wx.Button(self, wx.ID_ANY, "Step +5")
-        self.toend = wx.Button(self, wx.ID_ANY, "GOTO END")
-        self.toend.name = 'end'
+        self.fwd1 = wx.Button(self, wx.ID_ANY, _("Step +1"))
+        self.fwd5 = wx.Button(self, wx.ID_ANY, _("Step +5"))
+        self.toend = wx.Button(self, wx.ID_ANY, _("GOTO END"))
+        self.toend.name ='end'
         self.toend.Bind(wx.EVT_BUTTON, self.on_btn, self.toend)
 
-        self.reset = wx.Button(self, wx.ID_ANY, "Reset Scene")
-        self.reset.name = 'reset'
+        self.reset = wx.Button(self, wx.ID_ANY, _("Reset Scene"))
+        self.reset.name ='reset'
         self.reset.Bind(wx.EVT_BUTTON, self.on_btn, self.reset)
 
         # Configure sizers for layout
@@ -594,7 +594,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         toolbar.AddSpacer(70)
         toolbar.Add(self.toend, 0, wx.ALL | wx.ALIGN_RIGHT|wx.EXPAND, 5)
 
-        helpBtn = wx.Button(self, wx.ID_ANY, "Help")
+        helpBtn = wx.Button(self, wx.ID_ANY, _("Help"))
         helpBtn.Bind(wx.EVT_BUTTON, self.open_help)
         right_sizer.Add(helpBtn, 0, wx.ALL | wx.ALIGN_RIGHT, 0)
 
@@ -603,7 +603,7 @@ class SimulatePage(wx.Frame):       # simulation screen
 
         row = wx.BoxSizer(wx.HORIZONTAL)
         self.continueSpin = wx.SpinCtrl(self, wx.ID_ANY, "5")
-        self.continueBtn = wx.Button(self, wx.ID_ANY, "Continue")
+        self.continueBtn = wx.Button(self, wx.ID_ANY, _("Continue"))
         self.continueBtn.name = "continue"
         self.continueBtn.Bind(wx.EVT_BUTTON, self.on_btn, self.continueBtn)
 
@@ -617,7 +617,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         for device in self.parent.devices.devices_list:
             if device.device_kind == self.parent.devices.SWITCH:
                 row = wx.BoxSizer(wx.HORIZONTAL)
-                device.switch_btn = wx.ToggleButton(self, label="On/Off")
+                device.switch_btn = wx.ToggleButton(self, label=_("On/Off"))
                 device.switch_btn.name = 'switch '+str(device.device_id)
                 device.switch_btn.Bind(wx.EVT_TOGGLEBUTTON, self.on_btn, device.switch_btn)
 
@@ -684,7 +684,7 @@ class SimulatePage(wx.Frame):       # simulation screen
             if self.parent.network.execute_network():
                 self.parent.monitors.record_signals()
             else:
-                print("Error! Network oscillating.")
+                print(_("Error! Network oscillating."))
 
         self.canvas.signals = []
 
