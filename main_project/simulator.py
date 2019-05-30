@@ -188,3 +188,11 @@ class Canvas(wxcanvas.GLCanvas):
 
         GL.glEnd()
         return
+    
+    # def loop(self):
+    #     while True:
+    #         self.pan_x += 2
+    #         self.render()
+    #         time.sleep(0.2)
+    #         self.Refresh()
+    #         print("move")

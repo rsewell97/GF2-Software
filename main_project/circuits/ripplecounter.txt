@@ -1,34 +1,39 @@
 DEVICES {
-   A, B, C are DTYPE;
-   S1 is SWITCH;
-   S1 set 1;
+   A, B, C, D are DTYPE;
+   RST, ST are SWITCH;
    CKL1 is CLOCK;
    CKL1 has cycle 1;
 }
 
 CONNECTIONS {
    device A {
-       C.QBAR to A.DATA;
-       S1 to A.CLEAR;
-       S1 to A.SET;
+       A.QBAR to A.DATA;
+       RST to A.CLEAR;
+       ST to A.SET;
        CKL1 to A.CLK;
    }
    device B {
-       A.Q to B.DATA;
-       S1 to B.CLEAR;
-       S1 to B.SET;
-       CKL1 to B.CLK;
+       B.QBAR to B.DATA;
+       RST to B.CLEAR;
+       ST to B.SET;
+       A.Q to B.CLK;
    }
    device C {
-       B.Q to C.DATA;
-       S1 to C.CLEAR;
-       S1 to C.SET;
-       CKL1 to C.CLK;
+       C.QBAR to C.DATA;
+       RST to C.CLEAR;
+       ST to C.SET;
+       B.Q to C.CLK;
+   }
+   device D {
+       D.QBAR to D.DATA;
+       RST to D.CLEAR;
+       ST to D.SET;
+       C.Q to D.CLK;
    }
 }
 
 MONITOR {
-   A.Q, B.Q, C.Q, CKL1;
+   A.Q, B.Q, C.Q, D.Q, CKL1;
 }
 
 

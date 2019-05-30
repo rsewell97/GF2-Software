@@ -621,6 +621,9 @@ class SimulatePage(wx.Frame):       # simulation screen
                 device.switch_btn.name = 'switch '+str(device.device_id)
                 device.switch_btn.Bind(wx.EVT_TOGGLEBUTTON, self.on_btn, device.switch_btn)
 
+                if device.switch_state == 1:
+                    device.switch_btn.SetValue(True)
+
                 row.Add(wx.StaticText(self, 0, label=self.parent.names.get_name_string(device.device_id)), 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL)
                 row.AddSpacer(30)
                 row.Add(device.switch_btn, 0, wx.ALL | wx.EXPAND)
@@ -632,7 +635,6 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.SetSizerAndFit(main_sizer)
 
         
-
     def on_btn(self, event):
         obj = event.GetEventObject()
         name = obj.name
@@ -657,8 +659,10 @@ class SimulatePage(wx.Frame):       # simulation screen
         elif name == 'reset':
             self.parent.monitors.reset_monitors()
             self.canvas.signals = []
+            self.canvas.pan_x = 0
             self.canvas.init = False
             self.canvas.Refresh()
+
 
         elif name.split(' ')[0] == 'switch':
             if obj.GetValue():
