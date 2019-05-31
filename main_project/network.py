@@ -331,6 +331,18 @@ class Network:
         else:
             return False
 
+    def execute_siggen(self, device_id):
+        """Simulate a clock and update its output signal value.
+
+        Return True if successful.
+        """
+        device = self.devices.get_device(device_id)
+        device.clock_counter = (device.clock_counter + 1) % len(device.trace)
+        output_signal = int(device.trace[device.clock_counter])  # output ID is None
+        device.outputs[None] = output_signal
+
+        return True
+
     def update_clocks(self):
         """If it is time to do so, set clock signals to RISING or FALLING."""
         clock_devices = self.devices.find_devices(self.devices.CLOCK)
@@ -354,6 +366,7 @@ class Network:
         clock_devices = self.devices.find_devices(self.devices.CLOCK)
         switch_devices = self.devices.find_devices(self.devices.SWITCH)
         d_type_devices = self.devices.find_devices(self.devices.D_TYPE)
+        siggen_devices = self.devices.find_devices(self.devices.SIGGEN)
         and_devices = self.devices.find_devices(self.devices.AND)
         or_devices = self.devices.find_devices(self.devices.OR)
         nand_devices = self.devices.find_devices(self.devices.NAND)
@@ -377,6 +390,9 @@ class Network:
                     return False
             # Execute D-type devices before clocks to catch the rising edge of
             # the clock
+            for device_id in siggen_devices:  # execute XOR devices
+                if not self.execute_siggen(device_id):
+                    return False
             for device_id in d_type_devices:  # execute DTYPE devices
                 if not self.execute_d_type(device_id):
                     return False
@@ -402,6 +418,7 @@ class Network:
             for device_id in xor_devices:  # execute XOR devices
                 if not self.execute_gate(device_id, None, None):
                     return False
+
             if self.steady_state:
                 break
         return self.steady_state

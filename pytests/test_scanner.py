@@ -3,9 +3,9 @@
 Writen by Lea """
 
 import pytest
-from names import Names
-from scanner import Scanner
-from error import SyntaxError , SemanticError , ValueError, UnclassedError
+from main_project.names import Names
+from main_project.scanner import Scanner
+from main_project.error import SyntaxError , SemanticError , ValueError, UnclassedError
 
 '''Test the scanner module'
 

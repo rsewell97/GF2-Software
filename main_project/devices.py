@@ -35,6 +35,7 @@ class Device:
         self.device_kind = None
         self.clock_half_period = None
         self.clock_counter = None
+        self.trace = None
         self.switch_state = None
         self.dtype_memory = None
 
@@ -85,7 +86,7 @@ class Devices:
         self.devices_list = []
 
         gate_strings = ["AND", "OR", "NAND", "NOR", "XOR", "NOT"]
-        device_strings = ["CLOCK", "SWITCH", "DTYPE"]
+        device_strings = ["CLOCK", "SWITCH", "DTYPE", "SIGGEN"]
         dtype_inputs = ["CLK", "SET", "CLEAR", "DATA"]
         dtype_outputs = ["Q", "QBAR"]
 
@@ -98,7 +99,7 @@ class Devices:
         self.gate_types = [self.AND, self.OR, self.NAND, self.NOR,
                            self.XOR, self.NOT] = self.names.lookup(gate_strings)
         self.device_types = [self.CLOCK, self.SWITCH,
-                             self.D_TYPE] = self.names.lookup(device_strings)
+                             self.D_TYPE, self.SIGGEN] = self.names.lookup(device_strings)
         self.dtype_input_ids = [self.CLK_ID, self.SET_ID, self.CLEAR_ID,
                                 self.DATA_ID] = self.names.lookup(dtype_inputs)
         self.dtype_output_ids = [
@@ -216,6 +217,16 @@ class Devices:
 
         self.cold_startup()  # clock initialised to a random point in its cycle
 
+    def make_siggen(self, device_id, trace):
+        """Make a clock device with the specified half period.
+        clock_half_period is an integer > 0. It is the number of simulation
+        cycles before the clock switches state.
+        """
+        device = self.get_device(device_id)
+        device.trace = trace
+
+        self.cold_startup()  # clock initialised to a random point in its cycle
+
     def make_gate(self, device_id, device_kind, no_of_inputs):
         """Make logic gates with the specified number of inputs."""
         self.add_device(device_id, device_kind)
@@ -251,6 +262,14 @@ class Devices:
                 # Initialise it to a random point in its cycle.
                 device.clock_counter = \
                     random.randrange(device.clock_half_period)
+
+            elif device.device_kind == self.SIGGEN:
+                device.clock_counter = \
+                    random.randrange(len(device.trace))
+
+                signal = int(device.trace[device.clock_counter])
+                self.add_output(device.device_id, output_id=None,
+                                signal=signal)
 
     def make_device(self, device_id, device_kind, device_property=None):
         """Create the specified device.

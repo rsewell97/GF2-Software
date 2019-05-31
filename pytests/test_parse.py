@@ -3,13 +3,13 @@
 Writen by Lea """
 import pytest
 
-from names import Names
-from scanner import Scanner
-from network import Network
-from devices import Devices
-from parse import Parser
-from monitors import Monitors
-from error import SyntaxError, SemanticError, ValueError, UnclassedError
+from main_project.names import Names
+from main_project.scanner import Scanner
+from main_project.network import Network
+from main_project.devices import Devices
+from main_project.parse import Parser
+from main_project.monitors import Monitors
+from main_project.error import SyntaxError, SemanticError, ValueError, UnclassedError
 
 
 def startup_parser(data):

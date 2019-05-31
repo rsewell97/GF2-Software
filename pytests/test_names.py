@@ -2,7 +2,7 @@
 
 Written by Lea"""
 import pytest
-from names import Names
+from main_project.names import Names
 
 
 @pytest.fixture
