@@ -1,8 +1,8 @@
 """Test the devices module."""
 import pytest
 
-from names import Names
-from devices import Devices
+from main_project.names import Names
+from main_project.devices import Devices
 
 
 @pytest.fixture
