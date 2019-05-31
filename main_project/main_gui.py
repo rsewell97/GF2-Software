@@ -701,8 +701,7 @@ class SimulatePage(wx.Frame):       # simulation screen
                 self.canvas.Refresh()
 
             self.canvas3d.init = False
-            self.canvas3d.Refresh()
-            
+            self.canvas3d.Refresh()         
 
         elif name == 'reset':
             self.parent.monitors.reset_monitors()
@@ -763,8 +762,15 @@ class SimulatePage(wx.Frame):       # simulation screen
             self.canvas.signals.append([monitor_name, value])
             self.canvas3d.signals.append([monitor_name, value])
             count += 1
-        self.canvas.render()
-        self.canvas3d.render()
+        
+        try:
+            self.canvas.render()
+        except wx._core.wxAssertionError:
+            pass
+        try:
+            self.canvas3d.render()
+        except wx._core.wxAssertionError:
+            pass
 
 
     def open_help(self, event):
