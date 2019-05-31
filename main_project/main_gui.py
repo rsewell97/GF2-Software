@@ -586,9 +586,11 @@ class SimulatePage(wx.Frame):       # simulation screen
         main_sizer.Add(self.left_sizer, 5, wx.ALL | wx.EXPAND, 0)
         main_sizer.Add(right_sizer, 1, wx.ALL | wx.EXPAND, 5)
 
+        self.canvas_placeholder = wx.Panel(self)
         self.canvas_panel = wx.Panel(self)
         self.canvas3d_panel = wx.Panel(self)
 
+        canvas_placeholder = wx.BoxSizer(wx.VERTICAL)
         canvas_sizer = wx.BoxSizer(wx.VERTICAL)
         canvas_sizer3d = wx.BoxSizer(wx.VERTICAL)
 
@@ -597,11 +599,14 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.canvas3d = Canvas3D(self.canvas3d_panel, parent.devices,
                     parent.monitors, parent.network)
 
+        canvas_placeholder.AddStretchSpacer()
         canvas_sizer.Add(self.canvas, 1, wx.ALL | wx.EXPAND, 0)
         canvas_sizer3d.Add(self.canvas3d, 1, wx.ALL | wx.EXPAND, 0)
+        self.canvas_placeholder.SetSizer(canvas_placeholder)
         self.canvas_panel.SetSizer(canvas_sizer)
         self.canvas3d_panel.SetSizer(canvas_sizer3d)
 
+        self.left_sizer.Add(self.canvas_placeholder, 100,  wx.ALL | wx.EXPAND, 0)
         self.left_sizer.Add(self.canvas_panel, 100, wx.ALL | wx.EXPAND, 0)
         self.left_sizer.Add(self.canvas3d_panel, 100, wx.ALL | wx.EXPAND, 0)
         self.left_sizer.Add(toolbar, 0, wx.ALL | wx.EXPAND, 5)
@@ -660,6 +665,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.toggle2d = wx.ToggleButton(self, label="Show/Hide 2D")
         self.toggle3d = wx.ToggleButton(self, label="Show/Hide 3D")
 
+        self.canvas_placeholder.Hide()
         if is3d:
             self.toggle3d.SetValue(True)
             self.canvas_panel.Hide()
@@ -726,15 +732,21 @@ class SimulatePage(wx.Frame):       # simulation screen
         elif name == '2D':
             if obj.GetValue():
                 self.canvas_panel.Show()
+                self.canvas_placeholder.Hide()
             else:
                 self.canvas_panel.Hide()
+                if not self.toggle3d.GetValue():
+                    self.canvas_placeholder.Show()
             self.Layout()
 
         elif name == '3D':
             if obj.GetValue():
                 self.canvas3d_panel.Show()
+                self.canvas_placeholder.Hide()
             else:
-                self.canvas3d_panel.Hide()         
+                self.canvas3d_panel.Hide()      
+                if not self.toggle2d.GetValue():
+                    self.canvas_placeholder.Show()   
             self.Layout()
 
     def on_close(self, event):
