@@ -18,6 +18,7 @@ from PIL import Image
 import numpy as np
 import random
 import subprocess
+from multiprocessing import Process
 
 from names import Names
 from devices import Devices
@@ -488,7 +489,7 @@ class Gui(wx.Frame):        # main options screen
                 else:
                     self.devices.set_switch(device.device_id, self.devices.LOW)
         
-        self.SimulateWindow.run(5)
+        self.SimulateWindow.run(2, True)
 
     def OnRightPanelToggle(self, event):
         obj = event.GetEventObject()
@@ -554,6 +555,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.SetIcon(wx.Icon('.GUI/CUED Software.png'))
         self.Maximize(True)
         self.SetBackgroundColour((186, 211, 255))
+        self.colours = []
         self.parent = parent
         self.is3d = is3d
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -562,13 +564,19 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.tostart = wx.Button(self, wx.ID_ANY, "GOTO START")
         self.tostart.name = 'start'
         self.tostart.Bind(wx.EVT_BUTTON, self.on_btn, self.tostart)
+
         self.back5 = wx.Button(self, wx.ID_ANY, "Step -5")
         self.back1 = wx.Button(self, wx.ID_ANY, "Step -1")
+
         play_pause = wx.Bitmap('.GUI/Glyphicons/playpause.png')
         play_pause = scale_bitmap(play_pause, 25, 25)
         self.pause = wx.BitmapToggleButton(self, wx.ID_ANY, play_pause)
+        self.pause.name = 'pause'
+        self.pause.Bind(wx.EVT_TOGGLEBUTTON, self.on_btn, self.pause)
+
         self.fwd1 = wx.Button(self, wx.ID_ANY, "Step +1")
         self.fwd5 = wx.Button(self, wx.ID_ANY, "Step +5")
+
         self.toend = wx.Button(self, wx.ID_ANY, "GOTO END")
         self.toend.name = 'end'
         self.toend.Bind(wx.EVT_BUTTON, self.on_btn, self.toend)
@@ -714,6 +722,7 @@ class SimulatePage(wx.Frame):       # simulation screen
             self.canvas.signals = []
             self.canvas.pan_x = 0
             self.canvas.init = False
+            self.canvas.play = False
             self.canvas.Refresh()
 
             self.canvas3d.signals = []
@@ -728,6 +737,14 @@ class SimulatePage(wx.Frame):       # simulation screen
             else:
                 self.parent.devices.set_switch(int(name.split(' ')[-1]), 0)
                 obj.SetBackgroundColour('#e0473a')
+
+        elif name == 'pause':
+            if obj.GetValue():
+                self.canvas.play = True
+                p = Process(target=self.canvas.test_loop)
+                p.start()
+            else:
+                self.canvas.play = False
 
         elif name == '2D':
             if obj.GetValue():
@@ -758,6 +775,9 @@ class SimulatePage(wx.Frame):       # simulation screen
     def run(self, num, reset=False):
         if reset:
             self.parent.monitors.reset_monitors()
+            self.colours = []
+            for i in range(len(self.parent.monitors.monitors_dictionary)):
+                self.colours.append((random.uniform(0,0.9), random.uniform(0,0.9), random.uniform(0,0.9)))
         
         for _ in range(num):
             if self.parent.network.execute_network():
@@ -771,8 +791,8 @@ class SimulatePage(wx.Frame):       # simulation screen
         count = 0
         for (device_id, output_id), value in self.parent.monitors.monitors_dictionary.items():
             monitor_name = self.parent.devices.get_signal_name(device_id, output_id)
-            self.canvas.signals.append([monitor_name, value])
-            self.canvas3d.signals.append([monitor_name, value])
+            self.canvas.signals.append([monitor_name, self.colours[count], value])
+            self.canvas3d.signals.append([monitor_name, self.colours[count], value])
             count += 1
         
         try:
