@@ -13,7 +13,7 @@ import wx
 import wx.stc
 import wx.lib.scrolledpanel
 import wx.glcanvas as wxcanvas
-from OpenGL import GL, GLUT
+from OpenGL import GL
 from PIL import Image
 import numpy as np
 import random
@@ -26,14 +26,12 @@ from monitors import Monitors
 from scanner import Scanner
 from parse import Parser
 
-# from simulator import Canvas
-from simulator import Canvas
+from simulator import Canvas, Canvas3D
 
 def scale_bitmap(bitmap, width, height):
     image = bitmap.ConvertToImage()
     image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
     return wx.Bitmap(image)
-
 
 class CircuitDiagram(wx.Panel):
 
@@ -218,7 +216,7 @@ class Gui(wx.Frame):        # main options screen
         self.input_text.AppendText("DEVICES {\n\n}\nCONNECTIONS {\n\n}")
 
         self.error_text = wx.TextCtrl(self.left_panel, wx.ID_ANY, size=(
-            -1, wx.ALL), style=wx.TE_MULTILINE | wx.TE_READONLY, value="Click run to check for errors")
+            -1, wx.ALL), style=wx.TE_MULTILINE | wx.TE_READONLY, value="Click 'Verify Code' to check for errors")
         self.error_text.SetFont(editor_font)
         self.error_text.SetStyle(0, -1, wx.TextAttr(wx.RED))
 
@@ -440,16 +438,21 @@ class Gui(wx.Frame):        # main options screen
             self.middle_sizer.Insert(1, device_info, 0,
                                      wx.ALL | wx.ALIGN_CENTER, 30)
 
-            simulate_btn = wx.Button(self.middle_panel, label="Simulate!")
-            simulate_btn.Bind(wx.EVT_BUTTON, self.newSimulate)
+            row = wx.BoxSizer(wx.HORIZONTAL)
+            simulate_btn = wx.Button(self.middle_panel, label="Simulate in 2D")
+            simulate_btn.name = '2D'
+            simulate_btn.Bind(wx.EVT_BUTTON, self.newSimulate, simulate_btn)
+            row.Add(simulate_btn, 1, wx.EXPAND, 5)
+            
+            simulate_btn3 = wx.Button(self.middle_panel, label="Simulate in 3D")
+            simulate_btn3.name = '3D'
+            simulate_btn3.Bind(wx.EVT_BUTTON, self.newSimulate, simulate_btn3)
+            row.Add(simulate_btn3, 1, wx.EXPAND, 5)
 
-            self.middle_sizer.Add(simulate_btn, 0,
-                                wx.ALL | wx.EXPAND, 30)
+            self.middle_sizer.Add(row, 0, wx.EXPAND | wx.ALIGN_CENTER, 30)
 
         self.middle_panel.Show()
-        self.SimulateWindow = SimulatePage(self)
-
-
+        
         self.canvas = CircuitDiagram(
             self.right_panel, self.devices, self.network, self.names)
         self.right_sizer.Clear()
@@ -458,8 +461,13 @@ class Gui(wx.Frame):        # main options screen
         self.Layout()
 
     def newSimulate(self, event):
+        name = event.GetEventObject().name
+        if name == '3D':
+            self.SimulateWindow = SimulatePage(self, True)
+        elif name == '2D':
+            self.SimulateWindow = SimulatePage(self, False)
+        
         self.SimulateWindow.Show()
-
         self.monitors.reset_monitors()
 
         for device in self.devices.devices_list:
@@ -539,7 +547,7 @@ class Gui(wx.Frame):        # main options screen
 
 class SimulatePage(wx.Frame):       # simulation screen
 
-    def __init__(self, parent):
+    def __init__(self, parent, is3d=False):
         """Initialise widgets and layout."""
         super().__init__(parent=parent, title="Simulation")
 
@@ -547,10 +555,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.Maximize(True)
         self.SetBackgroundColour((186, 211, 255))
         self.parent = parent
-
-        # Canvas for drawing signals
-        self.canvas = Canvas(self, parent.devices,
-                             parent.monitors, parent.network)
+        self.is3d = is3d
         self.Bind(wx.EVT_CLOSE, self.on_close)
         
         # Configure the widgets
@@ -574,15 +579,32 @@ class SimulatePage(wx.Frame):       # simulation screen
 
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        left_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.left_sizer = wx.BoxSizer(wx.VERTICAL)
         toolbar = wx.GridSizer(9)
         right_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        main_sizer.Add(left_sizer, 5, wx.ALL | wx.EXPAND, 0)
+        main_sizer.Add(self.left_sizer, 5, wx.ALL | wx.EXPAND, 0)
         main_sizer.Add(right_sizer, 1, wx.ALL | wx.EXPAND, 5)
 
-        left_sizer.Add(self.canvas, 100, wx.ALL | wx.EXPAND, 0)
-        left_sizer.Add(toolbar, 0, wx.ALL | wx.EXPAND, 5)
+        self.canvas_panel = wx.Panel(self)
+        self.canvas3d_panel = wx.Panel(self)
+
+        canvas_sizer = wx.BoxSizer(wx.VERTICAL)
+        canvas_sizer3d = wx.BoxSizer(wx.VERTICAL)
+
+        self.canvas = Canvas(self.canvas_panel, parent.devices,
+                    parent.monitors, parent.network)
+        self.canvas3d = Canvas3D(self.canvas3d_panel, parent.devices,
+                    parent.monitors, parent.network)
+
+        canvas_sizer.Add(self.canvas, 1, wx.ALL | wx.EXPAND, 0)
+        canvas_sizer3d.Add(self.canvas3d, 1, wx.ALL | wx.EXPAND, 0)
+        self.canvas_panel.SetSizer(canvas_sizer)
+        self.canvas3d_panel.SetSizer(canvas_sizer3d)
+
+        self.left_sizer.Add(self.canvas_panel, 100, wx.ALL | wx.EXPAND, 0)
+        self.left_sizer.Add(self.canvas3d_panel, 100, wx.ALL | wx.EXPAND, 0)
+        self.left_sizer.Add(toolbar, 0, wx.ALL | wx.EXPAND, 5)
 
         toolbar.Add(self.tostart, 1, wx.ALL | wx.ALIGN_LEFT|wx.EXPAND, 5)
         toolbar.AddSpacer(70)
@@ -599,7 +621,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         right_sizer.Add(helpBtn, 0, wx.ALL | wx.ALIGN_RIGHT, 0)
 
         self.speedSizer = wx.Slider(self, value=30, minValue=5, maxValue=60)
-        # right_sizer.Add(self.speedSizer, 0, wx.ALL|wx.GROW, 10)
+        right_sizer.Add(self.speedSizer, 0, wx.ALL|wx.GROW, 10)
 
         row = wx.BoxSizer(wx.HORIZONTAL)
         self.continueSpin = wx.SpinCtrl(self, wx.ID_ANY, "5")
@@ -611,30 +633,52 @@ class SimulatePage(wx.Frame):       # simulation screen
         row.Add(self.continueSpin, 0, wx.ALL, 10)
         right_sizer.AddSpacer(30)
         row.Add(self.continueBtn, 0, wx.ALL, 10)
+        
         right_sizer.Add(row, 0, wx.EXPAND, 10)
         right_sizer.AddSpacer(30)
 
+        pan = wx.GridSizer(2)
         for device in self.parent.devices.devices_list:
             if device.device_kind == self.parent.devices.SWITCH:
-                row = wx.BoxSizer(wx.HORIZONTAL)
+
                 device.switch_btn = wx.ToggleButton(self, label="On/Off")
+                device.switch_btn.SetForegroundColour('white')
                 device.switch_btn.name = 'switch '+str(device.device_id)
                 device.switch_btn.Bind(wx.EVT_TOGGLEBUTTON, self.on_btn, device.switch_btn)
 
                 if device.switch_state == 1:
                     device.switch_btn.SetValue(True)
+                    device.switch_btn.SetBackgroundColour('#3ac10d')
+                else:
+                    device.switch_btn.SetBackgroundColour('#e0473a')
 
-                row.Add(wx.StaticText(self, 0, label=self.parent.names.get_name_string(device.device_id)), 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL)
-                row.AddSpacer(30)
-                row.Add(device.switch_btn, 0, wx.ALL | wx.EXPAND)
-
-                right_sizer.Add(row, 0, wx.ALIGN_CENTER)
-        
+                pan.Add(wx.StaticText(self, 0, label=self.parent.names.get_name_string(device.device_id)), 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+                pan.Add(device.switch_btn, 0, wx.ALL | wx.EXPAND)
+        right_sizer.Add(pan, 0, wx.ALIGN_CENTER)
         right_sizer.AddSpacer(30)
-        right_sizer.Add(self.reset, 0, wx.EXPAND|wx.ALIGN_CENTER|wx.BOTTOM, 5)
+
+        self.toggle2d = wx.ToggleButton(self, label="Show/Hide 2D")
+        self.toggle3d = wx.ToggleButton(self, label="Show/Hide 3D")
+
+        if is3d:
+            self.toggle3d.SetValue(True)
+            self.canvas_panel.Hide()
+        else:
+            self.toggle2d.SetValue(True)
+            self.canvas3d_panel.Hide()
+
+        self.toggle2d.name = '2D'
+        self.toggle2d.Bind(wx.EVT_TOGGLEBUTTON, self.on_btn, self.toggle2d)
+        self.toggle3d.name = '3D'
+        self.toggle3d.Bind(wx.EVT_TOGGLEBUTTON, self.on_btn, self.toggle3d)
+
+        right_sizer.Add(self.toggle3d, 0, wx.ALL | wx.EXPAND, 0)
+        right_sizer.Add(self.toggle2d, 0, wx.ALL | wx.EXPAND, 0)
+        right_sizer.AddSpacer(50)
+        right_sizer.Add(self.reset, 0, wx.EXPAND | wx.ALIGN_CENTER | wx.BOTTOM, 5)
         self.SetSizerAndFit(main_sizer)
 
-        
+
     def on_btn(self, event):
         obj = event.GetEventObject()
         name = obj.name
@@ -656,6 +700,10 @@ class SimulatePage(wx.Frame):       # simulation screen
                 self.canvas.init = False
                 self.canvas.Refresh()
 
+            self.canvas3d.init = False
+            self.canvas3d.Refresh()
+            
+
         elif name == 'reset':
             self.parent.monitors.reset_monitors()
             self.canvas.signals = []
@@ -663,13 +711,33 @@ class SimulatePage(wx.Frame):       # simulation screen
             self.canvas.init = False
             self.canvas.Refresh()
 
+            self.canvas3d.signals = []
+            self.canvas3d.init = False
+            self.canvas3d.Refresh()
+
 
         elif name.split(' ')[0] == 'switch':
             if obj.GetValue():
                 self.parent.devices.set_switch(int(name.split(' ')[-1]), 1)
+                obj.SetBackgroundColour('#3ac10d')
             else:
                 self.parent.devices.set_switch(int(name.split(' ')[-1]), 0)
-        
+                obj.SetBackgroundColour('#e0473a')
+
+        elif name == '2D':
+            if obj.GetValue():
+                self.canvas_panel.Show()
+            else:
+                self.canvas_panel.Hide()
+            self.Layout()
+
+        elif name == '3D':
+            if obj.GetValue():
+                self.canvas3d_panel.Show()
+            else:
+                self.canvas3d_panel.Hide()         
+            self.Layout()
+
     def on_close(self, event):
         self.Destroy()  
         c = self.__class__
@@ -687,13 +755,16 @@ class SimulatePage(wx.Frame):       # simulation screen
                 print("Error! Network oscillating.")
 
         self.canvas.signals = []
+        self.canvas3d.signals = []
 
         count = 0
         for (device_id, output_id), value in self.parent.monitors.monitors_dictionary.items():
             monitor_name = self.parent.devices.get_signal_name(device_id, output_id)
             self.canvas.signals.append([monitor_name, value])
+            self.canvas3d.signals.append([monitor_name, value])
             count += 1
         self.canvas.render()
+        self.canvas3d.render()
 
 
     def open_help(self, event):
