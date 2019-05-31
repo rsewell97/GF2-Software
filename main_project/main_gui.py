@@ -38,15 +38,15 @@ class CircuitDiagram(wx.Panel):
     def __init__(self, parent, devices, network, names):
         """Initialise canvas properties and useful variables."""
         self.icons = {
-            "OR": wx.Bitmap('GUI/Gates/OR.png'),
-            "XOR": wx.Bitmap('GUI/Gates/XOR.png'),
-            "SWITCH": wx.Bitmap('GUI/Gates/SWITCH.png'),
-            "CLOCK": wx.Bitmap('GUI/Gates/CLOCK.png'),
-            "DTYPE": wx.Bitmap('GUI/Gates/DTYPE.png'),
-            "AND": wx.Bitmap('GUI/Gates/AND.png'),
-            "NAND": wx.Bitmap('GUI/Gates/NAND.png'),
-            "NOT": wx.Bitmap('GUI/Gates/NOT.png'),
-            "NOR": wx.Bitmap('GUI/Gates/NOR.png')
+            "OR": wx.Bitmap('.GUI/Gates/OR.png'),
+            "XOR": wx.Bitmap('.GUI/Gates/XOR.png'),
+            "SWITCH": wx.Bitmap('.GUI/Gates/SWITCH.png'),
+            "CLOCK": wx.Bitmap('.GUI/Gates/CLOCK.png'),
+            "DTYPE": wx.Bitmap('.GUI/Gates/DTYPE.png'),
+            "AND": wx.Bitmap('.GUI/Gates/AND.png'),
+            "NAND": wx.Bitmap('.GUI/Gates/NAND.png'),
+            "NOT": wx.Bitmap('.GUI/Gates/NOT.png'),
+            "NOR": wx.Bitmap('.GUI/Gates/NOR.png')
         }
         super().__init__(parent)
         self.SetOwnBackgroundColour('white')
@@ -172,7 +172,7 @@ class Gui(wx.Frame):        # main options screen
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title)
 
-        self.SetIcon(wx.Icon('GUI/CUED Software.png'))
+        self.SetIcon(wx.Icon('.GUI/CUED Software.png'))
         self.Maximize(True)
         self.SetBackgroundColour((186, 211, 255))
         self.header_font = wx.Font(
@@ -531,7 +531,7 @@ class Gui(wx.Frame):        # main options screen
                 wx.LogError("Cannot open file '%s'." % pathname)
 
     def open_help(self, event):
-        filepath = 'GUI/helpfile.pdf'
+        filepath = '.GUI/helpfile.pdf'
         import subprocess
         import os
         import platform
@@ -551,7 +551,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         """Initialise widgets and layout."""
         super().__init__(parent=parent, title="Simulation")
 
-        self.SetIcon(wx.Icon('GUI/CUED Software.png'))
+        self.SetIcon(wx.Icon('.GUI/CUED Software.png'))
         self.Maximize(True)
         self.SetBackgroundColour((186, 211, 255))
         self.parent = parent
@@ -564,7 +564,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.tostart.Bind(wx.EVT_BUTTON, self.on_btn, self.tostart)
         self.back5 = wx.Button(self, wx.ID_ANY, "Step -5")
         self.back1 = wx.Button(self, wx.ID_ANY, "Step -1")
-        play_pause = wx.Bitmap('GUI/Glyphicons/playpause.png')
+        play_pause = wx.Bitmap('.GUI/Glyphicons/playpause.png')
         play_pause = scale_bitmap(play_pause, 25, 25)
         self.pause = wx.BitmapToggleButton(self, wx.ID_ANY, play_pause)
         self.fwd1 = wx.Button(self, wx.ID_ANY, "Step +1")
@@ -774,7 +774,7 @@ class SimulatePage(wx.Frame):       # simulation screen
 
 
     def open_help(self, event):
-        filepath = 'GUI/helpfile.pdf'
+        filepath = '.GUI/helpfile.pdf'
         import subprocess
         import os
         import platform
