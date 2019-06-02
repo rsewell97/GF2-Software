@@ -128,7 +128,7 @@ class Scanner:
             symbol.type = self.NUMBER
             print(symbol.id[0],end=' ')
 
-        elif self.current_character == "=" or self.current_character == '-': # punctuation
+        elif self.current_character == "=": # punctuation
             if self.advance() == '>':
                 symbol.type = self.ARROW
                 self.advance()
@@ -160,7 +160,26 @@ class Scanner:
 
         elif self.current_character == "": # end of file
             symbol.type = self.EOF
-
+        
+        elif self.current_character == "#": # single line comment
+            while self.advance() != "/n": #until end of line, keep ignoring
+                pass
+            self.advance()
+		
+        elif self.current_character == "/": #bulk comment, expect a "*"
+            if self.advance() == "*":
+                while self.advance != "*": #ignore until another asterisk
+                    pass
+                if self.advance() != "/": #end of bulk comment
+                    self.advance()
+                else:
+                    self.error(SyntaxError, "Unexpected symbol, expected '*/' at end of bulk comment")
+            else:
+                self.error(SyntaxError, "Unexpected symbol, expected '/*' at beginning of bulk comment")
+		
+        elif self.current_character == "-": #minus sign
+            self.error(SyntaxError, "Unexpected symbol, negative numbers not allowed")
+		
         else: # not a valid character
             self.error(SyntaxError, "Invalid character encountered")
 
