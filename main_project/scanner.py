@@ -128,7 +128,7 @@ class Scanner:
             symbol.type = self.NUMBER
             print(symbol.id[0],end=' ')
 
-        elif self.current_character == "=" or self.current_character == '-': # punctuation
+        elif self.current_character == "=": # punctuation
             if self.advance() == '>':
                 symbol.type = self.ARROW
                 self.advance()
@@ -160,13 +160,44 @@ class Scanner:
 
         elif self.current_character == "": # end of file
             symbol.type = self.EOF
-
+        
+        elif self.current_character == "#": # single line comment
+            x = 0
+            while x < 1:
+                self.advance()
+                while self.current_character != "\n": # ignore until end of line
+                    self.advance()
+                x += 1
+		
+        elif self.current_character == "/": #bulk comment, expect another
+            self.advance()
+            if self.current_character == "/": # start bulk comment, start ignoring
+                no_consec_slashes = 0
+                while no_consec_slashes < 2: # ignore until two consecutive slashes
+                    self.advance()
+                    if self.current_character == "/":
+                        no_consec_slashes += 1
+                    elif self.current_character == "":
+                        self.error(SyntaxError, "Reached end of file while still in a bulk comment")
+                    else:
+                        no_consec_slashes = 0
+            """else:
+                self.error(SyntaxError, "Unexpected symbol, expected '//' at beginning of bulk comment")"""
+		
+        elif self.current_character == "-": #minus sign
+            self.error(SyntaxError, "Unexpected symbol, negative numbers not allowed")
+		
         else: # not a valid character
             self.error(SyntaxError, "Invalid character encountered")
 
         self.word_number += 1
         return symbol
 
+    def ignore(until): #will ignore all characters until character until is found
+        until = str(until)
+        while self.current_character != until:
+            self.advance()
+        return
 
     def get_name(self):
         """Seek the next name string in input_file.
