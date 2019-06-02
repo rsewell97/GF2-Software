@@ -1,0 +1,390 @@
+commit 3801d14071e5088adc7165a6bd15f08f264618ff (HEAD -> master, origin/master, origin/HEAD)
+Author: Lea GP <leagp@btinternet.com>
+Date:   Thu May 30 09:32:53 2019 +0100
+
+    problem with raising errors and being able to access the error message
+
+commit 4f36c4cb5faabf7ae8ff3b07381bdef3b6a14fdf
+Author: Lea GP <leagp@btinternet.com>
+Date:   Wed May 29 16:49:24 2019 +0100
+
+    tests for parser finished for the devices, monitor and connection functions
+
+commit 23ebfbb1aa1eefbba9f7a5007a120c0f01dd0f9e
+Author: Lea GP <leagp@btinternet.com>
+Date:   Wed May 29 15:15:17 2019 +0100
+
+    testing of the connections method
+
+commit 7685ca42ed09338aa9110c902a992d2c92a8798f
+Merge: 8e66bce 3dcd154
+Author: Lea GP <leagp@btinternet.com>
+Date:   Wed May 29 12:42:07 2019 +0100
+
+    Merge branch 'master' of https://github.com/rsewell97/GF2-Software
+
+commit 8e66bce70453d610e6f7b904a1f5def8f4bbcf04
+Author: Lea GP <leagp@btinternet.com>
+Date:   Wed May 29 12:41:45 2019 +0100
+
+     writing tests for parser
+
+commit 4d497e8a6d761a1bb15424cd8fb112ead1166fdc
+Author: Lea GP <leagp@btinternet.com>
+Date:   Tue May 28 16:59:15 2019 +0100
+
+    just checking its all up to date
+
+commit fc1e950c4d525dc2965685d837e9b0f42640a115
+Author: Lea GP <leagp@btinternet.com>
+Date:   Tue May 28 16:36:04 2019 +0100
+
+    tests complete and happy with scanner working robustly
+
+commit 4f68567f5ca04d5ebea2061896a2c3c96af80fa5
+Merge: 289da4d 81b44d0
+Author: Lea GP <leagp@btinternet.com>
+Date:   Tue May 28 11:20:09 2019 +0100
+
+    fix conflicts
+
+commit 289da4db6c82dc34aa993fadee678e278d808da2
+Author: Lea GP <leagp@btinternet.com>
+Date:   Tue May 28 11:17:14 2019 +0100
+
+     testing
+
+commit edabbee16cf9f67b34c435b145d054988840c218
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 27 15:54:25 2019 +0100
+
+    testing of the get_symbol function
+
+commit ca9528dc231dcd5242d65c117533c035a0222865
+Merge: 557b603 17c521a
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 27 15:53:35 2019 +0100
+
+    Merge branch 'master' of https://github.com/rsewell97/GF2-Software
+
+commit 557b603c3f8d0695005182e1ea1244c638f7205f
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 27 15:53:21 2019 +0100
+
+    fix bug found while testing
+
+commit be05be4ca3defb6f039722dde8526e5a4b7d08f6
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 27 11:03:05 2019 +0100
+
+    pytests for scanner.py the get_num and get_name funcs
+
+commit c1c3a7f1fdf31e60c0a775ad8f7a1bd80a458ad1
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 27 09:39:19 2019 +0100
+
+    tweeks to name tests to take the single valued list criteria into account
+
+commit b5031c7aa12add10517455090b6b2fdbbea3e960
+Merge: f77db1a 69348b6
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 27 09:18:49 2019 +0100
+
+    adding tests for scanner.py
+
+commit f77db1a53f4c2a50c55a289af2f75c3932013523
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 27 09:15:27 2019 +0100
+
+     working on pytests for scanner.py
+
+commit a520d242350985517a0f60f8a4a5243f5980360c
+Author: Lea GP <leagp@btinternet.com>
+Date:   Sun May 26 13:56:07 2019 +0100
+
+     12 tests that all pass and that test all functions and the interaction between the functions, go through them monday with the others to see if its all good
+
+commit 672ea562bb77905e3b7ab8ce5aa53cd6e6a5ac2c
+Author: Lea GP <leagp@btinternet.com>
+Date:   Sun May 26 13:15:00 2019 +0100
+
+    pytests for names.py
+
+commit e75d990415c757e14dfccdcfa849ad4569f2afcb
+Author: Lea GP <leagp@btinternet.com>
+Date:   Sun May 26 11:57:12 2019 +0100
+
+    why doesnt it work to have all the tests in a test file?
+
+commit 1ada033be72260eba3b9dd52ef45cd272b36e9ab
+Author: Lea GP <leagp@btinternet.com>
+Date:   Sun May 26 11:52:22 2019 +0100
+
+    this might be a big mistake....
+
+commit 62178fdaca74467843b9b9b6add247a03fca9d57
+Author: Lea GP <leagp@btinternet.com>
+Date:   Sat May 25 12:48:15 2019 +0100
+
+    edit error message to make them clear
+
+commit 09653305cf87ce9be35b450e107d0bdd154280e6
+Author: Lea GP <leagp@btinternet.com>
+Date:   Sat May 25 12:47:26 2019 +0100
+
+    structuring the tests
+
+commit 5d41a2ecd726ca11b8d7adde7bca78982cb16871
+Author: Lea GP <leagp@btinternet.com>
+Date:   Sat May 25 11:52:51 2019 +0100
+
+    putting all tests together
+
+commit 552e225bc52d8801006544d4656ec4a8ba0eafdf
+Author: Lea GP <leagp@btinternet.com>
+Date:   Sat May 25 11:24:56 2019 +0100
+
+    test file for the parse class's function
+
+commit 87eafa4dd78f18048df136341c4fee71e4a96531
+Author: Lea GP <leagp@btinternet.com>
+Date:   Sat May 25 11:10:37 2019 +0100
+
+     playing around with the different pytest functionalities
+
+commit e4c6cf9bfad15b965acb6251dd0cec4f8ff5a5e4
+Author: Lea GP <leagp@btinternet.com>
+Date:   Sat May 25 10:30:03 2019 +0100
+
+    just a workspace to figure out how pytest works
+
+commit 1fca840e64c9299e9d4beb667ebe3a0da21bb003
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 20 15:52:52 2019 +0100
+
+    adapt text to make sure that it is consistent with the ebnf def
+
+commit ebe66498f2b17068d69605935e0c799a5c0e4129
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 20 15:51:03 2019 +0100
+
+    Change the set switch to only 1 and 0 (to simplify code)and adjustment of grammar for readibility (change start to set)
+
+commit 71994ffc10f1c3b54c8e37d7ab4f9ba3e55d80ce
+Merge: 272c7b7 237bd36
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 20 15:46:43 2019 +0100
+
+    Merge branch 'master' of https://github.com/rsewell97/GF2-Software
+
+commit 272c7b712864ede3ee1cd11155b815f845bc5aa6
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 20 14:34:51 2019 +0100
+
+    last time! Typos again..
+
+commit a19fdd8ffc0aa7ec172c4c4ef4b505e40db5082d
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 20 14:03:23 2019 +0100
+
+    revert to what it was before
+
+commit db39cf4faac299f71a2ae929a37a35ba93cf0efc
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 20 12:30:35 2019 +0100
+
+    Last one, corrected a typo
+
+commit 82d7212c251ef090ee7ebbed28d99f65314f3891
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 20 12:27:02 2019 +0100
+
+    perfecting ebnf and makign sure that the test files are consistent
+
+commit 9d52fcf4b72c0b8c7748995f0990cc8246bae129
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 20 11:39:38 2019 +0100
+
+    simplified ebnf of the language definition
+
+commit a5b50d0371c9acc63e17bd933bd4cb3b1fc81d01
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 20 11:36:11 2019 +0100
+
+     update simple test to new syntax
+
+commit 5b8fc4ef64376a891b35ef0159fef1ae59334140
+Merge: c5e6793 03da9f8
+Author: LeaGP <33416845+LeaGP@users.noreply.github.com>
+Date:   Mon May 20 09:29:13 2019 +0100
+
+    Merge pull request #4 from rsewell97/Lea
+
+    Lea
+
+commit 03da9f882e8a96c3794e2aa79c4d26560216475e
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 20 09:27:26 2019 +0100
+
+    correct typos
+
+commit c5e67937592e00a7512d60794d9b592f7128fd66
+Merge: a18fe93 6d907f5
+Author: LeaGP <33416845+LeaGP@users.noreply.github.com>
+Date:   Mon May 20 09:23:22 2019 +0100
+
+    Merge pull request #3 from rsewell97/Lea
+
+    Lea
+
+commit 04a233c785918b00106fb4ec9723ac2d642170d5
+Merge: 6d907f5 1efa85e
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 20 09:22:34 2019 +0100
+
+    Merge branch 'master' into Lea
+
+commit 6d907f5dd0254194f0859b7a1b8c5a6d52882d1f
+Author: Lea GP <leagp@btinternet.com>
+Date:   Mon May 20 09:19:30 2019 +0100
+
+    updated text files with the comments from 1st interim report. Changes include addition of semi-colon to delimit end of line
+
+commit f13a9d23819f2c99cf4e36cfba38f3ac2c858074
+Author: Lea GP <leagp@btinternet.com>
+Date:   Sun May 19 21:45:47 2019 +0100
+
+    skeleton of the init functions
+
+commit 1bc753f7a0b59baa8db1a9a021f9b9894f2379d2
+Author: Lea GP <leagp@btinternet.com>
+Date:   Sun May 19 20:20:10 2019 +0100
+
+    added function that allows us to change the clock period after having initialised the clock period .... are we allowed to do this? (if not we may want to rethink our syntax)
+
+commit 1efa85e197b0abec1264a1f6c35b0415f5430afc
+Merge: 95d2a3e 3975931
+Author: Lea GP <leagp@btinternet.com>
+Date:   Sun May 19 17:05:03 2019 +0100
+
+    Merge branch 'Lea'
+
+commit 95d2a3e3d767f59582aa322e2ff1729b228355c1
+Author: Lea GP <leagp@btinternet.com>
+Date:   Sun May 19 17:04:10 2019 +0100
+
+    final changes before submit
+
+commit 3975931c8b3df4a0bd32ac0ace43140e04713d5b
+Author: Lea GP <lmhg2@cam.ac.uk>
+Date:   Sun May 19 16:43:53 2019 +0100
+
+    blank coversheets for ref
+
+commit 9149f79869f060fa79de8c10834aea3a43d40650
+Author: LeaGP <33416845+LeaGP@users.noreply.github.com>
+Date:   Sun May 19 16:27:48 2019 +0100
+
+    Delete GF2___Software___Interim_report_1.pdf
+
+commit 15111b360b506311cc94c5cda7eaf6c44e9dd421
+Author: LeaGP <33416845+LeaGP@users.noreply.github.com>
+Date:   Sun May 19 16:27:30 2019 +0100
+
+    Delete GF2 - Software - Interim report 1.zip
+
+commit d22e229dd8ca3790681f945948833fd7cf8270f0
+Merge: 238eb2b 4699f29
+Author: Lea GP <lmhg2@cam.ac.uk>
+Date:   Sun May 19 16:21:50 2019 +0100
+
+    Merge branch 'master' of https://github.com/rsewell97/GF2-Software into Lea
+
+commit 238eb2b43913092fead3e67a471592fa514bc70e
+Author: Lea GP <lmhg2@cam.ac.uk>
+Date:   Sun May 19 16:20:07 2019 +0100
+
+    tex file updated to final version
+
+commit 50340537ef1f1003bd7fe70673f69e6988823ea2
+Author: Lea GP <lmhg2@cam.ac.uk>
+Date:   Sun May 19 16:17:05 2019 +0100
+
+    update the .txt file for the latex report and got rid oft he redundant stuff
+
+commit 4699f297d20ba57bb45bab281f76800b27229020
+Merge: ccde555 1d14efc
+Author: LeaGP <33416845+LeaGP@users.noreply.github.com>
+Date:   Sun May 19 16:09:26 2019 +0100
+
+    Merge pull request #2 from rsewell97/Lea
+
+    Lea
+
+commit 1d14efc30bf4b79971d47294a29f64c62418e6b5
+Merge: 6acacef ccde555
+Author: Lea GP <lmhg2@cam.ac.uk>
+Date:   Sun May 19 16:06:31 2019 +0100
+
+    Merge branch 'master' of https://github.com/rsewell97/GF2-Software into Lea
+
+commit 6acacef24b3938dfba670698a36199adde25effc
+Author: Lea GP <lmhg2@cam.ac.uk>
+Date:   Sun May 19 16:04:27 2019 +0100
+
+    update pdfs and figures to the final submitted versions
+
+commit b12485fdb6dcb4da2a8678ac136ea05537d89fc4
+Merge: 6c7670c c901999
+Author: LeaGP <33416845+LeaGP@users.noreply.github.com>
+Date:   Fri May 17 17:16:17 2019 +0100
+
+    Merge pull request #1 from rsewell97/Lea
+
+    Lea
+
+commit c901999ddc5157579f35cfd632e867dca0184074
+Merge: 8018e5b 6c7670c
+Author: LeaGP <33416845+LeaGP@users.noreply.github.com>
+Date:   Fri May 17 17:16:01 2019 +0100
+
+    Merge branch 'master' into Lea
+
+commit 8018e5bb1d330bb470eb5cf1dc0466f2f1c339a3
+Author: Lea GP <lmhg2@cam.ac.uk>
+Date:   Fri May 17 17:10:45 2019 +0100
+
+    trying to add the txt files for the report...
+
+commit 2dff99d621f74fbfbdf47c92ee4ddc7b7baa970d
+Merge: e518309 2719bca
+Author: Lea GP <lmhg2@cam.ac.uk>
+Date:   Thu May 16 13:01:25 2019 +0100
+
+    really trying to make git behave at this point
+
+commit 2719bcab3ddd9358bd18d3ede9c24c4724021c01
+Author: Lea GP <lmhg2@cam.ac.uk>
+Date:   Thu May 16 11:08:49 2019 +0100
+
+    more language files
+
+commit 896248e061558645de8e3baf039efc3cccc5e1e8
+Author: Lea GP <lmhg2@cam.ac.uk>
+Date:   Thu May 16 11:08:27 2019 +0100
+
+    text files for language def
+
+commit 2a8541ac2bb8576e09741aa7e8a231f2ce8f6c8a
+Merge: aa0da8b 054e569
+Author: Lea GP <lmhg2@cam.ac.uk>
+Date:   Tue May 14 21:44:45 2019 +0100
+
+    Merge branch 'master' of https://github.com/rsewell97/GF2-Software into Lea
+
+commit aa0da8b9e55ce1769fbc0ef75ed7531c70af7d9d
+Author: Lea GP <lmhg2@cam.ac.uk>
+Date:   Mon May 13 17:10:31 2019 +0100
+
+    Text file with complex logic circuit to check how thorough our EBNF is
+(END)

@@ -3,29 +3,13 @@
 Writen by Lea """
 import pytest
 
-from main_project.names import Names
-from main_project.scanner import Scanner
-from main_project.network import Network
-from main_project.devices import Devices
-from main_project.parse import Parser
-from main_project.monitors import Monitors
-from main_project.error import SyntaxError, SemanticError, ValueError, UnclassedError
-
-
-def raise_errors(error):
-    if error == SemanticError:
-        raise SemanticError
-    elif error == SyntaxError:
-        raise SyntaxError
-    elif error == ValueError:
-        raise ValueError
-    else:
-        raise UnclassedError
-
-def test_error_fun():
-    with pytest.raises(SemanticError):
-        raise_errors(SemanticError)
-
+from names import Names
+from scanner import Scanner
+from network import Network
+from devices import Devices
+from parse import Parser
+from monitors import Monitors
+from error import SyntaxError, SemanticError, ValueError, UnclassedError
 
 
 def startup_parser(data):
@@ -123,4 +107,18 @@ def test_parse_monitor(inputs, id):
         assert 1
 
 
+# def test_testing():
+#     test_parse = startup_parser("connections{}")
+#     test_parse.parse_network()
+#     print(test_parse.msg)
+#     assert 0
+# #
+
+
+# TODO:
+# TODO: HEADINGS order of heading names, finding heading names robustly, how it handles not finding a heading name
+# TODO: SECTIONS finds start and end of section
+# TODO: DEVICES
+# TODO: CONNECTIONS
+# TODO: MONITOR
 
