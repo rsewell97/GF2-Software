@@ -18,6 +18,7 @@ from PIL import Image
 import numpy as np
 import random
 import subprocess
+import builtins
 
 from names import Names
 from devices import Devices
@@ -25,6 +26,9 @@ from network import Network
 from monitors import Monitors
 from scanner import Scanner
 from parse import Parser
+
+# built in for internationalization
+builtins.__dict__['_'] = wx.GetTranslation
 
 # from simulator import Canvas
 from simulator import Canvas
@@ -197,6 +201,8 @@ class Gui(wx.Frame):        # main options screen
         outer.Add(helpBtn, 0, wx.ALL | wx.ALIGN_RIGHT, 0)
         outer.Add(self.main_sizer, 0, wx.EXPAND | wx.ALL, 0)
         self.SetSizer(outer)
+    
+
 
     def makeLeftSizer(self):
         self.left_panel = wx.Panel(self)

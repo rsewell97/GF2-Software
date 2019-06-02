@@ -1,0 +1,129 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2019-06-02 17:05+BST\n"
+"PO-Revision-Date: 2019-06-02 17:39+0100\n"
+"Last-Translator: LeaGP <leagp@btinternet.com>\n"
+"Language-Team: g7 <lmhg2@cam.ac.uk>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Poedit-Language: French\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: ./\n"
+"X-Poedit-SearchPath-0: ./locale/LC_MESSAGES\n"
+
+#: main_gui.py:199
+#: main_gui.py:603
+msgid "Help"
+msgstr ""
+
+#: main_gui.py:210
+msgid "Browse Files"
+msgstr ""
+
+#: main_gui.py:211
+msgid "Verify Code"
+msgstr ""
+
+#: main_gui.py:213
+msgid "Editor"
+msgstr ""
+
+#: main_gui.py:227
+msgid "Click run to check for errors"
+msgstr ""
+
+#: main_gui.py:281
+msgid "No errors found"
+msgstr ""
+
+#: main_gui.py:303
+msgid "Options"
+msgstr ""
+
+#: main_gui.py:309
+msgid "show circuit (experimental)"
+msgstr ""
+
+#: main_gui.py:317
+msgid "Name"
+msgstr ""
+
+#: main_gui.py:322
+msgid "Type"
+msgstr ""
+
+#: main_gui.py:327
+msgid "Inputs"
+msgstr ""
+
+#: main_gui.py:332
+msgid "Outputs"
+msgstr ""
+
+#: main_gui.py:429
+msgid "initial switch state"
+msgstr ""
+
+#: main_gui.py:449
+msgid "Simulate!"
+msgstr ""
+
+#: main_gui.py:515
+msgid "Open file"
+msgstr ""
+
+#: main_gui.py:529
+msgid "Cannot open file '%s'."
+msgstr ""
+
+#: main_gui.py:550
+msgid "Simulation"
+msgstr ""
+
+#: main_gui.py:563
+msgid "GOTO START"
+msgstr ""
+
+#: main_gui.py:566
+msgid "Step -5"
+msgstr ""
+
+#: main_gui.py:567
+msgid "Step -1"
+msgstr ""
+
+#: main_gui.py:571
+msgid "Step +1"
+msgstr ""
+
+#: main_gui.py:572
+msgid "Step +5"
+msgstr ""
+
+#: main_gui.py:573
+msgid "GOTO END"
+msgstr ""
+
+#: main_gui.py:577
+msgid "Reset Scene"
+msgstr ""
+
+#: main_gui.py:612
+msgid "Continue"
+msgstr ""
+
+#: main_gui.py:626
+msgid "On/Off"
+msgstr ""
+
+#: main_gui.py:693
+msgid "Error! Network oscillating."
+msgstr ""
+

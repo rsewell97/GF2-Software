@@ -33,3 +33,11 @@ gui = Gui("Logic Simulator")
 gui.Show(True)
 app.MainLoop()
 
+# language domain
+#langDomain = "I18Nwxapp"
+# languages you want to support
+#supLang = {u"en": wx.LANGUAGE_ENGLISH,
+ #          u"fr": wx.LANGUAGE_FRENCH,
+ #         }
+
+
