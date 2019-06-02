@@ -43,6 +43,7 @@ class CircuitDiagram(wx.Panel):
             "XOR": wx.Bitmap('.GUI/Gates/XOR.png'),
             "SWITCH": wx.Bitmap('.GUI/Gates/SWITCH.png'),
             "CLOCK": wx.Bitmap('.GUI/Gates/CLOCK.png'),
+            "SIGGEN": wx.Bitmap('.GUI/Gates/SIGGEN.png'),
             "DTYPE": wx.Bitmap('.GUI/Gates/DTYPE.png'),
             "AND": wx.Bitmap('.GUI/Gates/AND.png'),
             "NAND": wx.Bitmap('.GUI/Gates/NAND.png'),
@@ -112,19 +113,19 @@ class CircuitDiagram(wx.Panel):
                 device.image.SetPosition(
                     (device.location[0], device.location[1]))
             else:
-                if device_type in ['SWITCH', 'CLOCK']:
-                    x, y = 50, i*50
+                if device_type in ['SWITCH', 'CLOCK', 'SIGGEN']:
+                    x, y = 50, (i+1)*50
                 else:
-                    x, y = random.randint(150, 400), i*50
+                    x, y = random.randint(150, 400), (i+1)*50
                 device.location = [x, y]
 
                 if device.device_kind == self.devices.D_TYPE:
                     bitmap = scale_bitmap(
                         self.icons[device_type], self.device_size[0], self.device_size[0])
-                elif device.device_kind == self.devices.CLOCK:
+                elif device.device_kind in [self.devices.CLOCK, self.devices.SIGGEN]:
                     bitmap = scale_bitmap(
                         self.icons[device_type], self.device_size[1], self.device_size[1])
-                else:
+                else:   #normal gate
                     bitmap = scale_bitmap(
                         self.icons[device_type], self.device_size[0], self.device_size[1])
 
@@ -155,7 +156,7 @@ class CircuitDiagram(wx.Panel):
                 new_device = self.devices.get_device(
                     out[0])
                 if out[1] is None:
-                    if new_device.device_kind == self.devices.CLOCK:
+                    if new_device.device_kind in [self.devices.CLOCK, self.devices.SIGGEN]:
                         dc.DrawLine(device.location[0]+xo, device.location[1] + yo, new_device.location[0] +
                                 self.device_size[1]-5, new_device.location[1] + self.device_size[1]/2)
                     else:

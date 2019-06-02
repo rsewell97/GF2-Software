@@ -86,7 +86,7 @@ class Scanner:
 
         [self.DEVICE] = self.names.lookup(["device"])
 
-        self.ignore = ["gate", "gates", "a", "an", "some", "initially", "inputs"]
+        self.ignore = ["gate", "gates", "a", "an", "some", "initially", "inputs", "connected"]
         self.stopping_symbols = [self.SEMICOLON, self.CURLY_CLOSE, self.EOF]
 
         self.current_character = " "
