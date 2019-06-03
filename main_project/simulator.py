@@ -49,7 +49,7 @@ class Canvas(wxcanvas.GLCanvas):
 
     def __init__(self, parent, devices, monitors, network):
         """Initialise canvas properties and useful variables."""
-        super().__init__(parent, -1,
+        super().__init__(parent.canvas_panel, -1,
                          attribList=[wxcanvas.WX_GL_RGBA,
                                      wxcanvas.WX_GL_DOUBLEBUFFER,
                                      wxcanvas.WX_GL_DEPTH_SIZE, 16, 0])
@@ -196,12 +196,12 @@ class Canvas(wxcanvas.GLCanvas):
         GL.glBegin(GL.GL_LINE_STRIP)
         for i, val in enumerate(signal):
             if val == 1:
-                GL.glVertex2f(offset[0]+i*self.scale_x, offset[1]+self.scale_y)
-            else:
                 GL.glVertex2f(offset[0]+i*self.scale_x, offset[1])
+            else:
+                GL.glVertex2f(offset[0]+i*self.scale_x, offset[1]+self.scale_y)
 
             try:
-                next_val = signal[i+1] * self.scale_y
+                next_val = (1-signal[i+1]) * self.scale_y
                 GL.glVertex2f(offset[0]+i*self.scale_x, offset[1] + next_val)
             except IndexError:
                 pass
@@ -210,7 +210,6 @@ class Canvas(wxcanvas.GLCanvas):
         return
     
     def test_loop(self):
-
         pass
 
 
@@ -245,7 +244,7 @@ class Canvas3D(wxcanvas.GLCanvas):
 
     def __init__(self, parent, devices, monitors, network):
         """Initialise canvas properties and useful variables."""
-        super().__init__(parent, -1,
+        super().__init__(parent.canvas3d_panel, -1,
                          attribList=[wxcanvas.WX_GL_RGBA,
                                      wxcanvas.WX_GL_DOUBLEBUFFER,
                                      wxcanvas.WX_GL_DEPTH_SIZE, 16, 0])
