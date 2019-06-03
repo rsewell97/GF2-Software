@@ -179,6 +179,7 @@ class Scanner:
                         no_consec_slashes += 1
                     elif self.current_character == "":
                         self.error(SyntaxError, "Reached end of file while still in a bulk comment")
+                        break
                     else:
                         no_consec_slashes = 0
             """else:
