@@ -56,13 +56,7 @@ class BaseApp(wx.App, InspectionMixin):
         self.appName = "Logic Simulator"
         
         self.doConfig()
-
-        print(wx.GetLocale())
         
-        self.locale = None
-        wx.Locale.AddCatalogLookupPathPrefix('locale')
-        self.updateLanguage(self.appConfig.Read(u"Language"))
-
         return True
 
     def doConfig(self):
@@ -121,6 +115,14 @@ class BaseApp(wx.App, InspectionMixin):
 
 
 app = BaseApp()
+
+# I18n
+builtins._ = wx.GetTranslation
+locale = wx.Locale()
+locale.Init(wx.LANGUAGE_DEFAULT)
+locale.AddCatalogLookupPathPrefix('./locale')
+locale.AddCatalog('po_file')
+
 gui = Gui("Logic Simulator")
 gui.Show(True)
 app.MainLoop()
