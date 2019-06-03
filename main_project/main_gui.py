@@ -35,6 +35,25 @@ def scale_bitmap(bitmap, width, height):
     return wx.Bitmap(image)
 
 class CircuitDiagram(wx.Panel):
+    """Handles creation of circuit diagram.
+
+        Parameters
+        ----------
+        parent: parent window.
+        devices: instance of the devices.Devices() class.
+        network: instance of the network.Network() class.
+        names: instance of the names.Names() class.
+
+        Public methods
+        --------------
+        InitBuffer(self): creates white background
+
+        OnEraseBack(self, event):
+
+        OnPaint(self, event):
+
+        drawShapes(self, dc):  draws shapes and lines
+        """
 
     def __init__(self, parent, devices, network, names):
         """Initialise canvas properties and useful variables."""

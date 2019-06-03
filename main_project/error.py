@@ -1,5 +1,7 @@
 import sys
 
+
+
 class SemanticError(Exception):
     pass
 

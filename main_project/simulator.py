@@ -45,6 +45,10 @@ class Canvas(wxcanvas.GLCanvas):
 
     render_text(self, text, x_pos, y_pos): Handles text drawing
                                            operations.
+
+    draw signal(self, signal, offset): Draws the signal trace
+
+    test_loop(self): does nothing
     """
 
     def __init__(self, parent, devices, monitors, network):

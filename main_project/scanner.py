@@ -50,6 +50,13 @@ class Scanner:
     -------------
     get_symbol(self): Translates the next sequence of characters into a symbol
                       and returns the symbol.
+    get_name(self): Seeks the next name string in input_file.
+                    Returns the name string (or None) and the next non-alphanumeric character.
+    get_number(self): Seek the next number in input_file.
+                      Return the number (or None) and the next non-numeric character.
+    skip_spaces(self): advances until the character is no longer a space.
+    advance(self): reads one further character into the document
+    error(self): creates an error message for any scanning errors
     """
 
     def __init__(self, path, names, string=False):
@@ -192,12 +199,6 @@ class Scanner:
 
         self.word_number += 1
         return symbol
-
-    def ignore(until): #will ignore all characters until character until is found
-        until = str(until)
-        while self.current_character != until:
-            self.advance()
-        return
 
     def get_name(self):
         """Seek the next name string in input_file.

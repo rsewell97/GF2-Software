@@ -35,6 +35,18 @@ class Parser:
     Public methods
     --------------
     parse_network(self): Parses the circuit definition file.
+
+    parse_section(self, heading): Parses one section (devices, connections or monitors) at a time
+
+    parse_device(self): parses the devices section, handling the creation of each device as well as their specifications
+
+    parse_connections(self): parses the connections section, handling the connecting of deices to one another
+
+    parse_monitor(self): parse the monitors section, handling the deciding of which signals to follow
+
+    get_names_before_delimiter(self, true_delimiting_word_ids, false_delimiting_word_ids): finds a delimiting word in the file/section and finds the word before it
+
+    error(error_type, message): counts the number of errors
     """
 
     def __init__(self, names, devices, network, monitors, scanner):

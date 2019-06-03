@@ -222,6 +222,8 @@ class MyGLCanvas3D(wxcanvas.GLCanvas):
 
     render_text(self, text, x_pos, y_pos, z_pos): Handles text drawing
                                                   operations.
+
+    draw_cuboid(self, x_pos, z_pos, half_width, half_depth, height): draws a cuboid with the centre of the base at (x_pos, 0, z_pos) with dimensions 2*half_width x height x 2*half_depth
     """
 
     def __init__(self, parent, devices, monitors, network):
