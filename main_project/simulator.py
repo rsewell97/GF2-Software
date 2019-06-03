@@ -17,6 +17,8 @@ from names import Names
 from userint import UserInterface
 
 
+
+
 class Canvas(wxcanvas.GLCanvas):
     """Handle all drawing operations.
 
@@ -47,11 +49,12 @@ class Canvas(wxcanvas.GLCanvas):
 
     def __init__(self, parent, devices, monitors, network):
         """Initialise canvas properties and useful variables."""
-        super().__init__(parent, -1,
+        super().__init__(parent.canvas_panel, -1,
                          attribList=[wxcanvas.WX_GL_RGBA,
                                      wxcanvas.WX_GL_DOUBLEBUFFER,
                                      wxcanvas.WX_GL_DEPTH_SIZE, 16, 0])
         GLUT.glutInit()
+        self.parent = parent
         self.init = False
         self.context = wxcanvas.GLContext(self)
 
@@ -60,6 +63,8 @@ class Canvas(wxcanvas.GLCanvas):
         self.pan_y = 0
         self.last_mouse_x = 0  # previous mouse x position
         self.last_mouse_y = 0  # previous mouse y position
+
+        self.play = False
 
         self.scale_x = 50
         self.scale_y = 50
@@ -103,17 +108,30 @@ class Canvas(wxcanvas.GLCanvas):
         
         if len(self.signals) > 0:
             # ruler
-            for i in range(0, len(self.signals[0][1])):
+            for i in range(0, len(self.signals[0][-1])):
+                GL.glColor3f(0,0,0)
                 self.render_text(str(i), 100 + i*self.scale_x, self.size.height - 30)
+                GL.glColor3f(0.8,0.8,0.8)
+                GL.glLineWidth(1.0)
+                GL.glBegin(GL.GL_LINES)
+                GL.glVertex2f(100 + i*self.scale_x, self.size.height - 40)
+                GL.glVertex2f(100 + i*self.scale_x, 0)
+                GL.glEnd()
+
+
+                
 
             # signal
             count = 1
             for sig in self.signals:
-                self.draw_signal(sig[1], (100,self.size.height - count*2*self.scale_y))
+                GL.glColor3f(sig[1][0], sig[1][1], sig[1][2])
+                GL.glLineWidth(3.0)
+                self.draw_signal(sig[-1], (100,self.size.height - count*2*self.scale_y))
+
+                GL.glClearColor(1.0, 1.0, 1.0, 0.0)
                 self.render_text(sig[0], 50, self.size.height - count*2*self.scale_y)
                 count += 1
 
-        # self.auto_scroll()
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
         GL.glFlush()
@@ -178,18 +196,22 @@ class Canvas(wxcanvas.GLCanvas):
         GL.glBegin(GL.GL_LINE_STRIP)
         for i, val in enumerate(signal):
             if val == 1:
-                GL.glVertex2f(offset[0]+i*self.scale_x, offset[1]+self.scale_y)
-            else:
                 GL.glVertex2f(offset[0]+i*self.scale_x, offset[1])
+            else:
+                GL.glVertex2f(offset[0]+i*self.scale_x, offset[1]+self.scale_y)
 
             try:
-                next_val = signal[i+1] * self.scale_y
+                next_val = (1-signal[i+1]) * self.scale_y
                 GL.glVertex2f(offset[0]+i*self.scale_x, offset[1] + next_val)
             except IndexError:
                 pass
 
         GL.glEnd()
         return
+    
+    def test_loop(self):
+        pass
+
 
 
 class Canvas3D(wxcanvas.GLCanvas):
@@ -222,7 +244,7 @@ class Canvas3D(wxcanvas.GLCanvas):
 
     def __init__(self, parent, devices, monitors, network):
         """Initialise canvas properties and useful variables."""
-        super().__init__(parent, -1,
+        super().__init__(parent.canvas3d_panel, -1,
                          attribList=[wxcanvas.WX_GL_RGBA,
                                      wxcanvas.WX_GL_DOUBLEBUFFER,
                                      wxcanvas.WX_GL_DEPTH_SIZE, 16, 0])
@@ -267,7 +289,7 @@ class Canvas3D(wxcanvas.GLCanvas):
         self.signals = []
 
         # Offset between viewpoint and origin of the scene
-        self.depth_offset = 500
+        self.depth_offset = 800
 
         # Bind events to the canvas
         self.Bind(wx.EVT_PAINT, self.on_paint)
@@ -276,15 +298,16 @@ class Canvas3D(wxcanvas.GLCanvas):
 
     def init_gl(self):
         """Configure and initialise the OpenGL context."""
-        size = self.GetClientSize()
+        self.size = self.GetClientSize()
 
         self.SetCurrent(self.context)
     
-        GL.glViewport(0, 0, size.width, size.height)
+        GL.glViewport(0, 0, self.size.width, self.size.height)
+        
 
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
-        GLU.gluPerspective(45, size.width / size.height, 10, 10000)
+        GLU.gluPerspective(45, self.size.width / self.size.height, 10, 10000)
 
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()  # lights positioned relative to the viewer
@@ -318,11 +341,13 @@ class Canvas3D(wxcanvas.GLCanvas):
 
         # Viewing transformation - set the viewpoint back from the scene
         GL.glTranslatef(0.0, 0.0, -self.depth_offset)
+        # GL.glTranslatef(, 0, 0)
 
         # Modelling transformation - pan, zoom and rotate
-        GL.glTranslatef(self.pan_x, self.pan_y, 0.0)
+        GL.glTranslatef(self.pan_x, 0.0, 0.0)
         GL.glMultMatrixf(self.scene_rotate)
-        GL.glScalef(self.zoom, self.zoom, self.zoom)
+
+        GL.glTranslatef(-100.0, -10.0, self.pan_y)
 
     def render(self):
         """Handle all drawing operations."""
@@ -333,28 +358,34 @@ class Canvas3D(wxcanvas.GLCanvas):
             self.init = True
 
         # Clear everything
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-
-        GL.glColor3f(1.0, 0.7, 0.5)  # signal trace is beige
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)      
 
         if len(self.signals) > 0:
             # ruler
-            for i in range(0, len(self.signals[0][1])):
+            GL.glColor3f(1.0,1.0,1.0)
+            for i in range(0, len(self.signals[0][-1])):
                 self.render_text(str(i), 100 + i*self.scale_x, 0, 0)
+                
+                GL.glBegin(GL.GL_LINES)
+                GL.glVertex3f(100 + i*self.scale_x, 0, 10)
+                GL.glVertex3f(100 + i*self.scale_x, 0, 1000)
+                GL.glEnd()
 
             # signal
             count = 1
             for sig in self.signals:
-                self.draw_signal(sig[1], (100, count*self.scale_z))
-                self.render_text(sig[0], 50, 0, count*self.scale_z)
+                GL.glColor3f(sig[1][0], sig[1][1], sig[1][2])
+                self.draw_signal(sig[-1], (100, 1.3*count*self.scale_z))
+                self.render_text(sig[0], 50, 0, 1.3*count*self.scale_z)
                 count += 1
+        
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
         GL.glFlush()
         self.SwapBuffers()
 
     def draw_signal(self, signal, offset):
-        # self.max_x = self.scale_x *(len(signal)-1)
+        self.max_x = self.scale_x *(len(signal)-1)
 
         for i, val in enumerate(signal):
             if val == 1:
@@ -431,13 +462,12 @@ class Canvas3D(wxcanvas.GLCanvas):
             GL.glLoadIdentity()
             x = event.GetX() - self.last_mouse_x
             y = event.GetY() - self.last_mouse_y
+
             if event.LeftIsDown():
-                GL.glRotatef(math.sqrt((x * x) + (y * y)), y, x, 0)
+                GL.glRotatef(y, 1, 0, 0)
             if event.MiddleIsDown():
-                GL.glRotatef((x + y), 0, 0, 1)
-            if event.RightIsDown():
-                self.pan_x += x
-                self.pan_y -= y
+                self.pan_y += y
+
             GL.glMultMatrixf(self.scene_rotate)
             GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX, self.scene_rotate)
             self.last_mouse_x = event.GetX()
@@ -445,13 +475,11 @@ class Canvas3D(wxcanvas.GLCanvas):
             self.init = False
 
         if event.GetWheelRotation() < 0:
-            self.zoom *= (1.0 + (
-                event.GetWheelRotation() / (20 * event.GetWheelDelta())))
+            self.pan_x -=  4*event.GetWheelRotation() / (event.GetWheelDelta())
             self.init = False
 
         if event.GetWheelRotation() > 0:
-            self.zoom /= (1.0 - (
-                event.GetWheelRotation() / (20 * event.GetWheelDelta())))
+            self.pan_x -=  4*event.GetWheelRotation() / (event.GetWheelDelta())
             self.init = False
 
         self.Refresh()  # triggers the paint event

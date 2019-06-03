@@ -18,6 +18,7 @@ from PIL import Image
 import numpy as np
 import random
 import subprocess
+from multiprocessing import Process
 
 from names import Names
 from devices import Devices
@@ -42,6 +43,7 @@ class CircuitDiagram(wx.Panel):
             "XOR": wx.Bitmap('.GUI/Gates/XOR.png'),
             "SWITCH": wx.Bitmap('.GUI/Gates/SWITCH.png'),
             "CLOCK": wx.Bitmap('.GUI/Gates/CLOCK.png'),
+            "SIGGEN": wx.Bitmap('.GUI/Gates/SIGGEN.png'),
             "DTYPE": wx.Bitmap('.GUI/Gates/DTYPE.png'),
             "AND": wx.Bitmap('.GUI/Gates/AND.png'),
             "NAND": wx.Bitmap('.GUI/Gates/NAND.png'),
@@ -111,19 +113,19 @@ class CircuitDiagram(wx.Panel):
                 device.image.SetPosition(
                     (device.location[0], device.location[1]))
             else:
-                if device_type in ['SWITCH', 'CLOCK']:
-                    x, y = 50, i*50
+                if device_type in ['SWITCH', 'CLOCK', 'SIGGEN']:
+                    x, y = 50, (i+1)*50
                 else:
-                    x, y = random.randint(150, 400), i*50
+                    x, y = random.randint(150, 400), (i+1)*50
                 device.location = [x, y]
 
                 if device.device_kind == self.devices.D_TYPE:
                     bitmap = scale_bitmap(
                         self.icons[device_type], self.device_size[0], self.device_size[0])
-                elif device.device_kind == self.devices.CLOCK:
+                elif device.device_kind in [self.devices.CLOCK, self.devices.SIGGEN]:
                     bitmap = scale_bitmap(
                         self.icons[device_type], self.device_size[1], self.device_size[1])
-                else:
+                else:   #normal gate
                     bitmap = scale_bitmap(
                         self.icons[device_type], self.device_size[0], self.device_size[1])
 
@@ -154,7 +156,7 @@ class CircuitDiagram(wx.Panel):
                 new_device = self.devices.get_device(
                     out[0])
                 if out[1] is None:
-                    if new_device.device_kind == self.devices.CLOCK:
+                    if new_device.device_kind in [self.devices.CLOCK, self.devices.SIGGEN]:
                         dc.DrawLine(device.location[0]+xo, device.location[1] + yo, new_device.location[0] +
                                 self.device_size[1]-5, new_device.location[1] + self.device_size[1]/2)
                     else:
@@ -488,7 +490,7 @@ class Gui(wx.Frame):        # main options screen
                 else:
                     self.devices.set_switch(device.device_id, self.devices.LOW)
         
-        self.SimulateWindow.run(5)
+        self.SimulateWindow.run(2, True)
 
     def OnRightPanelToggle(self, event):
         obj = event.GetEventObject()
@@ -554,6 +556,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.SetIcon(wx.Icon('.GUI/CUED Software.png'))
         self.Maximize(True)
         self.SetBackgroundColour((186, 211, 255))
+        self.colours = []
         self.parent = parent
         self.is3d = is3d
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -562,13 +565,19 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.tostart = wx.Button(self, wx.ID_ANY, "GOTO START")
         self.tostart.name = 'start'
         self.tostart.Bind(wx.EVT_BUTTON, self.on_btn, self.tostart)
+
         self.back5 = wx.Button(self, wx.ID_ANY, "Step -5")
         self.back1 = wx.Button(self, wx.ID_ANY, "Step -1")
+
         play_pause = wx.Bitmap('.GUI/Glyphicons/playpause.png')
         play_pause = scale_bitmap(play_pause, 25, 25)
         self.pause = wx.BitmapToggleButton(self, wx.ID_ANY, play_pause)
+        self.pause.name = 'pause'
+        self.pause.Bind(wx.EVT_TOGGLEBUTTON, self.on_btn, self.pause)
+
         self.fwd1 = wx.Button(self, wx.ID_ANY, "Step +1")
         self.fwd5 = wx.Button(self, wx.ID_ANY, "Step +5")
+
         self.toend = wx.Button(self, wx.ID_ANY, "GOTO END")
         self.toend.name = 'end'
         self.toend.Bind(wx.EVT_BUTTON, self.on_btn, self.toend)
@@ -586,22 +595,27 @@ class SimulatePage(wx.Frame):       # simulation screen
         main_sizer.Add(self.left_sizer, 5, wx.ALL | wx.EXPAND, 0)
         main_sizer.Add(right_sizer, 1, wx.ALL | wx.EXPAND, 5)
 
+        self.canvas_placeholder = wx.Panel(self)
         self.canvas_panel = wx.Panel(self)
         self.canvas3d_panel = wx.Panel(self)
 
+        canvas_placeholder = wx.BoxSizer(wx.VERTICAL)
         canvas_sizer = wx.BoxSizer(wx.VERTICAL)
         canvas_sizer3d = wx.BoxSizer(wx.VERTICAL)
 
-        self.canvas = Canvas(self.canvas_panel, parent.devices,
+        self.canvas = Canvas(self, parent.devices,
                     parent.monitors, parent.network)
-        self.canvas3d = Canvas3D(self.canvas3d_panel, parent.devices,
+        self.canvas3d = Canvas3D(self, parent.devices,
                     parent.monitors, parent.network)
 
+        canvas_placeholder.AddStretchSpacer()
         canvas_sizer.Add(self.canvas, 1, wx.ALL | wx.EXPAND, 0)
         canvas_sizer3d.Add(self.canvas3d, 1, wx.ALL | wx.EXPAND, 0)
+        self.canvas_placeholder.SetSizer(canvas_placeholder)
         self.canvas_panel.SetSizer(canvas_sizer)
         self.canvas3d_panel.SetSizer(canvas_sizer3d)
 
+        self.left_sizer.Add(self.canvas_placeholder, 100,  wx.ALL | wx.EXPAND, 0)
         self.left_sizer.Add(self.canvas_panel, 100, wx.ALL | wx.EXPAND, 0)
         self.left_sizer.Add(self.canvas3d_panel, 100, wx.ALL | wx.EXPAND, 0)
         self.left_sizer.Add(toolbar, 0, wx.ALL | wx.EXPAND, 5)
@@ -660,6 +674,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.toggle2d = wx.ToggleButton(self, label="Show/Hide 2D")
         self.toggle3d = wx.ToggleButton(self, label="Show/Hide 3D")
 
+        self.canvas_placeholder.Hide()
         if is3d:
             self.toggle3d.SetValue(True)
             self.canvas_panel.Hide()
@@ -708,12 +723,12 @@ class SimulatePage(wx.Frame):       # simulation screen
             self.canvas.signals = []
             self.canvas.pan_x = 0
             self.canvas.init = False
+            self.canvas.play = False
             self.canvas.Refresh()
 
             self.canvas3d.signals = []
             self.canvas3d.init = False
             self.canvas3d.Refresh()
-
 
         elif name.split(' ')[0] == 'switch':
             if obj.GetValue():
@@ -723,18 +738,30 @@ class SimulatePage(wx.Frame):       # simulation screen
                 self.parent.devices.set_switch(int(name.split(' ')[-1]), 0)
                 obj.SetBackgroundColour('#e0473a')
 
+        elif name == 'pause':
+            if obj.GetValue():
+                self.canvas.play = True
+            else:
+                self.canvas.play = False
+
         elif name == '2D':
             if obj.GetValue():
                 self.canvas_panel.Show()
+                self.canvas_placeholder.Hide()
             else:
                 self.canvas_panel.Hide()
+                if not self.toggle3d.GetValue():
+                    self.canvas_placeholder.Show()
             self.Layout()
 
         elif name == '3D':
             if obj.GetValue():
                 self.canvas3d_panel.Show()
+                self.canvas_placeholder.Hide()
             else:
-                self.canvas3d_panel.Hide()         
+                self.canvas3d_panel.Hide()      
+                if not self.toggle2d.GetValue():
+                    self.canvas_placeholder.Show()   
             self.Layout()
 
     def on_close(self, event):
@@ -746,6 +773,9 @@ class SimulatePage(wx.Frame):       # simulation screen
     def run(self, num, reset=False):
         if reset:
             self.parent.monitors.reset_monitors()
+            self.colours = []
+            for i in range(len(self.parent.monitors.monitors_dictionary)):
+                self.colours.append((random.uniform(0,0.9), random.uniform(0,0.9), random.uniform(0,0.9)))
         
         for _ in range(num):
             if self.parent.network.execute_network():
@@ -759,8 +789,8 @@ class SimulatePage(wx.Frame):       # simulation screen
         count = 0
         for (device_id, output_id), value in self.parent.monitors.monitors_dictionary.items():
             monitor_name = self.parent.devices.get_signal_name(device_id, output_id)
-            self.canvas.signals.append([monitor_name, value])
-            self.canvas3d.signals.append([monitor_name, value])
+            self.canvas.signals.append([monitor_name, self.colours[count], value])
+            self.canvas3d.signals.append([monitor_name, self.colours[count], value])
             count += 1
         
         try:
