@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-06-02 17:05+BST\n"
-"PO-Revision-Date: 2019-06-03 11:00+0100\n"
-"Last-Translator: \n"
+"PO-Revision-Date: 2019-06-03 16:40+0100\n"
+"Last-Translator: LeaGP <leagp@btinternet.com>\n"
 "Language-Team: \n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -16,25 +16,26 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "X-Generator: Poedit 2.0.6\n"
 
-#: main_gui.py:199 main_gui.py:603
+#: main_gui.py:199
+#: main_gui.py:603
 msgid "Help"
-msgstr ""
+msgstr "Aide"
 
 #: main_gui.py:210
 msgid "Browse Files"
-msgstr ""
+msgstr "Naviguer les fichier"
 
 #: main_gui.py:211
 msgid "Verify Code"
-msgstr ""
+msgstr "Verifier le code"
 
 #: main_gui.py:213
 msgid "Editor"
-msgstr ""
+msgstr "Editeur"
 
 #: main_gui.py:227
 msgid "Click run to check for errors"
-msgstr ""
+msgstr "Cliquer sure \"Verifier le code\" pour trouver vos erreurs"
 
 #: main_gui.py:281
 msgid "No errors found"
@@ -123,3 +124,4 @@ msgstr ""
 #: main_gui.py:693
 msgid "Error! Network oscillating."
 msgstr ""
+

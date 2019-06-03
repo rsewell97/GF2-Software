@@ -195,7 +195,7 @@ class Gui(wx.Frame):        # main options screen
         self.main_sizer.Add(self.middle_panel, 3, wx.ALL | wx.EXPAND, 20)
         self.main_sizer.Add(self.right_panel, 3, wx.ALL | wx.EXPAND, 20)
 
-        helpBtn = wx.Button(self, wx.ID_ANY, "Help")
+        helpBtn = wx.Button(self, wx.ID_ANY, _("Help"))
         helpBtn.Bind(wx.EVT_BUTTON, self.open_help)
         outer.Add(helpBtn, 0, wx.ALL | wx.ALIGN_RIGHT, 0)
         outer.Add(self.main_sizer, 0, wx.EXPAND | wx.ALL, 0)
@@ -204,10 +204,10 @@ class Gui(wx.Frame):        # main options screen
     def makeLeftSizer(self):
         self.left_panel = wx.Panel(self)
         self.left_panel.SetBackgroundColour((37, 103, 209))
-        self.load_btn = wx.Button(self.left_panel, wx.ID_ANY, "Browse Files")
-        self.check_btn = wx.Button(self.left_panel, wx.ID_ANY, 'Verify Code')
+        self.load_btn = wx.Button(self.left_panel, wx.ID_ANY, _("Browse Files"))
+        self.check_btn = wx.Button(self.left_panel, wx.ID_ANY, _('Verify Code'))
 
-        left_heading = wx.StaticText(self.left_panel, -1, label="Editor")
+        left_heading = wx.StaticText(self.left_panel, -1, label=_("Editor"))
         left_heading = self.style(left_heading, self.header_font)
 
         editor_font = wx.Font(14, wx.MODERN, wx.NORMAL,
@@ -221,7 +221,7 @@ class Gui(wx.Frame):        # main options screen
         self.input_text.AppendText("DEVICES {\n\n}\nCONNECTIONS {\n\n}")
 
         self.error_text = wx.TextCtrl(self.left_panel, wx.ID_ANY, size=(
-            -1, wx.ALL), style=wx.TE_MULTILINE | wx.TE_READONLY, value="Click 'Verify Code' to check for errors")
+            -1, wx.ALL), style=wx.TE_MULTILINE | wx.TE_READONLY, value=_("Click 'Verify Code' to check for errors"))
         self.error_text.SetFont(editor_font)
         self.error_text.SetStyle(0, -1, wx.TextAttr(wx.RED))
 
