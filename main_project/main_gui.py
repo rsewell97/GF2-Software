@@ -268,16 +268,16 @@ class Gui(wx.Frame):        # main options screen
         status = None
         # try:
         status = self.parser.parse_network()
+
         # except:
         #     pass
-
         if self.scanner.total_error_string == "":
+            self.error_text.Clear()
             self.error_text.AppendText("No errors found")
         else:
             self.error_text.Clear()
             self.error_text.AppendText(self.scanner.total_error_string)
             self.error_text.SetStyle(0, -1, wx.TextAttr(wx.RED))
-
             self.middle_panel.Hide()
             self.right_panel.Hide()
             self.Layout()

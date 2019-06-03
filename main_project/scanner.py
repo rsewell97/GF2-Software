@@ -55,6 +55,7 @@ class Scanner:
     def __init__(self, path, names, string=False):
         """Open specified file and initialise reserved words and IDs."""
         self.total_errors = 0
+        self.stuck_in_comment = 0
 
         if string:
             self.read_as_string = True
@@ -158,16 +159,7 @@ class Scanner:
         elif self.current_character == ".":
             symbol.type = self.DOT
             self.advance()
-        
-        elif self.current_character == "-": 
-            symbol.type = self.MINUS
-            self.advance()
             
-        elif self.current_character == "": # end of file
-            symbol.type = self.EOF
-            
-        
-        
         elif self.current_character == "#": # single line comment
             x = 0
             symbol.type = self.HASHTAG
@@ -187,6 +179,8 @@ class Scanner:
                     if self.current_character == "/":
                         no_consec_slashes += 1
                     elif self.current_character == "":
+                        symbol.type = self.SLASH
+                        self.stuck_in_comment += 1
                         self.error(SyntaxError, "Reached end of file while still in a bulk comment")
                         break
                     else:
@@ -195,19 +189,18 @@ class Scanner:
                 self.error(SyntaxError, "Unexpected symbol, expected '//' at beginning of bulk comment")"""
         
         elif self.current_character == "-": #minus sign
+            symbol.type = self.MINUS
+            self.advance()
             self.error(SyntaxError, "Unexpected symbol, negative numbers not allowed")
+        
+        elif self.current_character == "": # end of file
+            symbol.type = self.EOF
         
         else: # not a valid character
             self.error(SyntaxError, "Invalid character encountered")
 
         self.word_number += 1
         return symbol
-
-    def ignore(until): #will ignore all characters until character until is found
-        until = str(until)
-        while self.current_character != until:
-            self.advance()
-        return
 
     def get_name(self):
         """Seek the next name string in input_file.
@@ -281,11 +274,18 @@ class Scanner:
                         self.current_line, self.character_number)
         
         while True:
+            if self.stuck_in_comment > 0:
+                print("stuckness", 1)
+                return error_type
             self.symbol = self.get_symbol()
             if self.symbol is None:
                 continue
             if self.symbol.type in self.stopping_symbols:
                 break
+            elif self.symbol.type is self.MINUS:
+                return error_type
+            elif self.symbol.type is self.EOF:
+                return error_type
             elif self.read_as_string:
                 try:
                     Error(message, error_type, self.list_file[self.current_line], 
@@ -293,6 +293,6 @@ class Scanner:
                 except IndexError:
                     break
         
-				
+                
         return error_type
     

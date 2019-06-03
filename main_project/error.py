@@ -14,6 +14,7 @@ class UnclassedError(Exception):
         
 class Error(Exception):
     def __init__(self, message, error, line, line_num, char):
+        debug = False
         self.msg = message
         self.error_type = error
         # Call the base class constructor with the parameters it needs
