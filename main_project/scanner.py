@@ -256,6 +256,7 @@ class Scanner:
         return self.current_character
 
     def error(self, error_type, message=""):
+       # print(__name__)
         self.total_errors += 1
 
         if self.read_as_string:
