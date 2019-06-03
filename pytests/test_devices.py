@@ -148,3 +148,13 @@ def test_set_switch(new_devices):
     # Set switch Sw1 to LOW
     new_devices.set_switch(SW1_ID, new_devices.LOW)
     assert switch_object.switch_state == new_devices.LOW
+
+
+def test_siggen(new_devices):
+    """Test if the siggen device behaves as expected"""
+    names = new_devices.names
+    # make a siggen
+    [SG_ID] = names.lookup(["sg1"])
+    new_devices.make_device(SG_ID, new_devices.SIGGEN, 5)
+
+    assert 0
