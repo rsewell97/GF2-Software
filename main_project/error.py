@@ -18,19 +18,35 @@ class Error(Exception):
         self.error_type = error
         # Call the base class constructor with the parameters it needs
         super().__init__(message+'\n')
-        
+
+        if "test" in sys.argv[0]:
+            debug = True
+        else:
+            debug = False
+
+        print("main name", sys.argv[0])
+
         if error == SemanticError:
             error_type = "SemanticError"
-            # raise SemanticError
+            # print (__name__)
+            if debug:
+                raise SemanticError
+            else:
+                pass
         elif error == SyntaxError:
             error_type = "SyntaxError"
-            # raise SyntaxError
+            if debug:
+                raise SyntaxError
+            else:
+                pass
         elif error == ValueError:
             error_type = "ValueError"
-            # raise ValueError
+            if debug:
+                raise ValueError
         else:
             error_type = "UnclassedError"
-            # raise UnclassedError
+            if debug:
+                raise UnclassedError
         
         self.error_string = """Error on line {line_num}:
     {line}

@@ -11,6 +11,11 @@ from main_project.parse import Parser
 from main_project.monitors import Monitors
 from main_project.error import SyntaxError, SemanticError, ValueError, UnclassedError
 
+# #@pytest.fixture()
+# def trying_something():
+#     print(__name__)
+#     return True
+
 
 def raise_errors(error):
     if error == SemanticError:
@@ -22,11 +27,11 @@ def raise_errors(error):
     else:
         raise UnclassedError
 
-def test_error_fun():
-    with pytest.raises(SemanticError):
-        raise_errors(SemanticError)
-
-
+# def test_error_fun():
+#     with pytest.raises(SemanticError):
+#         raise_errors(SemanticError)
+#     with pytest.raises(SyntaxError):
+#
 
 def startup_parser(data):
     new_names = Names()
@@ -44,6 +49,7 @@ def startup_parser(data):
                           ("devices{} connections{} monitor{}", True),
                           ])
 def test_heading_recognition(input, expected_outputs):
+    #trying_something()
     new_parser = startup_parser(input)
     new_parser.parse_network()
     bool = new_parser.found_devices and new_parser.found_connections or new_parser.found_monitor

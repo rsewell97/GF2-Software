@@ -102,9 +102,9 @@ def test_get_symbol_ignore():
         val = test_scan.get_symbol()
         assert val is None
     after_num = len(empty_names.names)
-    assert before + 11 == after_num
+    assert before + 12 == after_num
     assert empty_names.names == ["devices", "connections", "monitor","are", "is", "have", "has",
-                                 "set", "to", "cycle","device"]
+                                 "set", "to", "cycle","trace","device"]
 
 
 def test_wordcount(new_names):
