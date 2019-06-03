@@ -1,0 +1,19 @@
+DEVICES {
+    A, B are NAND gates;
+    S1, S2 are SWITCH;
+    A, B have 2 inputs;
+}
+
+CONNECTIONS {
+    device A {
+        S1 to A.I1;
+        B to A.I2;
+    }
+    device B {
+       A to B.I1;
+       S2 to B.I2;
+    }
+}
+MONITOR {
+    A, B;
+}

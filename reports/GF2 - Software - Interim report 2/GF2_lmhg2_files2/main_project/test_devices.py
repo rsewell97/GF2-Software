@@ -1,8 +1,8 @@
 """Test the devices module."""
 import pytest
 
-from main_project.names import Names
-from main_project.devices import Devices
+from names import Names
+from devices import Devices
 
 
 @pytest.fixture
@@ -142,21 +142,9 @@ def test_set_switch(new_devices):
     [SW1_ID] = names.lookup(["Sw1"])
     new_devices.make_device(SW1_ID, new_devices.SWITCH, 1)
     switch_object = new_devices.get_device(SW1_ID)
+
     assert switch_object.switch_state == new_devices.HIGH
 
     # Set switch Sw1 to LOW
     new_devices.set_switch(SW1_ID, new_devices.LOW)
     assert switch_object.switch_state == new_devices.LOW
-
-
-def test_siggen(new_devices):
-    """Test if the siggen device has been made and that its name_string is as expected"""
-    names = new_devices.names
-    before = len(new_devices.find_devices())
-    # make a siggen
-    [SG_ID] = names.lookup(["sg1"])
-    new_devices.add_device(SG_ID, new_devices.SIGGEN)
-    new_devices.make_siggen(SG_ID, "10100")
-    after = len(new_devices.find_devices())
-    assert names.get_name_string(new_devices.find_devices()[0]) == "sg1"
-    assert before + 1 == after

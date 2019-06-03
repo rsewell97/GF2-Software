@@ -1,0 +1,39 @@
+DEVICES {
+   A, B, C, D are DTYPE;
+   RST, ST are SWITCH;
+   CKL1 is CLOCK;
+   CKL1 has cycle 1;
+}
+
+CONNECTIONS {
+   device A {
+       A.QBAR to A.DATA;
+       RST to A.CLEAR;
+       ST to A.SET;
+       CKL1 to A.CLK;
+   }
+   device B {
+       B.QBAR to B.DATA;
+       RST to B.CLEAR;
+       ST to B.SET;
+       A.Q to B.CLK;
+   }
+   device C {
+       C.QBAR to C.DATA;
+       RST to C.CLEAR;
+       ST to C.SET;
+       B.Q to C.CLK;
+   }
+   device D {
+       D.QBAR to D.DATA;
+       RST to D.CLEAR;
+       ST to D.SET;
+       C.Q to D.CLK;
+   }
+}
+
+MONITOR {
+   A.Q, B.Q, C.Q, D.Q, CKL1;
+}
+
+
