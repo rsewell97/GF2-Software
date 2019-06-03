@@ -3,9 +3,9 @@
 Writen by Lea """
 
 import pytest
-from main_project.names import Names
-from main_project.scanner import Scanner
-from main_project.error import SyntaxError , SemanticError , ValueError, UnclassedError
+from names import Names
+from scanner import Scanner
+from error import SyntaxError , SemanticError , ValueError, UnclassedError
 
 '''Test the scanner module'
 
@@ -102,9 +102,9 @@ def test_get_symbol_ignore():
         val = test_scan.get_symbol()
         assert val is None
     after_num = len(empty_names.names)
-    assert before + 12 == after_num
+    assert before + 11 == after_num
     assert empty_names.names == ["devices", "connections", "monitor","are", "is", "have", "has",
-                                 "set", "to", "cycle","trace","device"]
+                                 "set", "to", "cycle","device"]
 
 
 def test_wordcount(new_names):

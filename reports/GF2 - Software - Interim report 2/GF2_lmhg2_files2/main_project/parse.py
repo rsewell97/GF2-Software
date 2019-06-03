@@ -1,6 +1,6 @@
 import re
 import sys
-from main_project.error import SyntaxError , SemanticError , ValueError, UnclassedError
+from error import SyntaxError , SemanticError , ValueError, UnclassedError
 
 """Parse the definition file and build the logic network.
 
@@ -137,7 +137,7 @@ class Parser:
             # ----------- CHECK DEVICE IS SPECIFIED ----------- #
             for i in self.devices.devices_list:
 
-                if i.inputs == {} and i.device_kind not in [self.devices.SWITCH, self.devices.CLOCK, self.devices.SIGGEN]:
+                if i.inputs == {} and i.device_kind not in [self.devices.SWITCH, self.devices.CLOCK]:
                     self.error(SemanticError,
                                "No inputs specified for gate '{}' "
                                .format(self.devices.names.get_name_string(i.device_id)))
@@ -145,8 +145,8 @@ class Parser:
                     self.error(SemanticError,
                                "Gate '{}' has no output".format(self.devices.names.get_name_string(i.device_id)))
 
-                print("[name: {}, type: {}, num_inputs: {}, num_outputs: {}, trace: {}]"
-                      .format(self.devices.names.get_name_string(i.device_id),self.names.get_name_string(i.device_kind), i.inputs, i.outputs, i.trace))
+                print("[name: {}, type: {}, num_inputs: {}, num_outputs: {}]"
+                      .format(self.devices.names.get_name_string(i.device_id),self.names.get_name_string(i.device_kind), i.inputs, i.outputs))
 
         elif heading == 'connections':
             while self.parse_connections():
@@ -206,8 +206,6 @@ class Parser:
                 elif self.symbol.id == self.devices.SWITCH:
                     self.devices.make_switch(i, 0)
 
-                elif self.symbol.id == self.devices.SIGGEN:
-                    self.devices.add_device(i, self.symbol.id)
                 else:
                     self.error(
                         SyntaxError, "Can't create device {} in this section".format(
@@ -282,16 +280,6 @@ class Parser:
                             if clk is None:
                                 continue
                             clk.clock_half_period = int(self.symbol.id[0])
-
-                elif self.symbol.id == self.scanner.TRACE:
-                    self.symbol = self.scanner.get_symbol()
-                    if self.symbol.type == self.scanner.NUMBER:
-                        for device in devices:
-                            siggen = self.devices.get_device(self.names.query(device))
-                            if siggen is None:
-                                continue
-                            self.devices.make_siggen(siggen.device_id, str(self.symbol.id[0]))
-
                 else:
                     self.error(SyntaxError, "Expected number")
 
