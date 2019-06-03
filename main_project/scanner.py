@@ -1,5 +1,5 @@
 import sys
-from main_project.error import *
+from error import *
 
 """Read the circuit definition file and translate the characters into symbols.
 
@@ -75,7 +75,8 @@ class Scanner:
         self.names = names
         self.symbol_type_list = [self.HEADING, self.KEYWORD, self.NUMBER, 
                     self.NAME, self.COMMA, self.ARROW, self.CURLY_OPEN, 
-                    self.CURLY_CLOSE, self.SEMICOLON, self.DOT, self.EOF] = range(11)
+                    self.CURLY_CLOSE, self.SEMICOLON, self.DOT, self.MINUS, 
+                    self.SLASH, self.HASHTAG, self.EOF] = range(14)
 
         self.heading_list = ["devices", "connections", "monitor"]
         [self.DEVICES_ID, self.CONNECTION_ID, self.MONITOR_ID] = self.names.lookup(self.heading_list)
@@ -157,19 +158,27 @@ class Scanner:
         elif self.current_character == ".":
             symbol.type = self.DOT
             self.advance()
-
+        
+        elif self.current_character == "-": 
+            symbol.type = self.MINUS
+            self.advance()
+            
         elif self.current_character == "": # end of file
             symbol.type = self.EOF
+            
+        
         
         elif self.current_character == "#": # single line comment
             x = 0
+            symbol.type = self.HASHTAG
             while x < 1:
                 self.advance()
                 while self.current_character != "\n": # ignore until end of line
                     self.advance()
                 x += 1
-		
+        
         elif self.current_character == "/": #bulk comment, expect another
+            symbol.type = self.SLASH
             self.advance()
             if self.current_character == "/": # start bulk comment, start ignoring
                 no_consec_slashes = 0
@@ -184,10 +193,10 @@ class Scanner:
                         no_consec_slashes = 0
             """else:
                 self.error(SyntaxError, "Unexpected symbol, expected '//' at beginning of bulk comment")"""
-		
+        
         elif self.current_character == "-": #minus sign
             self.error(SyntaxError, "Unexpected symbol, negative numbers not allowed")
-		
+        
         else: # not a valid character
             self.error(SyntaxError, "Invalid character encountered")
 
@@ -277,5 +286,13 @@ class Scanner:
                 continue
             if self.symbol.type in self.stopping_symbols:
                 break
+            elif self.read_as_string:
+                try:
+                    Error(message, error_type, self.list_file[self.current_line], 
+                        self.current_line, self.character_number)
+                except IndexError:
+                    break
+        
+				
         return error_type
     
