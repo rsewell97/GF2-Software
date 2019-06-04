@@ -14,8 +14,6 @@ import numpy as np
 import math
 
 from main_project.names import Names
-from main_project.userint import UserInterface
-
 
 class Canvas(wxcanvas.GLCanvas):
     """Handle all drawing operations.
