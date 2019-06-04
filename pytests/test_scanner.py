@@ -40,17 +40,21 @@ def no_spaces():
     return ["d", "e", "v", "i", "c", "e", "7", ",", "1", "2", "h", "a", "s"]
 
 
+
 def test_new_scanned_item_functionality(new_names):
+    """Test that a file not found error works"""
     with pytest.raises(FileNotFoundError):
         Scanner("fakefile.txt", new_names, False)
 
 
 def test_skip_spaces(new_scanner, new_names, expected_out="d"):
+    """Test the self.skip_spaces() functionality of the scanner class"""
     new_scanner.skip_spaces()
     assert new_scanner.current_character == expected_out
 
 
 def test_advance(new_scanner, no_spaces):
+    """Test the self.advance() functionality of the scanner class"""
     i = 0
     while i <= len(no_spaces)-1:
         expected = no_spaces[i]
@@ -129,6 +133,19 @@ def test_wordcount(new_names):
 
 
 def test_non_valid_symbol(new_names):
+    """Test that the non valid characters and names raise the approrpiate errors"""
     with pytest.raises(SyntaxError):
         Scanner(" +", new_names, True).get_symbol()  # + is not a valid symbol
         Scanner(" 4fjd", new_names, True).get_symbol()
+
+
+@pytest.mark.parametrize("inputs, outputs", [("#hello \nh", "h"),
+                                             ("//hello \n world //h", "h")])
+def test_comments(inputs, outputs, new_names):
+    """Testing that the scanner skips over the two error types correctly"""
+    new_scan = Scanner(inputs, new_names, True)
+    new_scan.get_symbol()
+    out = new_scan.current_character
+    assert out == outputs
+
+

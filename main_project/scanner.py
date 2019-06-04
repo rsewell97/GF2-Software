@@ -175,6 +175,7 @@ class Scanner:
                 self.advance()
                 while self.current_character != "\n":  # ignore until end of line
                     self.advance()
+                self.advance()
                 x += 1
         
         elif self.current_character == "/": #bulk comment, expect another
@@ -186,13 +187,14 @@ class Scanner:
                     self.advance()
                     if self.current_character == "/":
                         no_consec_slashes += 1
-                    elif self.current_character == "":
                         symbol.type = self.SLASH
+                    elif self.current_character == "":
                         self.stuck_in_comment += 1
                         self.error(SyntaxError, "Reached end of file while still in a bulk comment")
                         break
                     else:
                         no_consec_slashes = 0
+                self.advance()
             """else:
                 self.error(SyntaxError, "Unexpected symbol, expected '//' at beginning of bulk comment")"""
         
