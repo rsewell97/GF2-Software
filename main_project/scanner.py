@@ -1,5 +1,5 @@
 import sys
-from error import *
+from main_project.error import *
 
 
 """Read the circuit definition file and translate the characters into symbols.
