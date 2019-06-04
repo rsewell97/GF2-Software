@@ -11,7 +11,7 @@ pip3 install -r requirements.txt
 ```
 Then for Linux and MacOSX:
 ```
-./main_project/main.py
+./main.py
 ```
 Or for Windows:
 ```
