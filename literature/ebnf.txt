@@ -14,7 +14,7 @@ devices_type = ("DTYPE" | "NAND" | "NOR" | "XOR" | "AND" | "OR" | "CLOCK" | "SWI
 
 parameter = inputs | cycle_time | switch_set;
 inputs = ("has" | "have") , digit, ["input" | "inputs"];
-cycle_test = ("has" | "have"), ["cycle time of"], digit, {digit}, ";";
+cycle_test = ("has" | "have"), "cycle, digit, {digit}, ";";
 set_switch = ("set"), ("1" | "0"), ";";
 
 link = name, [".QBAR" | ".Q" ], "to" , port, ";";
