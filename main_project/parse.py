@@ -1,6 +1,6 @@
 import re
 import sys
-from main_project.error import SyntaxError , SemanticError , ValueError, UnclassedError
+from error import SyntaxError , SemanticError , ValueError, UnclassedError
 
 """Parse the definition file and build the logic network.
 
