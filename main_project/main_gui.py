@@ -728,6 +728,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         elif name == 'continue':
             self.run(int(self.continueSpin.GetValue()))
             if self.canvas.max_x > self.canvas.size.width:
+                self.canvas.pan_x = -self.canvas.max_x-100 + self.canvas.size.width
                 self.canvas.init = False
                 self.canvas.Refresh()
 
