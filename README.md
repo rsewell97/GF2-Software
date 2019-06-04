@@ -26,5 +26,6 @@ Run the following commands in your terminal
 cd GF2-Software/
 python -m pytest pytests
 ```
+export PATH=/usr/local/apps/anaconda3-5.0.1/bin:$PATH
 
 
