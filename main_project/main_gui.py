@@ -570,34 +570,28 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
         # Configure the widgets
-        self.tostart = wx.Button(self, wx.ID_ANY, _("GOTO START"))
+        self.tostart = wx.Button(self, wx.ID_ANY, _("View Start"))
         self.tostart.name = 'start'
         self.tostart.Bind(wx.EVT_BUTTON, self.on_btn, self.tostart)
-
-        self.back5 = wx.Button(self, wx.ID_ANY, _("Step -5"))
-        self.back1 = wx.Button(self, wx.ID_ANY, _("Step -1"))
-
-        play_pause = wx.Bitmap('.GUI/Glyphicons/playpause.png')
-        play_pause = scale_bitmap(play_pause, 25, 25)
-        self.pause = wx.BitmapToggleButton(self, wx.ID_ANY, play_pause)
-        self.pause.name = 'pause'
-        self.pause.Bind(wx.EVT_TOGGLEBUTTON, self.on_btn, self.pause)
-
-        self.fwd1 = wx.Button(self, wx.ID_ANY, _("Step +1"))
-        self.fwd5 = wx.Button(self, wx.ID_ANY, _("Step +5"))
-
-        self.toend = wx.Button(self, wx.ID_ANY, _("GOTO END"))
-        self.toend.name = 'end'
-        self.toend.Bind(wx.EVT_BUTTON, self.on_btn, self.toend)
 
         self.reset = wx.Button(self, wx.ID_ANY, _("Reset Scene"))
         self.reset.name = 'reset'
         self.reset.Bind(wx.EVT_BUTTON, self.on_btn, self.reset)
 
+        self.toend = wx.Button(self, wx.ID_ANY, _("View End"))
+        self.toend.name = 'end'
+        self.toend.Bind(wx.EVT_BUTTON, self.on_btn, self.toend)
+
+        destroy = wx.Button(self, wx.ID_ANY, _("Close Simulation"))
+        destroy.name = 'kill'
+        destroy.Bind(wx.EVT_BUTTON, self.on_btn, destroy)
+        destroy.SetBackgroundColour('#e0473a')
+        destroy.SetForegroundColour('white')
+
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.left_sizer = wx.BoxSizer(wx.VERTICAL)
-        toolbar = wx.GridSizer(9)
+        toolbar = wx.GridSizer(5)
         right_sizer = wx.BoxSizer(wx.VERTICAL)
 
         main_sizer.Add(self.left_sizer, 5, wx.ALL | wx.EXPAND, 0)
@@ -631,11 +625,7 @@ class SimulatePage(wx.Frame):       # simulation screen
 
         toolbar.Add(self.tostart, 1, wx.ALL | wx.ALIGN_LEFT | wx.EXPAND, 5)
         toolbar.AddSpacer(70)
-        toolbar.Add(self.back5, 1, wx.ALL | wx.EXPAND | wx.ALIGN_RIGHT, 5)
-        toolbar.Add(self.back1, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER, 5)
-        toolbar.Add(self.pause, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER, 5)
-        toolbar.Add(self.fwd1, 1, wx.ALL | wx.EXPAND | wx.ALIGN_CENTER, 5)
-        toolbar.Add(self.fwd5, 1, wx.ALL | wx.EXPAND | wx.ALIGN_LEFT, 5)
+        toolbar.Add(self.reset, 0, wx.EXPAND | wx.ALIGN_CENTER | wx.BOTTOM, 5)
         toolbar.AddSpacer(70)
         toolbar.Add(self.toend, 0, wx.ALL | wx.ALIGN_RIGHT | wx.EXPAND, 5)
 
@@ -646,9 +636,6 @@ class SimulatePage(wx.Frame):       # simulation screen
 
         right_sizer.Add(helpBtn, 0, wx.ALL | wx.ALIGN_RIGHT, 0)
         right_sizer.Add(combo, 0, wx.ALL | wx.ALIGN_LEFT, 10)
-
-        self.speedSizer = wx.Slider(self, value=30, minValue=5, maxValue=60)
-        right_sizer.Add(self.speedSizer, 0, wx.ALL | wx.GROW, 10)
 
         row = wx.BoxSizer(wx.HORIZONTAL)
         self.continueSpin = wx.SpinCtrl(self, wx.ID_ANY, "5")
@@ -704,9 +691,9 @@ class SimulatePage(wx.Frame):       # simulation screen
 
         right_sizer.Add(self.toggle2d, 0, wx.ALL | wx.EXPAND, 0)
         right_sizer.Add(self.toggle3d, 0, wx.ALL | wx.EXPAND, 0)
-        right_sizer.AddSpacer(50)
-        right_sizer.Add(self.reset, 0, wx.EXPAND |
-                        wx.ALIGN_CENTER | wx.BOTTOM, 5)
+        right_sizer.AddStretchSpacer()
+        right_sizer.Add(destroy, 0, wx.ALL|wx.EXPAND, 5)
+
         self.SetSizerAndFit(main_sizer)
 
     def on_btn(self, event):
@@ -718,30 +705,40 @@ class SimulatePage(wx.Frame):       # simulation screen
             self.canvas.init = False
             self.canvas.Refresh()
 
+            self.canvas3d.pan_x = 0
+            self.canvas3d.init = False
+            self.canvas3d.Refresh()
+
         elif name == 'end':
             self.canvas.pan_x = -self.canvas.max_x-100 + self.canvas.size.width
             self.canvas.init = False
             self.canvas.Refresh()
 
-        elif name == 'continue':
-            self.run(int(self.continueSpin.GetValue()))
-            if self.canvas.max_x > self.canvas.size.width:
-                self.canvas.pan_x = -self.canvas.max_x-100 + self.canvas.size.width
-                self.canvas.init = False
-                self.canvas.Refresh()
-
+            self.canvas3d.pan_x = -self.canvas3d.max_x-100 + self.canvas3d.size.width/3
             self.canvas3d.init = False
             self.canvas3d.Refresh()
 
+        elif name == 'continue':
+            self.run(int(self.continueSpin.GetValue()))
+            if self.canvas.max_x > self.canvas.size.width:
+                self.canvas.init = False
+                self.canvas.Refresh()
+
+            if self.canvas3d.max_x > self.canvas3d.size.width/3:
+                self.canvas3d.pan_x = -self.canvas3d.max_x-100 + self.canvas3d.size.width/3
+                self.canvas3d.init = False
+                self.canvas3d.Refresh()
+
         elif name == 'reset':
             self.parent.monitors.reset_monitors()
+
             self.canvas.signals = []
             self.canvas.pan_x = 0
             self.canvas.init = False
-            self.canvas.play = False
             self.canvas.Refresh()
 
             self.canvas3d.signals = []
+            self.canvas3d.pan_x = 0
             self.canvas3d.init = False
             self.canvas3d.Refresh()
 
@@ -752,12 +749,6 @@ class SimulatePage(wx.Frame):       # simulation screen
             else:
                 self.parent.devices.set_switch(int(name.split(' ')[-1]), 0)
                 obj.SetBackgroundColour('#e0473a')
-
-        elif name == 'pause':
-            if obj.GetValue():
-                self.canvas.play = True
-            else:
-                self.canvas.play = False
 
         elif name == '2D':
             if obj.GetValue():
@@ -778,6 +769,12 @@ class SimulatePage(wx.Frame):       # simulation screen
                 if not self.toggle2d.GetValue():
                     self.canvas_placeholder.Show()
             self.Layout()
+        
+        elif name == 'kill':
+            self.canvas.Destroy()
+            self.canvas3d.Destroy()
+            self.Destroy()
+
 
     def on_close(self, event):
         self.Destroy()

@@ -69,6 +69,9 @@ class Canvas(wxcanvas.GLCanvas):
         self.scale_x = 50
         self.scale_y = 50
 
+        self.size = self.GetClientSize()
+        self.max_x = self.size.width
+
         self.devices = devices
         self.network = network
         self.monitors = monitors
@@ -78,6 +81,7 @@ class Canvas(wxcanvas.GLCanvas):
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.on_mouse)
+
 
     def init_gl(self):
         """Configure and initialise the OpenGL context."""
@@ -116,10 +120,7 @@ class Canvas(wxcanvas.GLCanvas):
                 GL.glBegin(GL.GL_LINES)
                 GL.glVertex2f(100 + i*self.scale_x, self.size.height - 40)
                 GL.glVertex2f(100 + i*self.scale_x, 0)
-                GL.glEnd()
-
-
-                
+                GL.glEnd()     
 
             # signal
             count = 1
@@ -170,10 +171,24 @@ class Canvas(wxcanvas.GLCanvas):
             if self.pan_x > 0:
                 self.pan_x = 0
             self.init = False
+
+            self.parent.canvas3d.pan_x -= 20 * event.GetWheelRotation() / event.GetWheelDelta()
+            if self.parent.canvas3d.pan_x > 0:
+                self.parent.canvas3d.pan_x = 0
+            self.parent.canvas3d.init = False
+            self.parent.canvas3d.Refresh()
             
         if event.GetWheelRotation() > 0:
             self.pan_x -= 20 * event.GetWheelRotation() / event.GetWheelDelta()
+            if self.pan_x < -self.max_x-100 + self.size.width:
+                self.pan_x = -self.max_x-100 + self.size.width
             self.init = False
+
+            self.parent.canvas3d.pan_x -= 20 * event.GetWheelRotation() / event.GetWheelDelta()
+            if self.parent.canvas3d.pan_x < -self.parent.canvas3d.max_x-100 + self.parent.canvas3d.size.width/3:
+                self.parent.canvas3d.pan_x = -self.parent.canvas3d.max_x-100 + self.parent.canvas3d.size.width/3
+            self.parent.canvas3d.init = False
+            self.parent.canvas3d.Refresh()
 
         self.Refresh()  # triggers the paint event
 
@@ -209,10 +224,6 @@ class Canvas(wxcanvas.GLCanvas):
         GL.glEnd()
         return
     
-    def test_loop(self):
-        pass
-
-
 
 class Canvas3D(wxcanvas.GLCanvas):
     """Handle all drawing operations.
@@ -255,6 +266,7 @@ class Canvas3D(wxcanvas.GLCanvas):
         self.devices = devices
         self.network = network
         self.monitors = monitors
+        self.parent = parent
 
         # Constants for OpenGL materials and lights
         self.mat_diffuse = [0.0, 0.0, 0.0, 1.0]
@@ -287,6 +299,9 @@ class Canvas3D(wxcanvas.GLCanvas):
         self.scale_y = 50
         self.scale_z = 30
         self.signals = []
+
+        self.max_x = 0
+        self.size = self.GetClientSize()
 
         # Offset between viewpoint and origin of the scene
         self.depth_offset = 800
@@ -348,6 +363,7 @@ class Canvas3D(wxcanvas.GLCanvas):
         GL.glMultMatrixf(self.scene_rotate)
 
         GL.glTranslatef(-100.0, -10.0, self.pan_y)
+        
 
     def render(self):
         """Handle all drawing operations."""
@@ -475,12 +491,30 @@ class Canvas3D(wxcanvas.GLCanvas):
             self.init = False
 
         if event.GetWheelRotation() < 0:
-            self.pan_x -=  4*event.GetWheelRotation() / (event.GetWheelDelta())
+            self.pan_x -=  20*event.GetWheelRotation() / (event.GetWheelDelta())
+
+            if self.pan_x > 0:
+                self.pan_x = 0
             self.init = False
 
+            self.parent.canvas.pan_x -= 20*event.GetWheelRotation() / (event.GetWheelDelta())
+            if self.parent.canvas.pan_x > 0:
+                self.parent.canvas.pan_x = 0
+            self.parent.canvas.init = False
+            self.parent.canvas.Refresh()
+
+
         if event.GetWheelRotation() > 0:
-            self.pan_x -=  4*event.GetWheelRotation() / (event.GetWheelDelta())
+            self.pan_x -=  20*event.GetWheelRotation() / (event.GetWheelDelta())
+            if self.pan_x < -self.parent.canvas3d.max_x-100 + self.parent.canvas3d.size.width/3:
+                self.pan_x = -self.parent.canvas3d.max_x-100 + self.parent.canvas3d.size.width/3
             self.init = False
+
+            self.parent.canvas.pan_x -= 20*event.GetWheelRotation() / (event.GetWheelDelta())
+            if self.parent.canvas.pan_x < -self.parent.canvas.max_x-100 + self.parent.canvas.size.width:
+                self.parent.canvas.pan_x = -self.parent.canvas.max_x-100 + self.parent.canvas.size.width
+            self.parent.canvas.init = False
+            self.parent.canvas.Refresh()
 
         self.Refresh()  # triggers the paint event
 
