@@ -79,7 +79,7 @@ class Names:
         for name_string in name_string_list:
             if name_string not in self.names:
                 self.names.append(name_string)
-            
+
             id_list.append(self.names.index(name_string))
 
         return id_list
@@ -96,4 +96,3 @@ class Names:
             return self.names[name_id]
         except IndexError:
             return None
-            

@@ -1,6 +1,6 @@
 import re
 import sys
-from main_project.error import SyntaxError , SemanticError , ValueError, UnclassedError
+from main_project.error import SyntaxError, SemanticError, ValueError, UnclassedError
 
 """Parse the definition file and build the logic network.
 
@@ -79,22 +79,21 @@ class Parser:
                     self.found_devices = True
                     self.parse_section('devices')
 
-
                 elif self.symbol.id == self.scanner.CONNECTION_ID:
                     self.found_connections = True
                     if not self.found_devices:
-                        self.error(SyntaxError, "Specifying connections before devices is not allowed")
+                        self.error(
+                            SyntaxError, "Specifying connections before devices is not allowed")
                         break
                     self.parse_section('connections')
-
 
                 elif self.symbol.id == self.scanner.MONITOR_ID:
                     self.found_monitor = True
                     if not self.found_devices:
-                        self.error(SyntaxError, "Specifying monitor before devices is not allowed")
+                        self.error(
+                            SyntaxError, "Specifying monitor before devices is not allowed")
                         break
                     self.parse_section('monitor')
-
 
                 else:
                     self.error(SyntaxError, "Heading name '{}' not allowed".format(
@@ -104,7 +103,7 @@ class Parser:
                 if not self.found_devices or not self.found_connections:
                     self.error(SyntaxError, "A valid definition must include 'devices' "
                                             "section and 'connection' section")
-                    
+
                 try:
                     self.scanner.input_file.close()
                 except AttributeError:
@@ -146,7 +145,7 @@ class Parser:
                                "Gate '{}' has no output".format(self.devices.names.get_name_string(i.device_id)))
 
                 print("[name: {}, type: {}, num_inputs: {}, num_outputs: {}, trace: {}]"
-                      .format(self.devices.names.get_name_string(i.device_id),self.names.get_name_string(i.device_kind), i.inputs, i.outputs, i.trace))
+                      .format(self.devices.names.get_name_string(i.device_id), self.names.get_name_string(i.device_kind), i.inputs, i.outputs, i.trace))
 
         elif heading == 'connections':
             while self.parse_connections():
@@ -278,7 +277,8 @@ class Parser:
                     self.symbol = self.scanner.get_symbol()
                     if self.symbol.type == self.scanner.NUMBER:
                         for device in devices:
-                            clk = self.devices.get_device(self.names.query(device))
+                            clk = self.devices.get_device(
+                                self.names.query(device))
                             if clk is None:
                                 continue
                             clk.clock_half_period = int(self.symbol.id[0])
@@ -287,10 +287,12 @@ class Parser:
                     self.symbol = self.scanner.get_symbol()
                     if self.symbol.type == self.scanner.NUMBER:
                         for device in devices:
-                            siggen = self.devices.get_device(self.names.query(device))
+                            siggen = self.devices.get_device(
+                                self.names.query(device))
                             if siggen is None:
                                 continue
-                            self.devices.make_siggen(siggen.device_id, str(self.symbol.id[0]))
+                            self.devices.make_siggen(
+                                siggen.device_id, str(self.symbol.id[0]))
 
                 else:
                     self.error(SyntaxError, "Expected number")
@@ -426,7 +428,8 @@ class Parser:
 
         elif self.symbol.type == self.scanner.NAME:
             if self.symbol.id is None:
-                self.error(SemanticError, "Undefined device '{}'".format(self.scanner.name_string))
+                self.error(SemanticError, "Undefined device '{}'".format(
+                    self.scanner.name_string))
 
             if self.devices.get_device(self.symbol.id).device_kind == self.devices.D_TYPE:
                 device = self.symbol.id
@@ -437,7 +440,8 @@ class Parser:
                     self.symbol = self.scanner.get_symbol(query=True)
                     if self.symbol.id in self.devices.dtype_output_ids:
 
-                        status = self.monitors.make_monitor(device, self.symbol.id)
+                        status = self.monitors.make_monitor(
+                            device, self.symbol.id)
                         if status == self.monitors.network.DEVICE_ABSENT:
                             self.error(SemanticError, "Device doesn't exist")
                         elif status == self.monitors.NOT_OUTPUT:
@@ -449,11 +453,13 @@ class Parser:
                         elif status == self.monitors.NO_ERROR:
                             pass
                     else:
-                        self.error(SyntaxError, "Expected the name of a port (Q, QBAR)")
+                        self.error(
+                            SyntaxError, "Expected the name of a port (Q, QBAR)")
                 else:
-                    self.error(SyntaxError, "Expected a dot to index a DTYPE port")
-            
-            else: 
+                    self.error(
+                        SyntaxError, "Expected a dot to index a DTYPE port")
+
+            else:
                 status = self.monitors.make_monitor(
                     self.symbol.id, None)
 
@@ -469,7 +475,8 @@ class Parser:
                 elif status == self.monitors.NO_ERROR:
                     pass
         else:
-            self.error(SyntaxError, "{} is not a valid signal name".format(self.scanner.name_string))
+            self.error(SyntaxError, "{} is not a valid signal name".format(
+                self.scanner.name_string))
         return True
 
     def get_names_before_delimiter(self, true_delimiting_word_ids, false_delimiting_word_ids):

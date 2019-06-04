@@ -338,8 +338,10 @@ class Network:
         """
         device = self.devices.get_device(device_id)
         device.clock_counter = (device.clock_counter + 1) % len(device.trace)
-        output_signal = int(device.trace[device.clock_counter])  # output ID is None
-        device.outputs[None] = output_signal # could use the update_signal function instead to have 'rising and falling' edges
+        # output ID is None
+        output_signal = int(device.trace[device.clock_counter])
+        # could use the update_signal function instead to have 'rising and falling' edges
+        device.outputs[None] = output_signal
 
         return True
 

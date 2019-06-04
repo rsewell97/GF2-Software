@@ -177,8 +177,8 @@ class Gui(wx.Frame):        # main options screen
     def __init__(self, title):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title)
-        
-        print (os.getcwd())
+
+        print(os.getcwd())
         self.SetIcon(wx.Icon('./main_project/.GUI/CUED Software.png'))
         self.Maximize(True)
         self.SetBackgroundColour((186, 211, 255))
@@ -206,8 +206,10 @@ class Gui(wx.Frame):        # main options screen
     def makeLeftSizer(self):
         self.left_panel = wx.Panel(self)
         self.left_panel.SetBackgroundColour((37, 103, 209))
-        self.load_btn = wx.Button(self.left_panel, wx.ID_ANY, _("Browse Files"))
-        self.check_btn = wx.Button(self.left_panel, wx.ID_ANY, _('Verify Code'))
+        self.load_btn = wx.Button(
+            self.left_panel, wx.ID_ANY, _("Browse Files"))
+        self.check_btn = wx.Button(
+            self.left_panel, wx.ID_ANY, _('Verify Code'))
 
         left_heading = wx.StaticText(self.left_panel, -1, label=_("Editor"))
         left_heading = self.style(left_heading, self.header_font)
@@ -299,7 +301,8 @@ class Gui(wx.Frame):        # main options screen
                 pass
             self.right_panel.Update()
 
-            middle_heading = wx.StaticText(self.middle_panel, label=_("Options"))
+            middle_heading = wx.StaticText(
+                self.middle_panel, label=_("Options"))
             middle_heading = self.style(middle_heading, self.header_font)
             self.middle_sizer.Add(
                 middle_heading, 0, wx.ALL | wx.ALIGN_CENTER, 10)
@@ -446,7 +449,8 @@ class Gui(wx.Frame):        # main options screen
                                      wx.ALL | wx.ALIGN_CENTER, 30)
 
             row = wx.BoxSizer(wx.HORIZONTAL)
-            simulate_btn = wx.Button(self.middle_panel, label=_("Simulate in 2D"))
+            simulate_btn = wx.Button(
+                self.middle_panel, label=_("Simulate in 2D"))
             simulate_btn.name = '2D'
             simulate_btn.Bind(wx.EVT_BUTTON, self.newSimulate, simulate_btn)
             row.Add(simulate_btn, 1, wx.EXPAND, 5)
@@ -694,7 +698,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         right_sizer.Add(self.toggle2d, 0, wx.ALL | wx.EXPAND, 0)
         right_sizer.Add(self.toggle3d, 0, wx.ALL | wx.EXPAND, 0)
         right_sizer.AddStretchSpacer()
-        right_sizer.Add(destroy, 0, wx.ALL|wx.EXPAND, 5)
+        right_sizer.Add(destroy, 0, wx.ALL | wx.EXPAND, 5)
 
         self.SetSizerAndFit(main_sizer)
 
@@ -771,12 +775,11 @@ class SimulatePage(wx.Frame):       # simulation screen
                 if not self.toggle2d.GetValue():
                     self.canvas_placeholder.Show()
             self.Layout()
-        
+
         elif name == 'kill':
             self.canvas.Destroy()
             self.canvas3d.Destroy()
             self.Destroy()
-
 
     def on_close(self, event):
         self.Destroy()
