@@ -13,8 +13,8 @@ import time
 import numpy as np
 import math
 
-from names import Names
-from userint import UserInterface
+from main_project.names import Names
+from main_project.userint import UserInterface
 
 
 

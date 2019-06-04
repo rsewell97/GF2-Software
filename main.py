@@ -15,15 +15,15 @@ import sys, os
 
 import wx
 
-from names import Names
-from devices import Devices
-from network import Network
-from monitors import Monitors
-from scanner import Scanner
-from parse import Parser
-from userint import UserInterface
-from main_gui import Gui
-from error import Error
+from main_project.names import Names
+from main_project.devices import Devices
+from main_project.network import Network
+from main_project.monitors import Monitors
+from main_project.scanner import Scanner
+from main_project.parse import Parser
+from main_project.userint import UserInterface
+from main_project.main_gui import Gui
+from main_project.error import Error
 
 #_________________IMPORTANT: CHANGE GUI MODULE________________#
 
@@ -120,7 +120,7 @@ app = BaseApp()
 builtins._ = wx.GetTranslation
 locale = wx.Locale()
 locale.Init(wx.LANGUAGE_DEFAULT)
-locale.AddCatalogLookupPathPrefix('./locale')
+locale.AddCatalogLookupPathPrefix('./main_project/.locale')
 locale.AddCatalog('po_file')
 
 gui = Gui("Logic Simulator")

@@ -15,12 +15,12 @@ from OpenGL import GL, GLU, GLUT
 import numpy as np
 import math
 
-from names import Names
-from devices import Devices
-from network import Network
-from monitors import Monitors
-from scanner import Scanner
-from parse import Parser
+from main_project.names import Names
+from main_project.devices import Devices
+from main_project.network import Network
+from main_project.monitors import Monitors
+from main_project.scanner import Scanner
+from main_project.parse import Parser
 
 
 class MyGLCanvas(wxcanvas.GLCanvas):
