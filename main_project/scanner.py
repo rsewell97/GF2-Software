@@ -1,6 +1,7 @@
 import sys
 from main_project.error import *
 
+
 """Read the circuit definition file and translate the characters into symbols.
 
 Used in the Logic Simulator project to read the characters in the definition

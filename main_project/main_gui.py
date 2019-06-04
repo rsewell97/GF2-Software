@@ -19,15 +19,16 @@ import numpy as np
 import random
 import subprocess
 from multiprocessing import Process
+import os
 
-from names import Names
-from devices import Devices
-from network import Network
-from monitors import Monitors
-from scanner import Scanner
-from parse import Parser
+from main_project.names import Names
+from main_project.devices import Devices
+from main_project.network import Network
+from main_project.monitors import Monitors
+from main_project.scanner import Scanner
+from main_project.parse import Parser
 
-from simulator import Canvas, Canvas3D
+from main_project.simulator import Canvas, Canvas3D
 
 
 def scale_bitmap(bitmap, width, height):
@@ -41,16 +42,16 @@ class CircuitDiagram(wx.Panel):
     def __init__(self, parent, devices, network, names):
         """Initialise canvas properties and useful variables."""
         self.icons = {
-            "OR": wx.Bitmap('.GUI/Gates/OR.png'),
-            "XOR": wx.Bitmap('.GUI/Gates/XOR.png'),
-            "SWITCH": wx.Bitmap('.GUI/Gates/SWITCH.png'),
-            "CLOCK": wx.Bitmap('.GUI/Gates/CLOCK.png'),
-            "SIGGEN": wx.Bitmap('.GUI/Gates/SIGGEN.png'),
-            "DTYPE": wx.Bitmap('.GUI/Gates/DTYPE.png'),
-            "AND": wx.Bitmap('.GUI/Gates/AND.png'),
-            "NAND": wx.Bitmap('.GUI/Gates/NAND.png'),
-            "NOT": wx.Bitmap('.GUI/Gates/NOT.png'),
-            "NOR": wx.Bitmap('.GUI/Gates/NOR.png')
+            "OR": wx.Bitmap('./main_project/GUI/Gates/OR.png'),
+            "XOR": wx.Bitmap('./main_project/GUI/Gates/XOR.png'),
+            "SWITCH": wx.Bitmap('./main_project/GUI/Gates/SWITCH.png'),
+            "CLOCK": wx.Bitmap('./main_project/GUI/Gates/CLOCK.png'),
+            "SIGGEN": wx.Bitmap('./main_project/GUI/Gates/SIGGEN.png'),
+            "DTYPE": wx.Bitmap('./main_project/GUI/Gates/DTYPE.png'),
+            "AND": wx.Bitmap('./main_project/GUI/Gates/AND.png'),
+            "NAND": wx.Bitmap('./main_project/GUI/Gates/NAND.png'),
+            "NOT": wx.Bitmap('./main_project/GUI/Gates/NOT.png'),
+            "NOR": wx.Bitmap('./main_project/GUI/Gates/NOR.png')
         }
         super().__init__(parent)
         self.SetOwnBackgroundColour('white')
@@ -176,8 +177,9 @@ class Gui(wx.Frame):        # main options screen
     def __init__(self, title):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title)
-
-        self.SetIcon(wx.Icon('.GUI/CUED Software.png'))
+        
+        print (os.getcwd())
+        self.SetIcon(wx.Icon('./main_project/GUI/CUED Software.png'))
         self.Maximize(True)
         self.SetBackgroundColour((186, 211, 255))
         self.header_font = wx.Font(
@@ -540,7 +542,7 @@ class Gui(wx.Frame):        # main options screen
                 wx.LogError(_("Cannot open file '%s'.") % pathname)
 
     def open_help(self, event):
-        filepath = '.GUI/helpfile.pdf'
+        filepath = './main_project/GUI/helpfile.pdf'
         import subprocess
         import os
         import platform
@@ -561,7 +563,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         """Initialise widgets and layout."""
         super().__init__(parent=parent, title="Simulation")
 
-        self.SetIcon(wx.Icon('.GUI/CUED Software.png'))
+        self.SetIcon(wx.Icon('./main_project/GUI/CUED Software.png'))
         self.Maximize(True)
         self.SetBackgroundColour((186, 211, 255))
         self.colours = []
@@ -577,7 +579,7 @@ class SimulatePage(wx.Frame):       # simulation screen
         self.back5 = wx.Button(self, wx.ID_ANY, _("Step -5"))
         self.back1 = wx.Button(self, wx.ID_ANY, _("Step -1"))
 
-        play_pause = wx.Bitmap('.GUI/Glyphicons/playpause.png')
+        play_pause = wx.Bitmap('./main_project/GUI/Glyphicons/playpause.png')
         play_pause = scale_bitmap(play_pause, 25, 25)
         self.pause = wx.BitmapToggleButton(self, wx.ID_ANY, play_pause)
         self.pause.name = 'pause'
@@ -821,7 +823,7 @@ class SimulatePage(wx.Frame):       # simulation screen
             pass
 
     def open_help(self, event):
-        filepath = '.GUI/helpfile.pdf'
+        filepath = './main_project/GUI/helpfile.pdf'
         import subprocess
         import os
         import platform
