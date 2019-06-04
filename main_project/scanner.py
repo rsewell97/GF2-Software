@@ -1,6 +1,7 @@
 import sys
 from error import *
 
+
 """Read the circuit definition file and translate the characters into symbols.
 
 Used in the Logic Simulator project to read the characters in the definition
@@ -61,14 +62,16 @@ class Scanner:
             self.read_as_string = True
             self.total_error_string = ""
             self.input_file = path
-            self.list_file = [line.rstrip('\n') for line in self.input_file.split('\n')]
+            self.list_file = [line.rstrip('\n')
+                              for line in self.input_file.split('\n')]
             self.character_count = 0
         else:
             self.read_as_string = False
             try:
                 self.input_file = open(path, 'r')
             except FileNotFoundError:
-                raise FileNotFoundError ("Error: File doesn't exist in current directory")
+                raise FileNotFoundError(
+                    "Error: File doesn't exist in current directory")
                 sys.exit()
             self.list_file = [line.rstrip('\n') for line in open(path, 'r')]
 
@@ -79,16 +82,20 @@ class Scanner:
                     self.CURLY_CLOSE, self.SEMICOLON, self.DOT, self.MINUS, 
                     self.SLASH, self.HASHTAG, self.EOF] = range(14)
 
-        self.heading_list = ["devices", "connections", "monitor"]
-        [self.DEVICES_ID, self.CONNECTION_ID, self.MONITOR_ID] = self.names.lookup(self.heading_list)
 
-        self.keyword_list = ["are", "is", "have", "has", "set", "to", "cycle", "trace"]
+        self.heading_list = ["devices", "connections", "monitor"]
+        [self.DEVICES_ID, self.CONNECTION_ID,
+            self.MONITOR_ID] = self.names.lookup(self.heading_list)
+
+        self.keyword_list = ["are", "is", "have",
+                             "has", "set", "to", "cycle", "trace"]
         [self.ARE, self.IS, self.HAVE, self.HAS, self.SET,
-        self.TO, self.CYCLE, self.TRACE] = self.names.lookup(self.keyword_list)
+         self.TO, self.CYCLE, self.TRACE] = self.names.lookup(self.keyword_list)
 
         [self.DEVICE] = self.names.lookup(["device"])
 
-        self.ignore = ["gate", "gates", "a", "an", "some", "initially", "inputs", "connected"]
+        self.ignore = ["gate", "gates", "a", "an",
+                       "some", "initially", "inputs", "connected"]
         self.stopping_symbols = [self.SEMICOLON, self.CURLY_CLOSE, self.EOF]
 
         self.current_character = " "
@@ -99,9 +106,9 @@ class Scanner:
     def get_symbol(self, query=False):
         """Translate the next sequence of characters into a symbol."""
         symbol = Symbol()
-        self.skip_spaces() # current character now not whitespace
+        self.skip_spaces()  # current character now not whitespace
 
-        if self.current_character.isalpha(): # name
+        if self.current_character.isalpha():  # name
             name_list = self.get_name()
             self.name_string = name_list[0]
 
@@ -122,15 +129,15 @@ class Scanner:
                     symbol.id = self.names.query(self.name_string)
                 else:
                     [symbol.id] = self.names.lookup([self.name_string])
-                
+
             print(self.name_string, end=' ')
 
-        elif self.current_character.isdigit(): # number
+        elif self.current_character.isdigit():  # number
             symbol.id = self.get_number()
             symbol.type = self.NUMBER
-            print(symbol.id[0],end=' ')
+            print(symbol.id[0], end=' ')
 
-        elif self.current_character == "=": # punctuation
+        elif self.current_character == "=":  # punctuation
             if self.advance() == '>':
                 symbol.type = self.ARROW
                 self.advance()
@@ -140,11 +147,11 @@ class Scanner:
         elif self.current_character == ",":
             symbol.type = self.COMMA
             self.advance()
- 
+
         elif self.current_character == "{":
             symbol.type = self.CURLY_OPEN
             self.advance()
-            print("{",end='')
+            print("{", end='')
 
         elif self.current_character == "}":
             symbol.type = self.CURLY_CLOSE
@@ -161,20 +168,21 @@ class Scanner:
             self.advance()
             
         elif self.current_character == "#": # single line comment
+
             x = 0
             symbol.type = self.HASHTAG
             while x < 1:
                 self.advance()
-                while self.current_character != "\n": # ignore until end of line
+                while self.current_character != "\n":  # ignore until end of line
                     self.advance()
                 x += 1
         
         elif self.current_character == "/": #bulk comment, expect another
             symbol.type = self.SLASH
             self.advance()
-            if self.current_character == "/": # start bulk comment, start ignoring
+            if self.current_character == "/":  # start bulk comment, start ignoring
                 no_consec_slashes = 0
-                while no_consec_slashes < 2: # ignore until two consecutive slashes
+                while no_consec_slashes < 2:  # ignore until two consecutive slashes
                     self.advance()
                     if self.current_character == "/":
                         no_consec_slashes += 1
@@ -197,6 +205,7 @@ class Scanner:
             symbol.type = self.EOF
         
         else: # not a valid character
+
             self.error(SyntaxError, "Invalid character encountered")
 
         self.word_number += 1
@@ -216,7 +225,6 @@ class Scanner:
             else:
                 return [name, self.current_character]
 
-
     def get_number(self):
         """Seek the next number in input_file.
 
@@ -230,13 +238,11 @@ class Scanner:
             else:
                 return [num, self.current_character]
 
-
     def skip_spaces(self):
         """"advances until the character is no longer a space"""
 
         while self.current_character.isspace():
             self.current_character = self.advance()
-
 
     def advance(self):
         """reads one further character into the document"""
@@ -255,7 +261,7 @@ class Scanner:
         if self.current_character == '\n':
             self.current_line += 1
             self.character_number = self.word_number = 0
-        
+
         return self.current_character
 
     def error(self, error_type, message=""):
@@ -263,16 +269,16 @@ class Scanner:
         self.total_errors += 1
 
         if self.read_as_string:
-            self.total_error_string += Error(message, error_type, self.list_file[self.current_line], 
-                    self.current_line, self.character_number).error_string
+            self.total_error_string += Error(message, error_type, self.list_file[self.current_line],
+                                             self.current_line, self.character_number).error_string
         else:
             try:
-                Error(message, error_type, self.list_file[self.current_line], 
-                        self.current_line, self.character_number)
+                Error(message, error_type, self.list_file[self.current_line],
+                      self.current_line, self.character_number)
             except IndexError:
-                Error(message, error_type, self.list_file[-1], 
-                        self.current_line, self.character_number)
-        
+                Error(message, error_type, self.list_file[-1],
+                      self.current_line, self.character_number)
+
         while True:
             if self.stuck_in_comment > 0:
                 print("stuckness", 1)
@@ -295,4 +301,3 @@ class Scanner:
         
                 
         return error_type
-    

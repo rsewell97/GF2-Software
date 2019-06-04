@@ -13,11 +13,7 @@ import time
 import numpy as np
 import math
 
-from names import Names
-from userint import UserInterface
-
-
-
+from main_project.names import Names
 
 class Canvas(wxcanvas.GLCanvas):
     """Handle all drawing operations.
@@ -69,6 +65,9 @@ class Canvas(wxcanvas.GLCanvas):
         self.scale_x = 50
         self.scale_y = 50
 
+        self.size = self.GetClientSize()
+        self.max_x = self.size.width
+
         self.devices = devices
         self.network = network
         self.monitors = monitors
@@ -105,31 +104,31 @@ class Canvas(wxcanvas.GLCanvas):
 
         # Clear everything
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
-        
+
         if len(self.signals) > 0:
             # ruler
             for i in range(0, len(self.signals[0][-1])):
-                GL.glColor3f(0,0,0)
-                self.render_text(str(i), 100 + i*self.scale_x, self.size.height - 30)
-                GL.glColor3f(0.8,0.8,0.8)
+                GL.glColor3f(0, 0, 0)
+                self.render_text(str(i), 100 + i*self.scale_x,
+                                 self.size.height - 30)
+                GL.glColor3f(0.8, 0.8, 0.8)
                 GL.glLineWidth(1.0)
                 GL.glBegin(GL.GL_LINES)
                 GL.glVertex2f(100 + i*self.scale_x, self.size.height - 40)
                 GL.glVertex2f(100 + i*self.scale_x, 0)
                 GL.glEnd()
 
-
-                
-
             # signal
             count = 1
             for sig in self.signals:
                 GL.glColor3f(sig[1][0], sig[1][1], sig[1][2])
                 GL.glLineWidth(3.0)
-                self.draw_signal(sig[-1], (100,self.size.height - count*2*self.scale_y))
+                self.draw_signal(
+                    sig[-1], (100, self.size.height - count*2*self.scale_y))
 
                 GL.glClearColor(1.0, 1.0, 1.0, 0.0)
-                self.render_text(sig[0], 50, self.size.height - count*2*self.scale_y)
+                self.render_text(
+                    sig[0], 50, self.size.height - count*2*self.scale_y)
                 count += 1
 
         # We have been drawing to the back buffer, flush the graphics pipeline
@@ -170,10 +169,25 @@ class Canvas(wxcanvas.GLCanvas):
             if self.pan_x > 0:
                 self.pan_x = 0
             self.init = False
-            
+
+            self.parent.canvas3d.pan_x -= 20 * event.GetWheelRotation() / event.GetWheelDelta()
+            if self.parent.canvas3d.pan_x > 0:
+                self.parent.canvas3d.pan_x = 0
+            self.parent.canvas3d.init = False
+            self.parent.canvas3d.Refresh()
+
         if event.GetWheelRotation() > 0:
             self.pan_x -= 20 * event.GetWheelRotation() / event.GetWheelDelta()
+            if self.pan_x < -self.max_x-100 + self.size.width:
+                self.pan_x = -self.max_x-100 + self.size.width
             self.init = False
+
+            self.parent.canvas3d.pan_x -= 20 * event.GetWheelRotation() / event.GetWheelDelta()
+            if self.parent.canvas3d.pan_x < -self.parent.canvas3d.max_x-100 + self.parent.canvas3d.size.width/3:
+                self.parent.canvas3d.pan_x = -self.parent.canvas3d.max_x - \
+                    100 + self.parent.canvas3d.size.width/3
+            self.parent.canvas3d.init = False
+            self.parent.canvas3d.Refresh()
 
         self.Refresh()  # triggers the paint event
 
@@ -191,7 +205,7 @@ class Canvas(wxcanvas.GLCanvas):
                 GLUT.glutBitmapCharacter(font, ord(character))
 
     def draw_signal(self, signal, offset):
-        self.max_x = self.scale_x *(len(signal)-1)
+        self.max_x = self.scale_x * (len(signal)-1)
 
         GL.glBegin(GL.GL_LINE_STRIP)
         for i, val in enumerate(signal):
@@ -208,10 +222,6 @@ class Canvas(wxcanvas.GLCanvas):
 
         GL.glEnd()
         return
-    
-    def test_loop(self):
-        pass
-
 
 
 class Canvas3D(wxcanvas.GLCanvas):
@@ -255,6 +265,7 @@ class Canvas3D(wxcanvas.GLCanvas):
         self.devices = devices
         self.network = network
         self.monitors = monitors
+        self.parent = parent
 
         # Constants for OpenGL materials and lights
         self.mat_diffuse = [0.0, 0.0, 0.0, 1.0]
@@ -288,6 +299,9 @@ class Canvas3D(wxcanvas.GLCanvas):
         self.scale_z = 30
         self.signals = []
 
+        self.max_x = 0
+        self.size = self.GetClientSize()
+
         # Offset between viewpoint and origin of the scene
         self.depth_offset = 800
 
@@ -301,9 +315,8 @@ class Canvas3D(wxcanvas.GLCanvas):
         self.size = self.GetClientSize()
 
         self.SetCurrent(self.context)
-    
+
         GL.glViewport(0, 0, self.size.width, self.size.height)
-        
 
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
@@ -358,14 +371,14 @@ class Canvas3D(wxcanvas.GLCanvas):
             self.init = True
 
         # Clear everything
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)      
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
         if len(self.signals) > 0:
             # ruler
-            GL.glColor3f(1.0,1.0,1.0)
+            GL.glColor3f(1.0, 1.0, 1.0)
             for i in range(0, len(self.signals[0][-1])):
                 self.render_text(str(i), 100 + i*self.scale_x, 0, 0)
-                
+
                 GL.glBegin(GL.GL_LINES)
                 GL.glVertex3f(100 + i*self.scale_x, 0, 10)
                 GL.glVertex3f(100 + i*self.scale_x, 0, 1000)
@@ -378,20 +391,22 @@ class Canvas3D(wxcanvas.GLCanvas):
                 self.draw_signal(sig[-1], (100, 1.3*count*self.scale_z))
                 self.render_text(sig[0], 50, 0, 1.3*count*self.scale_z)
                 count += 1
-        
+
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
         GL.glFlush()
         self.SwapBuffers()
 
     def draw_signal(self, signal, offset):
-        self.max_x = self.scale_x *(len(signal)-1)
+        self.max_x = self.scale_x * (len(signal)-1)
 
         for i, val in enumerate(signal):
             if val == 1:
-                self.draw_cuboid(offset[0]+i*self.scale_x, offset[1], self.scale_x/2, self.scale_z/2, self.scale_y)
+                self.draw_cuboid(
+                    offset[0]+i*self.scale_x, offset[1], self.scale_x/2, self.scale_z/2, self.scale_y)
             else:
-                self.draw_cuboid(offset[0]+i*self.scale_x, offset[1], self.scale_x/2, self.scale_z/2, 0)
+                self.draw_cuboid(
+                    offset[0]+i*self.scale_x, offset[1], self.scale_x/2, self.scale_z/2, 0)
         return
 
     def draw_cuboid(self, x_pos, z_pos, half_width, half_depth, height):
@@ -475,12 +490,31 @@ class Canvas3D(wxcanvas.GLCanvas):
             self.init = False
 
         if event.GetWheelRotation() < 0:
-            self.pan_x -=  4*event.GetWheelRotation() / (event.GetWheelDelta())
+            self.pan_x -= 20*event.GetWheelRotation() / (event.GetWheelDelta())
+
+            if self.pan_x > 0:
+                self.pan_x = 0
             self.init = False
 
+            self.parent.canvas.pan_x -= 20*event.GetWheelRotation() / (event.GetWheelDelta())
+            if self.parent.canvas.pan_x > 0:
+                self.parent.canvas.pan_x = 0
+            self.parent.canvas.init = False
+            self.parent.canvas.Refresh()
+
         if event.GetWheelRotation() > 0:
-            self.pan_x -=  4*event.GetWheelRotation() / (event.GetWheelDelta())
+            self.pan_x -= 20*event.GetWheelRotation() / (event.GetWheelDelta())
+            if self.pan_x < -self.parent.canvas3d.max_x-100 + self.parent.canvas3d.size.width/3:
+                self.pan_x = -self.parent.canvas3d.max_x - \
+                    100 + self.parent.canvas3d.size.width/3
             self.init = False
+
+            self.parent.canvas.pan_x -= 20*event.GetWheelRotation() / (event.GetWheelDelta())
+            if self.parent.canvas.pan_x < -self.parent.canvas.max_x-100 + self.parent.canvas.size.width:
+                self.parent.canvas.pan_x = -self.parent.canvas.max_x - \
+                    100 + self.parent.canvas.size.width
+            self.parent.canvas.init = False
+            self.parent.canvas.Refresh()
 
         self.Refresh()  # triggers the paint event
 
