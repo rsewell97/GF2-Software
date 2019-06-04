@@ -120,7 +120,7 @@ app = BaseApp()
 builtins._ = wx.GetTranslation
 locale = wx.Locale()
 locale.Init(wx.LANGUAGE_DEFAULT)
-locale.AddCatalogLookupPathPrefix('./locale')
+locale.AddCatalogLookupPathPrefix('./main_project/.locale')
 locale.AddCatalog('po_file')
 
 gui = Gui("Logic Simulator")
