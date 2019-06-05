@@ -175,7 +175,6 @@ class Scanner:
                 self.advance()
                 while self.current_character != "\n":  # ignore until end of line
                     self.advance()
-                self.advance()
                 x += 1
         
         elif self.current_character == "/": #bulk comment, expect another
@@ -184,7 +183,6 @@ class Scanner:
             if self.current_character == "/":  # start bulk comment, start ignoring
                 no_consec_slashes = 0
                 while no_consec_slashes < 2:  # ignore until two consecutive slashes
-                    self.advance()
                     if self.current_character == "/":
                         no_consec_slashes += 1
                         symbol.type = self.SLASH

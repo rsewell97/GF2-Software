@@ -139,8 +139,8 @@ def test_non_valid_symbol(new_names):
         Scanner(" 4fjd", new_names, True).get_symbol()
 
 
-@pytest.mark.parametrize("inputs, outputs", [("#hello \nh", "h"),
-                                             ("//hello \n world //h", "h")])
+@pytest.mark.parametrize("inputs, outputs", [("#hello \nh", "\n"),
+                                             ("//hello \n world //h", "/")])
 def test_comments(inputs, outputs, new_names):
     """Testing that the scanner skips over the two error types correctly"""
     new_scan = Scanner(inputs, new_names, True)
