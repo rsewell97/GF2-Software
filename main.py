@@ -55,31 +55,8 @@ class BaseApp(wx.App, InspectionMixin):
 
         self.appName = "Logic Simulator"
 
-        self.doConfig()
-
         return True
 
-    def doConfig(self):
-        """Setup an application configuration file"""
-        # configuration folder
-        sp = wx.StandardPaths.Get()
-        self.configLoc = sp.GetUserConfigDir()
-        self.configLoc = os.path.dirname(
-            os.path.abspath(__file__)) + "/" + self.appName
-
-        if not os.path.exists(self.configLoc):
-            os.mkdir(self.configLoc)
-
-        # AppConfig stuff is here
-        self.appConfig = wx.FileConfig(appName=self.appName,
-                                       vendorName=u'Robbie Sewell, Lea Ganser-Potts, Daniel MacKinnon',
-                                       localFilename=os.path.join(
-                                           self.configLoc, "AppConfig"))
-
-        if not self.appConfig.HasEntry(u'Language'):
-            self.appConfig.Write(key=u'Language', value=u'fr')
-
-        self.appConfig.Flush()
 
     def updateLanguage(self, lang):
         """
